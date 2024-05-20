@@ -183,8 +183,8 @@ constexpr size_t cpuCount     = 2;
 
 using i_stdVec = std::vector<int>;
 using s_stdVec = std::vector<std::string>;
-using i_sklVec = skl::static_vector<int, 1 << maxSizePower>;
-using s_sklVec = skl::static_vector<std::string, 1 << maxSizePower>;
+using i_wbrVec = wbr::static_vector<int, 1 << maxSizePower>;
+using s_wbrVec = wbr::static_vector<std::string, 1 << maxSizePower>;
 using i_resVec = preallocated_vector<int, 1 << maxSizePower>;
 using s_resVec = preallocated_vector<std::string, 1 << maxSizePower>;
 
@@ -205,7 +205,7 @@ void vector_generate_n (benchmark::State& state)
 
 BENCHMARK(vector_generate_n<i_stdVec>)->DenseRange(minRange, maxRange, 2)->Complexity(benchmark::o1);
 BENCHMARK(vector_generate_n<i_resVec>)->DenseRange(minRange, maxRange, 2)->Complexity(benchmark::o1);
-BENCHMARK(vector_generate_n<i_sklVec>)->DenseRange(minRange, maxRange, 2)->Complexity(benchmark::o1);
+BENCHMARK(vector_generate_n<i_wbrVec>)->DenseRange(minRange, maxRange, 2)->Complexity(benchmark::o1);
 
 template<typename Vector>
 void vector_fill (benchmark::State& state)
@@ -227,7 +227,7 @@ void vector_fill (benchmark::State& state)
 
 BENCHMARK(vector_fill<i_stdVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 BENCHMARK(vector_fill<i_resVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
-BENCHMARK(vector_fill<i_sklVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
+BENCHMARK(vector_fill<i_wbrVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 
 template<typename Vector>
 void vector_begin_insert (benchmark::State& state)
@@ -247,7 +247,7 @@ void vector_begin_insert (benchmark::State& state)
 
 BENCHMARK(vector_begin_insert<i_stdVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 BENCHMARK(vector_begin_insert<i_resVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
-BENCHMARK(vector_begin_insert<i_sklVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
+BENCHMARK(vector_begin_insert<i_wbrVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 
 template<typename Vector>
 void vector_end_insert (benchmark::State& state)
@@ -266,7 +266,7 @@ void vector_end_insert (benchmark::State& state)
 
 BENCHMARK(vector_end_insert<i_stdVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 BENCHMARK(vector_end_insert<i_resVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
-BENCHMARK(vector_end_insert<i_sklVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
+BENCHMARK(vector_end_insert<i_wbrVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 
 template<typename Vector>
 void vector_push_back (benchmark::State& state)
@@ -285,7 +285,7 @@ void vector_push_back (benchmark::State& state)
 
 BENCHMARK(vector_push_back<i_stdVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 BENCHMARK(vector_push_back<i_resVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
-BENCHMARK(vector_push_back<i_sklVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
+BENCHMARK(vector_push_back<i_wbrVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 
 template<typename Vector>
 void vector_clear (benchmark::State& state)
@@ -309,11 +309,11 @@ void vector_clear (benchmark::State& state)
 
 BENCHMARK(vector_clear<i_stdVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 BENCHMARK(vector_clear<i_resVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
-BENCHMARK(vector_clear<i_sklVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
+BENCHMARK(vector_clear<i_wbrVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 
 BENCHMARK(vector_clear<s_stdVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 BENCHMARK(vector_clear<s_resVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
-BENCHMARK(vector_clear<s_sklVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
+BENCHMARK(vector_clear<s_wbrVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 
 template<typename Vector>
 void vector_erase_begin (benchmark::State& state)
@@ -330,7 +330,7 @@ void vector_erase_begin (benchmark::State& state)
 
 BENCHMARK(vector_erase_begin<i_stdVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 BENCHMARK(vector_erase_begin<i_resVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
-BENCHMARK(vector_erase_begin<i_sklVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
+BENCHMARK(vector_erase_begin<i_wbrVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 
 template<typename Vector>
 void vector_erase_end (benchmark::State& state)
@@ -347,7 +347,7 @@ void vector_erase_end (benchmark::State& state)
 
 BENCHMARK(vector_erase_end<i_stdVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 BENCHMARK(vector_erase_end<i_resVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
-BENCHMARK(vector_erase_end<i_sklVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
+BENCHMARK(vector_erase_end<i_wbrVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 
 template<typename Vector>
 void vector_create (benchmark::State& state)
@@ -362,4 +362,4 @@ void vector_create (benchmark::State& state)
 
 BENCHMARK(vector_create<i_stdVec>)->Range(0, 0)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 BENCHMARK(vector_create<i_resVec>)->Range(0, 0)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
-BENCHMARK(vector_create<i_sklVec>)->Range(0, 0)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
+BENCHMARK(vector_create<i_wbrVec>)->Range(0, 0)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);

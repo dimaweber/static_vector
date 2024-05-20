@@ -11,20 +11,20 @@
     #include <format>
 #endif
 
-#if !defined(SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS)
-    #define SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS 0
+#if !defined(wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS)
+    #define wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS 0
 #endif
 
-#if !defined(SKL_STATIC_VECTOR_DO_RANGE_CHECKS)
-    #define SKL_STATIC_VECTOR_DO_RANGE_CHECKS 0
+#if !defined(wbr_STATIC_VECTOR_DO_RANGE_CHECKS)
+    #define wbr_STATIC_VECTOR_DO_RANGE_CHECKS 0
 #endif
 
 #if defined(NDEBUG)
-    #undef SKL_STATIC_VECTOR_DO_RANGE_CHECKS
-    #define SKL_STATIC_VECTOR_DO_RANGE_CHECKS 0
+    #undef wbr_STATIC_VECTOR_DO_RANGE_CHECKS
+    #define wbr_STATIC_VECTOR_DO_RANGE_CHECKS 0
 #endif
 
-#if SKL_STATIC_VECTOR_DO_RANGE_CHECKS
+#if wbr_STATIC_VECTOR_DO_RANGE_CHECKS
     #include <cassert>
     #define valid_index_check(idx_)                assert(0 <= idx_ && idx_ < this->size( ))
     #define not_empty_container_check( )           assert(!this->empty( ))
@@ -43,7 +43,7 @@
 
 #endif
 
-#if SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
     #include <execution>
 constexpr auto exec_policy = std::execution::par;
 #endif
@@ -74,7 +74,7 @@ constexpr auto exec_policy = std::execution::par;
  *      - clang-17 (partial, benchmark fail to compile)
  *      - clang-18
  */
-namespace skl
+namespace wbr
 {
 namespace
 {
@@ -93,7 +93,7 @@ NoThrowForwardIt uninitialized_move_backward (InputIt first, InputIt last, NoThr
 {
     if ( d_first == last )
         return first;
-#if SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
     auto iter = std::uninitialized_move(exec_policy, std::reverse_iterator(last), std::reverse_iterator(first), std::reverse_iterator(d_first));
 #else
     auto iter = std::uninitialized_move(std::reverse_iterator(last), std::reverse_iterator(first), std::reverse_iterator(d_first));
@@ -166,7 +166,7 @@ public:
 
         int main()
         {
-            skl::static_vector<int, 7> data = {1, 2, 4, 5, 5, 6};
+            wbr::static_vector<int, 7> data = {1, 2, 4, 5, 5, 6};
 
             // Set element 1
             data.at(1) = 88;
@@ -223,7 +223,7 @@ public:
      * #include <iostream>
      *
      * int main() {
-     *     skl::static_vector<int, 4> numbers{2, 4, 6, 8};
+     *     wbr::static_vector<int, 4> numbers{2, 4, 6, 8};
      *
      *     std::cout << "Second element: " << numbers[1] << '\n';
      *
@@ -267,7 +267,7 @@ public:
 
         int main()
         {
-            skl::static_vector<char, 6> letters{'a', 'b', 'c', 'd', 'e', 'f'};
+            wbr::static_vector<char, 6> letters{'a', 'b', 'c', 'd', 'e', 'f'};
 
             if (!letters.empty())
                 std::cout << "The first character is '" << letters.front() << "'.\n";
@@ -420,7 +420,7 @@ constexpr void static_vector<T, SZ>::swap(static_vector& other) noexcept
 
         std::swap_ranges(begin( ), begin( ) + min, other.begin( ));
         if ( s > other_s )
-#if SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
             std::uninitialized_move_n(exec_policy, begin( ) + min, diff, other.end( ));
         else
             std::uninitialized_move_n(exec_policy, other.begin( ) + min, diff, end( ));
@@ -472,7 +472,7 @@ constexpr auto static_vector<T, SZ>::insert(static_vector::const_iterator pos, I
     const auto length = std::distance(first, last);
 
     uninitialized_move_backward(begin( ) + offset, end( ), end( ) + length);
-#if SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
     std::uninitialized_copy(exec_policy, first, last, begin( ) + offset);
 #else
     std::uninitialized_copy(first, last, begin( ) + offset);
@@ -491,7 +491,7 @@ constexpr auto static_vector<T, SZ>::insert(static_vector::const_iterator pos, s
     const auto offset = std::distance(cbegin( ), pos);
 
     uninitialized_move_backward(begin( ) + offset, end( ), end( ) + count);
-#if SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
     std::uninitialized_fill_n(exec_policy, begin( ) + offset, count, value);
 #else
     std::uninitialized_fill_n(begin( ) + offset, count, value);
@@ -573,7 +573,7 @@ constexpr auto static_vector<T, SZ>::erase(static_vector::const_iterator first, 
 
     if constexpr ( !std::is_trivially_destructible_v<value_type> )
         std::destroy_n(begin( ) + offset, length);
-#if SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
     std::uninitialized_move(exec_policy, begin( ) + offset + length, end( ), begin( ) + offset);
 #else
     std::uninitialized_move(begin( ) + offset + length, end( ), begin( ) + offset);
@@ -607,7 +607,7 @@ constexpr auto static_vector<T, SZ>::erase(static_vector::const_iterator pos) ->
         if constexpr ( std::is_trivially_copyable_v<T> )
             std::move(first, last, dfirst);
         else
-#if SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
             std::uninitialized_move(exec_policy, begin( ) + offset + 1, end( ), begin( ) + offset);
 #else
             std::uninitialized_move(begin( ) + offset + 1, end( ), begin( ) + offset);
@@ -895,7 +895,7 @@ constexpr auto static_vector<T, SZ>::assign(InputIt first, InputIt last) -> void
     count_less_then_capacity_check(std::distance(first, last));
 
     clear( );
-#if SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
     std::uninitialized_copy(exec_policy, first, last, begin( ));
 #else
     std::uninitialized_copy(first, last, begin( ));
@@ -909,7 +909,7 @@ constexpr auto static_vector<T, SZ>::assign(static_vector::size_type count, cons
     count_less_then_capacity_check(count);
 
     clear( );
-#if SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
     std::uninitialized_fill_n(exec_policy, begin( ), count, value);
 #else
     std::uninitialized_fill_n(begin( ), count, value);
@@ -923,7 +923,7 @@ constexpr auto static_vector<T, SZ>::operator= (std::initializer_list<value_type
     count_less_then_capacity_check(ilist.size( ));
 
     clear( );
-#if SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
     std::uninitialized_copy(exec_policy, ilist.begin( ), ilist.end( ), begin( ));
 #else
     std::uninitialized_copy(ilist.begin( ), ilist.end( ), begin( ));
@@ -933,13 +933,13 @@ constexpr auto static_vector<T, SZ>::operator= (std::initializer_list<value_type
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::operator= (static_vector&& other) noexcept -> skl::static_vector<T, SZ>&
+constexpr auto static_vector<T, SZ>::operator= (static_vector&& other) noexcept -> wbr::static_vector<T, SZ>&
 {
     count_less_then_capacity_check(other.size( ));
 
     if ( &other != this ) {
         clear( );
-#if SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
         std::uninitialized_move(exec_policy, other.begin( ), other.end( ), begin( ));
 #else
         std::uninitialized_move(other.begin( ), other.end( ), begin( ));
@@ -956,7 +956,7 @@ constexpr auto static_vector<T, SZ>::operator= (const static_vector& other) -> s
 
     if ( &other != this ) {
         clear( );
-#if SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
         std::uninitialized_copy(exec_policy, other.begin( ), other.end( ), begin( ));
 #else
         std::uninitialized_copy(other.begin( ), other.end( ), begin( ));
@@ -975,7 +975,7 @@ CXX20_CONSTEXPR inline static_vector<T, SZ>::~static_vector( )
 template<typename T, std::size_t SZ>
 constexpr static_vector<T, SZ>::static_vector(static_vector&& vec) noexcept
 {
-#if SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
     std::uninitialized_move(exec_policy, vec.begin( ), vec.end( ), begin( ));
 #else
     std::uninitialized_move(vec.begin( ), vec.end( ), begin( ));
@@ -986,7 +986,7 @@ constexpr static_vector<T, SZ>::static_vector(static_vector&& vec) noexcept
 template<typename T, std::size_t SZ>
 constexpr static_vector<T, SZ>::static_vector(const static_vector& vec)
 {
-#if SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
     std::uninitialized_copy(exec_policy, vec.cbegin( ), vec.cend( ), begin( ));
 #else
     std::uninitialized_copy(vec.cbegin( ), vec.cend( ), begin( ));
@@ -999,7 +999,7 @@ constexpr static_vector<T, SZ>::static_vector(size_type count, const_reference v
 {
     count_less_then_capacity_check(count);
 
-#if SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
     std::uninitialized_fill_n(exec_policy, begin( ), count, value);
 #else
     std::uninitialized_fill_n(begin( ), count, value);
@@ -1012,7 +1012,7 @@ constexpr static_vector<T, SZ>::static_vector(size_type count)
 {
     count_less_then_capacity_check(count);
 
-#if SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
     std::uninitialized_default_construct_n(exec_policy, begin( ), count);
 #else
     std::uninitialized_default_construct_n(begin( ), count);
@@ -1025,7 +1025,7 @@ constexpr static_vector<T, SZ>::static_vector(std::initializer_list<value_type> 
 {
     count_less_then_capacity_check(init.size( ));
 
-#if SKL_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
     std::uninitialized_copy(exec_policy, init.begin( ), init.end( ), begin( ));
 #else
     std::uninitialized_copy(init.begin( ), init.end( ), begin( ));
@@ -1034,61 +1034,61 @@ constexpr static_vector<T, SZ>::static_vector(std::initializer_list<value_type> 
 }
 
 template<class T, size_t SZ>
-[[nodiscard]] constexpr bool operator== (const skl::static_vector<T, SZ>& lhs, const skl::static_vector<T, SZ>& rhs)
+[[nodiscard]] constexpr bool operator== (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs)
 {
     return lhs.size( ) == rhs.size( ) && std::equal(lhs.cbegin( ), lhs.cend( ), rhs.cbegin( ));
 }
 
 #if __cpp_lib_three_way_comparison
 template<class T, size_t SZ>
-[[nodiscard]] constexpr std::strong_ordering operator<=> (const skl::static_vector<T, SZ>& lhs, const skl::static_vector<T, SZ>& rhs)
+[[nodiscard]] constexpr std::strong_ordering operator<=> (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs)
 {
     return std::lexicographical_compare_three_way(lhs.cbegin( ), lhs.cend( ), rhs.cbegin( ), rhs.cend( ));
 }
 #else
 template<class T, size_t SZ>
-[[nodiscard]] constexpr bool operator!= (const skl::static_vector<T, SZ>& lhs, const skl::static_vector<T, SZ>& rhs)
+[[nodiscard]] constexpr bool operator!= (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs)
 {
     return !(lhs == rhs);
 }
 
 template<class T, size_t SZ>
-[[nodiscard]] constexpr bool operator< (const skl::static_vector<T, SZ>& lhs, const skl::static_vector<T, SZ>& rhs)
+[[nodiscard]] constexpr bool operator< (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs)
 {
     return std ::lexicographical_compare(lhs.begin( ), lhs.end( ), rhs.begin( ), rhs.end( ));
 }
 
 template<class T, size_t SZ>
-[[nodiscard]] constexpr bool operator>= (const skl::static_vector<T, SZ>& lhs, const skl::static_vector<T, SZ>& rhs)
+[[nodiscard]] constexpr bool operator>= (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs)
 {
     return !(lhs < rhs);
 }
 
 template<class T, size_t SZ>
-[[nodiscard]] constexpr bool operator> (const skl::static_vector<T, SZ>& lhs, const skl::static_vector<T, SZ>& rhs)
+[[nodiscard]] constexpr bool operator> (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs)
 {
     return std::lexicographical_compare(rhs.begin( ), rhs.end( ), lhs.begin( ), lhs.end( ));
 }
 
 template<class T, size_t SZ>
-[[nodiscard]] constexpr bool operator<= (const skl::static_vector<T, SZ>& lhs, const skl::static_vector<T, SZ>& rhs)
+[[nodiscard]] constexpr bool operator<= (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs)
 {
     return !(lhs > rhs);
 }
 #endif
-}  // namespace skl
+}  // namespace wbr
 
 #ifdef __cpp_lib_erase_if  // C++ >= 20 && HOSTED
 namespace std
 {
 template<class T, size_t SZ>
-constexpr auto swap (skl::static_vector<T, SZ>& a, skl::static_vector<T, SZ>& b) noexcept(noexcept(a.swap(b))) -> void
+constexpr auto swap (wbr::static_vector<T, SZ>& a, wbr::static_vector<T, SZ>& b) noexcept(noexcept(a.swap(b))) -> void
 {
     a.swap(b);
 }
 
 template<class T, size_t SZ, class U = T>
-constexpr auto erase (skl::static_vector<T, SZ>& c, const U& value) -> skl::static_vector<T, SZ>::size_type
+constexpr auto erase (wbr::static_vector<T, SZ>& c, const U& value) -> wbr::static_vector<T, SZ>::size_type
 {
     auto it = remove(c.begin( ), c.end( ), value);
     auto r  = c.end( ) - it;
@@ -1097,7 +1097,7 @@ constexpr auto erase (skl::static_vector<T, SZ>& c, const U& value) -> skl::stat
 }
 
 template<class T, size_t SZ, class Pred>
-constexpr auto erase_if (skl::static_vector<T, SZ>& c, Pred pred) -> skl::static_vector<T, SZ>::size_type
+constexpr auto erase_if (wbr::static_vector<T, SZ>& c, Pred pred) -> wbr::static_vector<T, SZ>::size_type
 {
     auto it = std::remove_if(c.begin( ), c.end( ), pred);
     auto r  = c.end( ) - it;
