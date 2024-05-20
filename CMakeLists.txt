@@ -24,6 +24,7 @@ set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}  -O3")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}  -O3")
 
 set(BENCHMARK_ENABLE_TESTING OFF)
+enable_testing()
 
 find_package(GTest REQUIRED)
 find_package(benchmark)
@@ -35,6 +36,5 @@ add_executable(${TARGET_BM} static_vector.benchmark.cpp)
 target_link_libraries(${TARGET_UT} GTest::gtest_main)
 target_link_libraries(${TARGET_BM} benchmark::benchmark_main)
 
-enable_testing()
 include(GoogleTest)
 gtest_discover_tests(${TARGET_UT})
