@@ -1,0 +1,5 @@
+# CLion IDE
+.idea/
+
+#cmake builds from CLion
+cmake-build-*
