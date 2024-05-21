@@ -2,7 +2,9 @@
 
 #include <algorithm>
 #include <array>
-#include <compare>
+#if __cplusplus >= 202002L
+    #include <compare>
+#endif
 #include <cstring>
 #include <initializer_list>
 #include <memory>
@@ -26,18 +28,18 @@
 
 #if wbr_STATIC_VECTOR_DO_RANGE_CHECKS
     #include <cassert>
-    #define valid_index_check(idx_)                assert(0 <= idx_ && idx_ < this->size( ))
-    #define not_empty_container_check( )           assert(!this->empty( ))
-    #define count_overflow_check(count_)           assert(this->elementsCount + count_ <= this->max_size( ))
-    #define count_less_then_capacity_check(count_) assert(count_ <= this->max_size( ))
-    #define valid_iterator_check(iter_)            assert(this->cbegin( ) <= iter_ && iter_ <= this->cend( ))
-    #define valid_range_check(first_, last_)       assert(first_ <= last_)
+    #define valid_index_check(idx_)          assert(0 <= idx_ && idx_ < this->size( ))
+    #define not_empty_container_check( )     assert(!this->empty( ))
+    #define count_overflow_check(count_)     assert(this->elementsCount + count_ <= this->max_size( ))
+    #define count_fit_capacity_check(count_) assert(count_ <= this->max_size( ))
+    #define valid_iterator_check(iter_)      assert(this->cbegin( ) <= iter_ && iter_ <= this->cend( ))
+    #define valid_range_check(first_, last_) assert(first_ <= last_)
 
 #else
     #define valid_index_check(idx_)
     #define not_empty_container_check( )
     #define count_overflow_check(count_)
-    #define count_less_then_capacity_check(count_)
+    #define count_fit_capacity_check(count_)
     #define valid_iterator_check(iter_)
     #define valid_range_check(first_, last_)
 
@@ -57,22 +59,6 @@ constexpr auto exec_policy = std::execution::par;
  *
  *  utility class
  *
- *  Tested for compatibility:
- *   - standards:
- *      - c++17
- *      - c++20
- *      - c++23
- *   - compilers:
- *      - icc-2024.1
- *      - gcc-10
- *      - gcc-11
- *      - gcc-12
- *      - gcc-13
- *      - gcc-14
- *      - clang-15 (partial, benchmark fail to compile)
- *      - clang-16
- *      - clang-17 (partial, benchmark fail to compile)
- *      - clang-18
  */
 namespace wbr
 {
@@ -118,6 +104,8 @@ public:
     using size_type       = size_t;
     using reference       = value_type&;
     using const_reference = const value_type&;
+    using pointer         = value_type*;
+    using const_pointer   = const value_type*;
 
     constexpr static_vector( ) = default;
     constexpr explicit static_vector(size_type count);
@@ -383,7 +371,40 @@ private:
     static constexpr size_t         element_size = sizeof(value_type);
     static constexpr size_type      bytesize     = SZ * element_size;
     std::array<std::byte, bytesize> arr;
+
+    constexpr void shift_elements_right(size_type offset, size_type count);
+    constexpr void shift_elements_left(size_type offset, size_type count);
 };
+
+template<typename T, std::size_t SZ>
+constexpr auto static_vector<T, SZ>::shift_elements_left(static_vector::size_type offset, static_vector::size_type count) -> void
+{
+    std::byte* first  = arr.data( ) + (offset + count) * element_size;
+    std::byte* last   = arr.data( ) + elementsCount * element_size;
+    std::byte* dfirst = arr.data( ) + offset * element_size;
+
+    if constexpr ( std::is_trivially_copyable_v<T> )
+        std::move(first, last, dfirst);
+    else
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+        std::uninitialized_move(exec_policy, begin( ) + offset + count, end( ), begin( ) + offset);
+#else
+        std::uninitialized_move(begin( ) + offset + count, end( ), begin( ) + offset);
+#endif
+}
+
+template<typename T, std::size_t SZ>
+constexpr auto static_vector<T, SZ>::shift_elements_right(static_vector::size_type offset, static_vector::size_type count) -> void
+{
+    std::byte* first = arr.data( ) + offset * element_size;
+    std::byte* last  = arr.data( ) + elementsCount * element_size;
+    std::byte* dlast = arr.data( ) + (elementsCount + count) * element_size;
+
+    if constexpr ( std::is_trivially_copyable_v<T> )
+        std::move_backward(first, last, dlast);
+    else
+        uninitialized_move_backward(begin( ) + offset, end( ), end( ) + count);
+}
 
 template<typename T, std::size_t SZ>
 template<class... Args>
@@ -394,10 +415,8 @@ constexpr auto static_vector<T, SZ>::emplace(const_iterator pos, Args&&... args)
 
     const auto offset = std::distance(cbegin( ), pos);
 
-    if constexpr ( std::is_trivially_copyable_v<value_type> )
-        std::move_backward(begin( ) + offset, end( ), end( ) + 1);
-    else
-        uninitialized_move_backward(begin( ) + offset, end( ), end( ) + 1);
+    if ( offset != elementsCount )
+        shift_elements_right(offset, 1);
 #if __cplusplus >= 202002L
     std::construct_at<value_type>(begin( ) + offset, std::forward<Args>(args)...);
 #else
@@ -408,7 +427,7 @@ constexpr auto static_vector<T, SZ>::emplace(const_iterator pos, Args&&... args)
 }
 
 template<typename T, std::size_t SZ>
-constexpr void static_vector<T, SZ>::swap(static_vector& other) noexcept
+constexpr auto static_vector<T, SZ>::swap(static_vector& other) noexcept -> void
 {
     if constexpr ( std::is_trivially_copyable_v<T> ) {
         std::swap(arr, other.arr);
@@ -434,13 +453,13 @@ constexpr void static_vector<T, SZ>::swap(static_vector& other) noexcept
 }
 
 template<typename T, std::size_t SZ>
-constexpr void static_vector<T, SZ>::resize(static_vector::size_type count)
+constexpr auto static_vector<T, SZ>::resize(static_vector::size_type count) -> void
 {
     return resize(count, value_type { });
 }
 
 template<typename T, std::size_t SZ>
-constexpr void static_vector<T, SZ>::resize(static_vector::size_type count, const_reference value)
+constexpr auto static_vector<T, SZ>::resize(static_vector::size_type count, const_reference value) -> void
 {
     if ( count > max_size( ) )
         throw std::length_error {"capacity would exceed max_size()"};
@@ -471,7 +490,8 @@ constexpr auto static_vector<T, SZ>::insert(static_vector::const_iterator pos, I
     const auto offset = std::distance(cbegin( ), pos);
     const auto length = std::distance(first, last);
 
-    uninitialized_move_backward(begin( ) + offset, end( ), end( ) + length);
+    if ( offset != elementsCount )
+        shift_elements_right(offset, length);
 #if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
     std::uninitialized_copy(exec_policy, first, last, begin( ) + offset);
 #else
@@ -490,7 +510,8 @@ constexpr auto static_vector<T, SZ>::insert(static_vector::const_iterator pos, s
 
     const auto offset = std::distance(cbegin( ), pos);
 
-    uninitialized_move_backward(begin( ) + offset, end( ), end( ) + count);
+    if ( offset != elementsCount )
+        shift_elements_right(offset, count);
 #if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
     std::uninitialized_fill_n(exec_policy, begin( ) + offset, count, value);
 #else
@@ -508,20 +529,13 @@ constexpr auto static_vector<T, SZ>::insert(static_vector::const_iterator pos, v
     valid_iterator_check(pos);
 
     const auto offset = std::distance(cbegin( ), pos);
+    if ( offset != elementsCount )
+        shift_elements_right(offset, 1);
 
-    if ( pos != end( ) ) {
-        if constexpr ( std::is_trivially_copyable_v<T> )
-            std::move_backward(begin( ) + offset, end( ), end( ) + 1);
-        else
-            uninitialized_move_backward(begin( ) + offset, end( ), end( ) + 1);
-    }
-    if constexpr ( std::is_trivially_copyable_v<value_type> )
-        *(begin( ) + offset) = value;
-    else
 #if __cplusplus >= 202002L
-        std::construct_at<value_type>(begin( ) + offset, std::move(value));
+    std::construct_at<value_type>(begin( ) + offset, std::move(value));
 #else
-        ::new (begin( ) + offset) value_type(std::move(value));
+    ::new (begin( ) + offset) value_type(std::move(value));
 #endif
     ++elementsCount;
     return begin( ) + offset;
@@ -534,31 +548,16 @@ constexpr auto static_vector<T, SZ>::insert(static_vector::const_iterator pos, c
     valid_iterator_check(pos);
 
     const auto offset = std::distance(cbegin( ), pos);
+    if ( offset != elementsCount )
+        shift_elements_right(offset, 1);
 
-    std::byte* first  = arr.data( ) + (offset * element_size);
-    std::byte* last   = arr.data( ) + (elementsCount * element_size);
-    std::byte* dfirst = last + element_size;
-
-    if ( pos != cend( ) ) {
-        if constexpr ( std::is_trivially_copyable_v<T> )
-            std::move_backward(first, last, dfirst);
-        else
-            uninitialized_move_backward(begin( ) + offset, begin( ) + elementsCount, begin( ) + elementsCount + 1);
-    }
-    if constexpr ( std::is_trivially_copyable_v<T> )
-        std::memcpy(first, &value, sizeof(value_type));
-    else
 #if __cplusplus >= 202002L
-        std::construct_at(std::launder(std::bit_cast<value_type*>(first)), value);
+    std::construct_at<value_type>(begin( ) + offset, value);
 #else
-        ::new (std::launder(reinterpret_cast<value_type*>(first))) value_type(value);
+    ::new (begin( ) + offset) value_type(value);
 #endif
     ++elementsCount;
-#if __cpp_lib_bit_cast >= 201806L
-    return std::launder(std::bit_cast<value_type*>(first));
-#else
-    return std::launder(reinterpret_cast<value_type*>(first));
-#endif
+    return begin( ) + offset;
 }
 
 template<typename T, std::size_t SZ>
@@ -573,11 +572,8 @@ constexpr auto static_vector<T, SZ>::erase(static_vector::const_iterator first, 
 
     if constexpr ( !std::is_trivially_destructible_v<value_type> )
         std::destroy_n(begin( ) + offset, length);
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-    std::uninitialized_move(exec_policy, begin( ) + offset + length, end( ), begin( ) + offset);
-#else
-    std::uninitialized_move(begin( ) + offset + length, end( ), begin( ) + offset);
-#endif
+    if ( last != cend( ) )
+        shift_elements_left(offset, length);
 
     elementsCount -= length;
     return begin( ) + offset;
@@ -593,32 +589,12 @@ constexpr auto static_vector<T, SZ>::erase(static_vector::const_iterator pos) ->
 
     const auto offset = std::distance(cbegin( ), pos);
 
-    std::byte* first  = arr.data( ) + (offset + 1) * element_size;
-    std::byte* last   = arr.data( ) + elementsCount * element_size;
-    std::byte* dfirst = arr.data( ) + offset * element_size;
-
     if constexpr ( !std::is_trivially_destructible_v<value_type> )
-#if __cpp_lib_bit_cast >= 201806L
-        std::destroy_at(std::launder(std::bit_cast<value_type*>(dfirst)));
-#else
-        std::destroy_at(std::launder(reinterpret_cast<value_type*>(dfirst)));
-#endif
-    if ( pos != cend( ) - 1 ) {
-        if constexpr ( std::is_trivially_copyable_v<T> )
-            std::move(first, last, dfirst);
-        else
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-            std::uninitialized_move(exec_policy, begin( ) + offset + 1, end( ), begin( ) + offset);
-#else
-            std::uninitialized_move(begin( ) + offset + 1, end( ), begin( ) + offset);
-#endif
-    }
+        std::destroy_at(begin( ) + offset);
+    if ( pos != cend( ) - 1 )
+        shift_elements_left(offset, 1);
     --elementsCount;
-#if __cpp_lib_bit_cast >= 201806L
-    return std::launder(std::bit_cast<value_type*>(dfirst));
-#else
-    return std::launder(reinterpret_cast<value_type*>(dfirst));
-#endif
+    return begin( ) + offset;
 }
 
 template<typename T, std::size_t SZ>
@@ -626,7 +602,7 @@ constexpr auto static_vector<T, SZ>::pop_back( ) noexcept -> void
 {
     not_empty_container_check( );
 
-    if constexpr ( !std::is_scalar_v<value_type> )
+    if constexpr ( !std::is_trivially_destructible_v<value_type> )
         std::destroy_at(begin( ) + elementsCount - 1);
     --elementsCount;
 }
@@ -660,7 +636,7 @@ constexpr auto static_vector<T, SZ>::push_back(const_reference value) -> void
     count_overflow_check(1);
 
 #if __cplusplus >= 202002L
-    std::construct_at(end( ), value);
+    std::construct_at<value_type>(end( ), value);
 #else
     ::new (end( )) value_type(value);
 #endif
@@ -883,7 +859,7 @@ constexpr auto static_vector<T, SZ>::at(static_vector::size_type pos) -> static_
 template<typename T, std::size_t SZ>
 constexpr auto static_vector<T, SZ>::assign(std::initializer_list<T> ilist) -> void
 {
-    count_less_then_capacity_check(ilist.size( ));
+    count_fit_capacity_check(ilist.size( ));
 
     return assign(ilist.begin( ), ilist.end( ));
 }
@@ -892,7 +868,7 @@ template<typename T, std::size_t SZ>
 template<class InputIt>
 constexpr auto static_vector<T, SZ>::assign(InputIt first, InputIt last) -> void
 {
-    count_less_then_capacity_check(std::distance(first, last));
+    count_fit_capacity_check(std::distance(first, last));
 
     clear( );
 #if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
@@ -906,7 +882,7 @@ constexpr auto static_vector<T, SZ>::assign(InputIt first, InputIt last) -> void
 template<typename T, std::size_t SZ>
 constexpr auto static_vector<T, SZ>::assign(static_vector::size_type count, const T& value) -> void
 {
-    count_less_then_capacity_check(count);
+    count_fit_capacity_check(count);
 
     clear( );
 #if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
@@ -920,7 +896,7 @@ constexpr auto static_vector<T, SZ>::assign(static_vector::size_type count, cons
 template<typename T, std::size_t SZ>
 constexpr auto static_vector<T, SZ>::operator= (std::initializer_list<value_type> ilist) -> static_vector<T, SZ>&
 {
-    count_less_then_capacity_check(ilist.size( ));
+    count_fit_capacity_check(ilist.size( ));
 
     clear( );
 #if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
@@ -935,7 +911,7 @@ constexpr auto static_vector<T, SZ>::operator= (std::initializer_list<value_type
 template<typename T, std::size_t SZ>
 constexpr auto static_vector<T, SZ>::operator= (static_vector&& other) noexcept -> wbr::static_vector<T, SZ>&
 {
-    count_less_then_capacity_check(other.size( ));
+    count_fit_capacity_check(other.size( ));
 
     if ( &other != this ) {
         clear( );
@@ -952,7 +928,7 @@ constexpr auto static_vector<T, SZ>::operator= (static_vector&& other) noexcept 
 template<typename T, std::size_t SZ>
 constexpr auto static_vector<T, SZ>::operator= (const static_vector& other) -> static_vector<T, SZ>&
 {
-    count_less_then_capacity_check(other.size( ));
+    count_fit_capacity_check(other.size( ));
 
     if ( &other != this ) {
         clear( );
@@ -997,7 +973,7 @@ constexpr static_vector<T, SZ>::static_vector(const static_vector& vec)
 template<typename T, std::size_t SZ>
 constexpr static_vector<T, SZ>::static_vector(size_type count, const_reference value)
 {
-    count_less_then_capacity_check(count);
+    count_fit_capacity_check(count);
 
 #if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
     std::uninitialized_fill_n(exec_policy, begin( ), count, value);
@@ -1010,7 +986,7 @@ constexpr static_vector<T, SZ>::static_vector(size_type count, const_reference v
 template<typename T, std::size_t SZ>
 constexpr static_vector<T, SZ>::static_vector(size_type count)
 {
-    count_less_then_capacity_check(count);
+    count_fit_capacity_check(count);
 
 #if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
     std::uninitialized_default_construct_n(exec_policy, begin( ), count);
@@ -1023,7 +999,7 @@ constexpr static_vector<T, SZ>::static_vector(size_type count)
 template<typename T, std::size_t SZ>
 constexpr static_vector<T, SZ>::static_vector(std::initializer_list<value_type> init)
 {
-    count_less_then_capacity_check(init.size( ));
+    count_fit_capacity_check(init.size( ));
 
 #if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
     std::uninitialized_copy(exec_policy, init.begin( ), init.end( ), begin( ));
