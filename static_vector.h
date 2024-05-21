@@ -370,7 +370,7 @@ private:
     size_type                       elementsCount {0};
     static constexpr size_t         element_size = sizeof(value_type);
     static constexpr size_type      bytesize     = SZ * element_size;
-    std::array<std::byte, bytesize> arr;
+    alignas(alignof(value_type)) std::array<std::byte, bytesize> arr;
 
     constexpr void shift_elements_right(size_type offset, size_type count);
     constexpr void shift_elements_left(size_type offset, size_type count);
