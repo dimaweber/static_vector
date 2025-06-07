@@ -2,15 +2,22 @@
 
 #include <algorithm>
 #include <array>
+
 #if __cplusplus >= 202002L
+
     #include <compare>
+
 #endif
+
 #include <cstring>
 #include <initializer_list>
 #include <memory>
 #include <stdexcept>
+
 #if __cpp_lib_format >= 201907L
+
     #include <format>
+
 #endif
 
 #if !defined(wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS)
@@ -108,11 +115,13 @@ public:
     using const_pointer   = const value_type*;
 
     constexpr static_vector( ) = default;
+
     constexpr explicit static_vector(size_type count);
     constexpr explicit static_vector(size_type count, const_reference value);
     constexpr explicit static_vector(std::initializer_list<value_type> init);
     constexpr explicit static_vector(const static_vector<value_type, SZ>& vec);
     constexpr static_vector(static_vector&& vec) noexcept;
+
     CXX20_CONSTEXPR ~static_vector( );
 
     constexpr static_vector& operator= (const static_vector& other);
@@ -120,8 +129,10 @@ public:
     constexpr static_vector& operator= (std::initializer_list<value_type> ilist);
 
     constexpr void assign(size_type count, const T& value);
+
     template<class InputIt>
     constexpr void assign(InputIt first, InputIt last);
+
     constexpr void assign(std::initializer_list<T> ilist);
 
     /*!
@@ -191,7 +202,8 @@ public:
      * @see operator[]
      * @see <a href=https://en.cppreference.com/w/cpp/container/vector/at>std::vector::at</a>
      */
-    constexpr reference       at(size_type pos);
+    constexpr reference at(size_type pos);
+
     constexpr const_reference at(size_type pos) const;
 
     /*!
@@ -232,7 +244,8 @@ public:
      * @see at
      * @see <a href=https://en.cppreference.com/w/cpp/container/vector/operator_at>std::vector::operator[]</a>
      */
-    [[nodiscard]] constexpr reference       operator[] (size_t pos) noexcept;
+    [[nodiscard]] constexpr reference operator[] (size_t pos) noexcept;
+
     [[nodiscard]] constexpr const_reference operator[] (size_t pos) const noexcept;
 
     /*!
@@ -269,7 +282,8 @@ public:
      * @see back
      * @see <a href=https://en.cppreference.com/w/cpp/container/vector/front>std::vector::front</a>
      */
-    [[nodiscard]] constexpr reference       front( ) noexcept;
+    [[nodiscard]] constexpr reference front( ) noexcept;
+
     [[nodiscard]] constexpr const_reference front( ) const noexcept;
 
     /*!
@@ -304,26 +318,36 @@ public:
         @see front
         @see <a href=https://en.cppreference.com/w/cpp/container/vector/back>std::vector::back</a>
     */
-    [[nodiscard]] constexpr reference       back( ) noexcept;
+    [[nodiscard]] constexpr reference back( ) noexcept;
+
     [[nodiscard]] constexpr const_reference back( ) const noexcept;
 
-    [[nodiscard]] constexpr value_type*       data( ) noexcept;
+    [[nodiscard]] constexpr value_type* data( ) noexcept;
+
     [[nodiscard]] constexpr const value_type* data( ) const noexcept;
 
-    [[nodiscard]] constexpr iterator       begin( ) noexcept;
+    [[nodiscard]] constexpr iterator begin( ) noexcept;
+
     [[nodiscard]] constexpr const_iterator begin( ) const noexcept;
+
     [[nodiscard]] constexpr const_iterator cbegin( ) const noexcept;
 
-    [[nodiscard]] constexpr iterator       end( ) noexcept;
+    [[nodiscard]] constexpr iterator end( ) noexcept;
+
     [[nodiscard]] constexpr const_iterator end( ) const noexcept;
+
     [[nodiscard]] constexpr const_iterator cend( ) const noexcept;
 
     [[nodiscard]] constexpr auto rbegin( ) noexcept;
+
     [[nodiscard]] constexpr auto rbegin( ) const noexcept;
+
     [[nodiscard]] constexpr auto crbegin( ) const noexcept;
 
     [[nodiscard]] constexpr auto rend( ) noexcept;
+
     [[nodiscard]] constexpr auto rend( ) const noexcept;
+
     [[nodiscard]] constexpr auto crend( ) const noexcept;
 
     [[nodiscard]] constexpr bool empty( ) const noexcept;
@@ -341,43 +365,60 @@ public:
     constexpr void clear( ) noexcept;
 
     constexpr void push_back(const_reference value);
+
     constexpr void push_back(value_type&& value);
 
     template<class... Args>
     constexpr reference emplace_back(Args&&... args);
 
+    /**
+     * @brief Removes the last element from the vector.
+     *
+     * This function removes the last element of the vector, performing a check to ensure
+     * that the container is not empty before proceeding. If the value type is not trivially
+     * destructible, it explicitly calls the destructor on the last element.
+     *
+     * @note The function is marked as noexcept because it does not throw exceptions.
+     */
     constexpr void pop_back( ) noexcept;
 
     constexpr iterator erase(const_iterator pos);
+
     constexpr iterator erase(const_iterator first, const_iterator last);
 
     constexpr iterator insert(const_iterator pos, const_reference value);
+
     constexpr iterator insert(const_iterator pos, value_type&& value);
+
     constexpr iterator insert(const_iterator pos, size_type count, const_reference value);
+
     template<class InputIt>
     constexpr iterator insert(const_iterator pos, InputIt first, InputIt last);
+
     constexpr iterator insert(const_iterator pos, std::initializer_list<value_type> ilist);
 
     template<class... Args>
     constexpr iterator emplace(const_iterator pos, Args&&... args);
 
     constexpr void resize(size_type count, const_reference value);
+
     constexpr void resize(size_type count);
 
     constexpr void swap(static_vector& other) noexcept;
 
 private:
-    size_type                       elementsCount {0};
-    static constexpr size_t         element_size = sizeof(value_type);
-    static constexpr size_type      bytesize     = SZ * element_size;
+    size_type                  elementsCount {0};
+    static constexpr size_t    element_size = sizeof(value_type);
+    static constexpr size_type bytesize     = SZ * element_size;
     alignas(alignof(value_type)) std::array<std::byte, bytesize> arr;
 
     constexpr void shift_elements_right(size_type offset, size_type count);
+
     constexpr void shift_elements_left(size_type offset, size_type count);
 };
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::shift_elements_left(static_vector::size_type offset, static_vector::size_type count) -> void
+constexpr auto static_vector<T, SZ>::shift_elements_left (static_vector::size_type offset, static_vector::size_type count) -> void
 {
     std::byte* first  = arr.data( ) + (offset + count) * element_size;
     std::byte* last   = arr.data( ) + elementsCount * element_size;
@@ -394,7 +435,7 @@ constexpr auto static_vector<T, SZ>::shift_elements_left(static_vector::size_typ
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::shift_elements_right(static_vector::size_type offset, static_vector::size_type count) -> void
+constexpr auto static_vector<T, SZ>::shift_elements_right (static_vector::size_type offset, static_vector::size_type count) -> void
 {
     std::byte* first = arr.data( ) + offset * element_size;
     std::byte* last  = arr.data( ) + elementsCount * element_size;
@@ -408,7 +449,7 @@ constexpr auto static_vector<T, SZ>::shift_elements_right(static_vector::size_ty
 
 template<typename T, std::size_t SZ>
 template<class... Args>
-constexpr auto static_vector<T, SZ>::emplace(const_iterator pos, Args&&... args) -> iterator
+constexpr auto static_vector<T, SZ>::emplace (const_iterator pos, Args&&... args) -> iterator
 {
     count_overflow_check(1);
     valid_iterator_check(pos);
@@ -427,7 +468,7 @@ constexpr auto static_vector<T, SZ>::emplace(const_iterator pos, Args&&... args)
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::swap(static_vector& other) noexcept -> void
+constexpr auto static_vector<T, SZ>::swap (static_vector& other) noexcept -> void
 {
     if constexpr ( std::is_trivially_copyable_v<T> ) {
         std::swap(arr, other.arr);
@@ -453,13 +494,13 @@ constexpr auto static_vector<T, SZ>::swap(static_vector& other) noexcept -> void
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::resize(static_vector::size_type count) -> void
+constexpr auto static_vector<T, SZ>::resize (static_vector::size_type count) -> void
 {
     return resize(count, value_type { });
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::resize(static_vector::size_type count, const_reference value) -> void
+constexpr auto static_vector<T, SZ>::resize (static_vector::size_type count, const_reference value) -> void
 {
     if ( count > max_size( ) )
         throw std::length_error {"capacity would exceed max_size()"};
@@ -471,7 +512,7 @@ constexpr auto static_vector<T, SZ>::resize(static_vector::size_type count, cons
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::insert(static_vector::const_iterator pos, std::initializer_list<value_type> ilist) -> static_vector<T, SZ>::iterator
+constexpr auto static_vector<T, SZ>::insert (static_vector::const_iterator pos, std::initializer_list<value_type> ilist) -> static_vector<T, SZ>::iterator
 {
     count_overflow_check(ilist.size( ));
     valid_iterator_check(pos);
@@ -481,7 +522,7 @@ constexpr auto static_vector<T, SZ>::insert(static_vector::const_iterator pos, s
 
 template<typename T, std::size_t SZ>
 template<class InputIt>
-constexpr auto static_vector<T, SZ>::insert(static_vector::const_iterator pos, InputIt first, InputIt last) -> static_vector<T, SZ>::iterator
+constexpr auto static_vector<T, SZ>::insert (static_vector::const_iterator pos, InputIt first, InputIt last) -> static_vector<T, SZ>::iterator
 {
     count_overflow_check(std::distance(first, last));
     valid_iterator_check(pos);
@@ -503,7 +544,7 @@ constexpr auto static_vector<T, SZ>::insert(static_vector::const_iterator pos, I
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::insert(static_vector::const_iterator pos, static_vector::size_type count, const_reference value) -> static_vector<T, SZ>::iterator
+constexpr auto static_vector<T, SZ>::insert (static_vector::const_iterator pos, static_vector::size_type count, const_reference value) -> static_vector<T, SZ>::iterator
 {
     count_overflow_check(count);
     valid_iterator_check(pos);
@@ -523,7 +564,7 @@ constexpr auto static_vector<T, SZ>::insert(static_vector::const_iterator pos, s
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::insert(static_vector::const_iterator pos, value_type&& value) -> static_vector<T, SZ>::iterator
+constexpr auto static_vector<T, SZ>::insert (static_vector::const_iterator pos, value_type&& value) -> static_vector<T, SZ>::iterator
 {
     count_overflow_check(1);
     valid_iterator_check(pos);
@@ -542,7 +583,7 @@ constexpr auto static_vector<T, SZ>::insert(static_vector::const_iterator pos, v
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::insert(static_vector::const_iterator pos, const_reference value) -> static_vector<T, SZ>::iterator
+constexpr auto static_vector<T, SZ>::insert (static_vector::const_iterator pos, const_reference value) -> static_vector<T, SZ>::iterator
 {
     count_overflow_check(1);
     valid_iterator_check(pos);
@@ -561,7 +602,7 @@ constexpr auto static_vector<T, SZ>::insert(static_vector::const_iterator pos, c
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::erase(static_vector::const_iterator first, static_vector::const_iterator last) -> static_vector<T, SZ>::iterator
+constexpr auto static_vector<T, SZ>::erase (static_vector::const_iterator first, static_vector::const_iterator last) -> static_vector<T, SZ>::iterator
 {
     valid_iterator_check(first);
     valid_iterator_check(last);
@@ -580,7 +621,7 @@ constexpr auto static_vector<T, SZ>::erase(static_vector::const_iterator first, 
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::erase(static_vector::const_iterator pos) -> static_vector<T, SZ>::iterator
+constexpr auto static_vector<T, SZ>::erase (static_vector::const_iterator pos) -> static_vector<T, SZ>::iterator
 {
     valid_iterator_check(pos);
 
@@ -598,7 +639,7 @@ constexpr auto static_vector<T, SZ>::erase(static_vector::const_iterator pos) ->
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::pop_back( ) noexcept -> void
+constexpr auto static_vector<T, SZ>::pop_back ( ) noexcept -> void
 {
     not_empty_container_check( );
 
@@ -609,7 +650,7 @@ constexpr auto static_vector<T, SZ>::pop_back( ) noexcept -> void
 
 template<typename T, std::size_t SZ>
 template<class... Args>
-constexpr auto static_vector<T, SZ>::emplace_back(Args&&... args) -> static_vector<T, SZ>::reference
+constexpr auto static_vector<T, SZ>::emplace_back (Args&&... args) -> static_vector<T, SZ>::reference
 {
     count_overflow_check(1);
 
@@ -623,7 +664,7 @@ constexpr auto static_vector<T, SZ>::emplace_back(Args&&... args) -> static_vect
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::push_back(value_type&& value) -> void
+constexpr auto static_vector<T, SZ>::push_back (value_type&& value) -> void
 {
     count_overflow_check(1);
 
@@ -631,7 +672,7 @@ constexpr auto static_vector<T, SZ>::push_back(value_type&& value) -> void
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::push_back(const_reference value) -> void
+constexpr auto static_vector<T, SZ>::push_back (const_reference value) -> void
 {
     count_overflow_check(1);
 
@@ -644,7 +685,7 @@ constexpr auto static_vector<T, SZ>::push_back(const_reference value) -> void
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::clear( ) noexcept -> void
+constexpr auto static_vector<T, SZ>::clear ( ) noexcept -> void
 {
     if constexpr ( !std::is_trivially_destructible_v<T> )
         std::destroy_n(begin( ), elementsCount);
@@ -653,108 +694,107 @@ constexpr auto static_vector<T, SZ>::clear( ) noexcept -> void
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::shrink_to_fit( ) -> void
+constexpr auto static_vector<T, SZ>::shrink_to_fit ( ) -> void
 { /*static allocation -- cannot resize thus no need for shrinking */
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::capacity( ) const noexcept -> static_vector<T, SZ>::size_type
-
+constexpr auto static_vector<T, SZ>::capacity ( ) const noexcept -> static_vector<T, SZ>::size_type
 {
     return max_size( );
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::reserve( ) -> void
+constexpr auto static_vector<T, SZ>::reserve ( ) -> void
 { /*static allocation -- cannot resize thus no need for reservation */
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::max_size( ) const noexcept -> static_vector<T, SZ>::size_type
+constexpr auto static_vector<T, SZ>::max_size ( ) const noexcept -> static_vector<T, SZ>::size_type
 {
     return SZ;
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::size( ) const noexcept -> static_vector<T, SZ>::size_type
+constexpr auto static_vector<T, SZ>::size ( ) const noexcept -> static_vector<T, SZ>::size_type
 {
     return elementsCount;
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::empty( ) const noexcept -> bool
+constexpr auto static_vector<T, SZ>::empty ( ) const noexcept -> bool
 {
     return size( ) == 0;
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::crend( ) const noexcept
+constexpr auto static_vector<T, SZ>::crend ( ) const noexcept
 {
     return std::make_reverse_iterator(cbegin( ));
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::rend( ) const noexcept
+constexpr auto static_vector<T, SZ>::rend ( ) const noexcept
 {
     return std::make_reverse_iterator(begin( ));
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::rend( ) noexcept
+constexpr auto static_vector<T, SZ>::rend ( ) noexcept
 {
     return std::make_reverse_iterator(begin( ));
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::crbegin( ) const noexcept
+constexpr auto static_vector<T, SZ>::crbegin ( ) const noexcept
 {
     return std::make_reverse_iterator(cend( ));
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::rbegin( ) const noexcept
+constexpr auto static_vector<T, SZ>::rbegin ( ) const noexcept
 {
     return std::make_reverse_iterator(end( ));
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::rbegin( ) noexcept
+constexpr auto static_vector<T, SZ>::rbegin ( ) noexcept
 {
     return std::make_reverse_iterator(end( ));
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::cend( ) const noexcept -> static_vector<T, SZ>::const_iterator
+constexpr auto static_vector<T, SZ>::cend ( ) const noexcept -> static_vector<T, SZ>::const_iterator
 {
     return cbegin( ) + size( );
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::end( ) const noexcept -> static_vector<T, SZ>::const_iterator
+constexpr auto static_vector<T, SZ>::end ( ) const noexcept -> static_vector<T, SZ>::const_iterator
 {
     return begin( ) + size( );
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::end( ) noexcept -> static_vector<T, SZ>::iterator
+constexpr auto static_vector<T, SZ>::end ( ) noexcept -> static_vector<T, SZ>::iterator
 {
     return begin( ) + size( );
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::cbegin( ) const noexcept -> static_vector<T, SZ>::const_iterator
+constexpr auto static_vector<T, SZ>::cbegin ( ) const noexcept -> static_vector<T, SZ>::const_iterator
 {
     return data( );
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::begin( ) const noexcept -> static_vector<T, SZ>::const_iterator
+constexpr auto static_vector<T, SZ>::begin ( ) const noexcept -> static_vector<T, SZ>::const_iterator
 {
     return data( );
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::begin( ) noexcept -> static_vector<T, SZ>::iterator
+constexpr auto static_vector<T, SZ>::begin ( ) noexcept -> static_vector<T, SZ>::iterator
 {
     static_assert(offsetof(decltype(arr), _M_elems) == 0);
 #if __cpp_lib_bit_cast >= 201806L
@@ -765,7 +805,7 @@ constexpr auto static_vector<T, SZ>::begin( ) noexcept -> static_vector<T, SZ>::
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::data( ) const noexcept -> const static_vector<T, SZ>::value_type*
+constexpr auto static_vector<T, SZ>::data ( ) const noexcept -> const static_vector<T, SZ>::value_type*
 {
 #if __cpp_lib_bit_cast >= 201806L
     return std::launder(std::bit_cast<value_type*>(&arr));
@@ -775,7 +815,7 @@ constexpr auto static_vector<T, SZ>::data( ) const noexcept -> const static_vect
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::data( ) noexcept -> static_vector<T, SZ>::value_type*
+constexpr auto static_vector<T, SZ>::data ( ) noexcept -> static_vector<T, SZ>::value_type*
 {
 #if __cpp_lib_bit_cast >= 201806L
     return std::launder(std::bit_cast<value_type*>(&arr));
@@ -785,7 +825,7 @@ constexpr auto static_vector<T, SZ>::data( ) noexcept -> static_vector<T, SZ>::v
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::back( ) const noexcept -> static_vector<T, SZ>::const_reference
+constexpr auto static_vector<T, SZ>::back ( ) const noexcept -> static_vector<T, SZ>::const_reference
 {
     not_empty_container_check( );
 
@@ -793,7 +833,7 @@ constexpr auto static_vector<T, SZ>::back( ) const noexcept -> static_vector<T, 
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::back( ) noexcept -> static_vector<T, SZ>::reference
+constexpr auto static_vector<T, SZ>::back ( ) noexcept -> static_vector<T, SZ>::reference
 {
     not_empty_container_check( );
 
@@ -801,7 +841,7 @@ constexpr auto static_vector<T, SZ>::back( ) noexcept -> static_vector<T, SZ>::r
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::front( ) const noexcept -> static_vector<T, SZ>::const_reference
+constexpr auto static_vector<T, SZ>::front ( ) const noexcept -> static_vector<T, SZ>::const_reference
 {
     not_empty_container_check( );
 
@@ -809,7 +849,7 @@ constexpr auto static_vector<T, SZ>::front( ) const noexcept -> static_vector<T,
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::front( ) noexcept -> static_vector<T, SZ>::reference
+constexpr auto static_vector<T, SZ>::front ( ) noexcept -> static_vector<T, SZ>::reference
 {
     not_empty_container_check( );
 
@@ -833,7 +873,7 @@ constexpr auto static_vector<T, SZ>::operator[] (size_t pos) noexcept -> static_
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::at(static_vector::size_type pos) const -> static_vector<T, SZ>::const_reference
+constexpr auto static_vector<T, SZ>::at (static_vector::size_type pos) const -> static_vector<T, SZ>::const_reference
 {
     if ( pos >= size( ) )
 #if __cpp_lib_format >= 201907L
@@ -845,7 +885,7 @@ constexpr auto static_vector<T, SZ>::at(static_vector::size_type pos) const -> s
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::at(static_vector::size_type pos) -> static_vector<T, SZ>::reference
+constexpr auto static_vector<T, SZ>::at (static_vector::size_type pos) -> static_vector<T, SZ>::reference
 {
     if ( pos >= size( ) )
 #if __cpp_lib_format >= 201907L
@@ -857,7 +897,7 @@ constexpr auto static_vector<T, SZ>::at(static_vector::size_type pos) -> static_
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::assign(std::initializer_list<T> ilist) -> void
+constexpr auto static_vector<T, SZ>::assign (std::initializer_list<T> ilist) -> void
 {
     count_fit_capacity_check(ilist.size( ));
 
@@ -866,7 +906,7 @@ constexpr auto static_vector<T, SZ>::assign(std::initializer_list<T> ilist) -> v
 
 template<typename T, std::size_t SZ>
 template<class InputIt>
-constexpr auto static_vector<T, SZ>::assign(InputIt first, InputIt last) -> void
+constexpr auto static_vector<T, SZ>::assign (InputIt first, InputIt last) -> void
 {
     count_fit_capacity_check(std::distance(first, last));
 
@@ -880,7 +920,7 @@ constexpr auto static_vector<T, SZ>::assign(InputIt first, InputIt last) -> void
 }
 
 template<typename T, std::size_t SZ>
-constexpr auto static_vector<T, SZ>::assign(static_vector::size_type count, const T& value) -> void
+constexpr auto static_vector<T, SZ>::assign (static_vector::size_type count, const T& value) -> void
 {
     count_fit_capacity_check(count);
 
@@ -1016,11 +1056,13 @@ template<class T, size_t SZ>
 }
 
 #if __cpp_lib_three_way_comparison
+
 template<class T, size_t SZ>
 [[nodiscard]] constexpr std::strong_ordering operator<=> (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs)
 {
     return std::lexicographical_compare_three_way(lhs.cbegin( ), lhs.cend( ), rhs.cbegin( ), rhs.cend( ));
 }
+
 #else
 template<class T, size_t SZ>
 [[nodiscard]] constexpr bool operator!= (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs)

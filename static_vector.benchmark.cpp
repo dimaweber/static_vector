@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "benchmark/benchmark.h"
-
+#include "skl_string.h"
 using namespace std::literals;
 
 template<typename T, size_t SZ, typename Alloc = std::allocator<T>>
@@ -177,16 +177,26 @@ public:
 };
 
 constexpr size_t maxSizePower = 15;
-constexpr size_t minRange     = 10;
-constexpr size_t maxRange     = 10;
+constexpr size_t minRange     = 15;
+constexpr size_t maxRange     = 15;
 constexpr size_t cpuCount     = 2;
 
+using string   = skl::fs_string<128>;
 using i_stdVec = std::vector<int>;
-using s_stdVec = std::vector<std::string>;
+using s_stdVec = std::vector<string>;
 using i_wbrVec = wbr::static_vector<int, 1 << maxSizePower>;
-using s_wbrVec = wbr::static_vector<std::string, 1 << maxSizePower>;
+using s_wbrVec = wbr::static_vector<string, 1 << maxSizePower>;
 using i_resVec = preallocated_vector<int, 1 << maxSizePower>;
-using s_resVec = preallocated_vector<std::string, 1 << maxSizePower>;
+using s_resVec = preallocated_vector<string, 1 << maxSizePower>;
+
+template<typename Vector>
+constexpr auto valueGenerator ( ) -> typename Vector::value_type
+{
+    if constexpr ( std::is_arithmetic_v<typename Vector::value_type> )
+        return 0x66;
+    if constexpr ( std::is_same_v<typename Vector::value_type, string> )
+        return string {"not so short string"};
+}
 
 template<typename Vector>
 void vector_generate_n (benchmark::State& state)
@@ -194,11 +204,12 @@ void vector_generate_n (benchmark::State& state)
     const auto count = 1 << state.range(0);
     for ( auto _: state ) {
         Vector vec;
-        std::generate_n(std::back_inserter(vec), count, [] { return 0x11; });
-        assert(vec.size( ) == count);
-        assert(vec[0] == 0x11);
-        assert(vec[count - 1] == 0x11);
         benchmark::DoNotOptimize(vec);
+
+        std::generate_n(std::back_inserter(vec), count, valueGenerator<Vector>);
+        assert(vec.size( ) == count);
+        assert(vec[0] == valueGenerator<Vector>( ));
+        assert(vec[count - 1] == valueGenerator<Vector>( ));
     }
     state.SetComplexityN(state.range(0));
 }
@@ -206,6 +217,9 @@ void vector_generate_n (benchmark::State& state)
 BENCHMARK(vector_generate_n<i_stdVec>)->DenseRange(minRange, maxRange, 2)->Complexity(benchmark::o1);
 BENCHMARK(vector_generate_n<i_resVec>)->DenseRange(minRange, maxRange, 2)->Complexity(benchmark::o1);
 BENCHMARK(vector_generate_n<i_wbrVec>)->DenseRange(minRange, maxRange, 2)->Complexity(benchmark::o1);
+BENCHMARK(vector_generate_n<s_stdVec>)->DenseRange(minRange, maxRange, 2)->Complexity(benchmark::o1);
+BENCHMARK(vector_generate_n<s_resVec>)->DenseRange(minRange, maxRange, 2)->Complexity(benchmark::o1);
+BENCHMARK(vector_generate_n<s_wbrVec>)->DenseRange(minRange, maxRange, 2)->Complexity(benchmark::o1);
 
 template<typename Vector>
 void vector_fill (benchmark::State& state)
@@ -218,16 +232,20 @@ void vector_fill (benchmark::State& state)
         auto first = vec.begin( );
         auto last  = vec.end( );
         state.ResumeTiming( );
-        std::fill(first, last, 0x22);
+
+        std::fill(first, last, valueGenerator<Vector>( ));
         assert(vec.size( ) == count);
-        assert(vec[0] == 0x22);
-        assert(vec[count - 1] == 0x22);
+        assert(vec[0] == valueGenerator<Vector>( ));
+        assert(vec[count - 1] == valueGenerator<Vector>( ));
     }
 }
 
 BENCHMARK(vector_fill<i_stdVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 BENCHMARK(vector_fill<i_resVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 BENCHMARK(vector_fill<i_wbrVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
+BENCHMARK(vector_fill<s_stdVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
+BENCHMARK(vector_fill<s_resVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
+BENCHMARK(vector_fill<s_wbrVec>)->DenseRange(minRange, maxRange, 2)->Threads(cpuCount);
 
 template<typename Vector>
 void vector_begin_insert (benchmark::State& state)
@@ -239,9 +257,9 @@ void vector_begin_insert (benchmark::State& state)
 
         for ( int i = 0; i < count; i++ )
             vec.insert(vec.begin( ), 0x33);
-        //        assert(vec.size( ) == count);
-        //        assert(vec[0] == 0x33);
-        //        assert(vec[count - 1] == 0x33);
+        assert(vec.size( ) == count);
+        assert(vec[0] == 0x33);
+        assert(vec[count - 1] == 0x33);
     }
 }
 
@@ -294,12 +312,7 @@ void vector_clear (benchmark::State& state)
     for ( auto _: state ) {
         state.PauseTiming( );
 
-        Vector vec(count, [] {
-            if constexpr ( std::is_arithmetic_v<typename Vector::value_type> )
-                return 0x66;
-            if constexpr ( std::is_same_v<typename Vector::value_type, std::string> )
-                return "short string"s;
-        }( ));
+        Vector vec(count, valueGenerator<Vector>( ));
         benchmark::DoNotOptimize(vec);
         state.ResumeTiming( );
         vec.clear( );
