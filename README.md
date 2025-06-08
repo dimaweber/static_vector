@@ -112,4 +112,4 @@ The generated documentation will be available in `build/docs/html`.
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the Creative Commons License.
