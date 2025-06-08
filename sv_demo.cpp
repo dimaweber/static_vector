@@ -1,7 +1,7 @@
 #include <iostream>
 #include <numeric>
 
-#include "static_vector.h"
+#include "static_vector.hxx"
 
 int main ( )
 {

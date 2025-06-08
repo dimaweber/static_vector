@@ -1,0 +1,10 @@
+# Doxyfile for static_vector project
+
+PROJECT_NAME           = "static_vector"
+OUTPUT_DIRECTORY       = ./docs
+RECURSIVE              = YES
+INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/
+FILE_PATTERNS          = *.cpp *.hxx *.c *.h
+GENERATE_HTML          = YES
+
+# Additional options can be added here

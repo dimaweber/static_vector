@@ -1,4 +1,4 @@
-#include "static_vector.h"
+#include "static_vector.hxx"
 
 #include <gtest/gtest.h>
 
@@ -436,20 +436,20 @@ TEST(StaticVector, StdAlgoCompatibleSortUniqueIsSorted)
 struct A {
     int val {0};
 
-    A( ) { d_constructorCallCount++; }
+    A ( ) { d_constructorCallCount++; }
 
-    A(int a) : val {a} { ++i_constructorCallCount; }
+    A (int a) : val {a} { ++i_constructorCallCount; }
 
-    A(const A& a) : val {a.val} { c_constructorCallCount++; }
+    A (const A& a) : val {a.val} { c_constructorCallCount++; }
 
-    A(A&& a)
+    A (A&& a)
     {
         std::swap(val, a.val);
         a.val = 0xfafbfcfd;
         m_constructorCallCount++;
     }
 
-    ~A( ) { ++destructorCallCount; }
+    ~A ( ) { ++destructorCallCount; }
 
     A& operator= (const A& a)
     {

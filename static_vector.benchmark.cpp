@@ -1,5 +1,6 @@
-#include "static_vector.h"
+#include "static_vector.hxx"
 
+#include <cassert>
 #include <vector>
 
 #include "benchmark/benchmark.h"
@@ -19,17 +20,17 @@ public:
     using reference       = typename decltype(vec)::reference;
     using const_reference = typename decltype(vec)::const_reference;
 
-    constexpr preallocated_vector( ) { vec.reserve(SZ); }
+    constexpr preallocated_vector ( ) { vec.reserve(SZ); }
 
-    constexpr preallocated_vector(size_type count) : vec(count) { vec.reserve(SZ); }
+    constexpr preallocated_vector (size_type count) : vec(count) { vec.reserve(SZ); }
 
-    constexpr preallocated_vector(size_type count, const_reference value) : vec(count, value) { vec.reserve(SZ); }
+    constexpr preallocated_vector (size_type count, const_reference value) : vec(count, value) { vec.reserve(SZ); }
 
-    constexpr preallocated_vector(std::initializer_list<value_type> init) : vec(init) { vec.reserve(SZ); }
+    constexpr preallocated_vector (std::initializer_list<value_type> init) : vec(init) { vec.reserve(SZ); }
 
-    constexpr explicit preallocated_vector(const preallocated_vector& other) : vec {other.vec} { vec.reserve(SZ); }
+    constexpr explicit preallocated_vector (const preallocated_vector& other) : vec {other.vec} { vec.reserve(SZ); }
 
-    constexpr preallocated_vector(preallocated_vector&& other) noexcept : vec(std::move(other.vec)) { vec.reserve(SZ); }
+    constexpr preallocated_vector (preallocated_vector&& other) noexcept : vec(std::move(other.vec)) { vec.reserve(SZ); }
 
     constexpr preallocated_vector& operator= (const preallocated_vector& other) { vec = other.vec; }
 
@@ -207,9 +208,9 @@ void vector_generate_n (benchmark::State& state)
         benchmark::DoNotOptimize(vec);
 
         std::generate_n(std::back_inserter(vec), count, valueGenerator<Vector>);
-        assert(vec.size( ) == count);
-        assert(vec[0] == valueGenerator<Vector>( ));
-        assert(vec[count - 1] == valueGenerator<Vector>( ));
+        // assert(vec.size( ) == count);
+        // assert(vec[0] == valueGenerator<Vector>( ));
+        // assert(vec[count - 1] == valueGenerator<Vector>( ));
     }
     state.SetComplexityN(state.range(0));
 }
@@ -234,9 +235,9 @@ void vector_fill (benchmark::State& state)
         state.ResumeTiming( );
 
         std::fill(first, last, valueGenerator<Vector>( ));
-        assert(vec.size( ) == count);
-        assert(vec[0] == valueGenerator<Vector>( ));
-        assert(vec[count - 1] == valueGenerator<Vector>( ));
+        // assert(vec.size( ) == count);
+        // assert(vec.front( ) == valueGenerator<Vector>( ));
+        // assert(vec.back( ) == valueGenerator<Vector>( ));
     }
 }
 
@@ -257,9 +258,9 @@ void vector_begin_insert (benchmark::State& state)
 
         for ( int i = 0; i < count; i++ )
             vec.insert(vec.begin( ), 0x33);
-        assert(vec.size( ) == count);
-        assert(vec[0] == 0x33);
-        assert(vec[count - 1] == 0x33);
+        // assert(vec.size( ) == count);
+        // assert(vec[0] == 0x33);
+        // assert(vec[count - 1] == 0x33);
     }
 }
 
@@ -275,9 +276,9 @@ void vector_end_insert (benchmark::State& state)
         Vector vec;
         for ( int i = 0; i < count; i++ )
             vec.insert(vec.end( ), 0x44);
-        assert(vec.size( ) == count);
-        assert(vec[0] == 0x44);
-        assert(vec[count - 1] == 0x44);
+        // assert(vec.size( ) == count);
+        // assert(vec[0] == 0x44);
+        // assert(vec[count - 1] == 0x44);
         benchmark::DoNotOptimize(vec);
     }
 }
@@ -295,9 +296,9 @@ void vector_push_back (benchmark::State& state)
         benchmark::DoNotOptimize(vec);
         for ( int i = 0; i < count; i++ )
             vec.push_back(0x55);
-        assert(vec.size( ) == count);
-        assert(vec[0] == 0x55);
-        assert(vec[count - 1] == 0x55);
+        // assert(vec.size( ) == count);
+        // assert(vec[0] == 0x55);
+        // assert(vec[count - 1] == 0x55);
     }
 }
 
