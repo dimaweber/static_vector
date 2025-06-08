@@ -5,7 +5,7 @@ Stack-allocated vector that mimics std::vector interface.
 ### Tested for compatibility:
 
 - standards:
-    - c++17
+    - ~~c++17~~
     - c++20
     - c++23
 - compilers:
