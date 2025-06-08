@@ -48,8 +48,9 @@ Both classes attempt to mimic the `std::vector` API as closely as possible, with
 
 ## Building the Project
 
-```
-bash mkdir build cd build cmake .. make
+```bash
+  cmake -S. -B build
+  cmake --build build
 ``` 
 
 ## Components
@@ -67,6 +68,12 @@ A simple demonstration program showcasing basic usage of the vector classes.
 ### Unit Tests (static_vector.unittest.cpp)
 
 Comprehensive unit tests using Google Test framework to verify functionality.
+
+```bash
+  cmake -S. -B build
+  cmake --build build --target sv_unittest
+  ctest --test-dir build
+```
 
 ### Benchmarks (static_vector.benchmark.cpp)
 
@@ -96,8 +103,9 @@ Both classes support different bound checking strategies, controlled by the `Bou
 
 API documentation can be generated using Doxygen. If Doxygen is found during configuration, it will generate HTML documentation in the build directory.
 
-```
-bash cd build cmake -DBUILD_DOCS=ON .. make docs
+```bash
+  cmake -S. -B build -DBUILD_DOCS=ON  
+  cmake --build build --target doc_doxygen
 ``` 
 
 The generated documentation will be available in `build/docs/html`.
