@@ -174,6 +174,7 @@ public:
      * - Exception: Throws an std::out_of_range exception if the counter is out of range.
      * - Assert: Uses an assertion to ensure the counter is within bounds (debug builds only).
      * - LimitToBound: Limits the element count to a valid bound if it's out of range.
+     * - UB: Don't perform any checks. Bound violation will lead to undefined behavior
      *
      * @tparam SZ Size of the std::array
      * @param array The std::array to wrap
@@ -200,6 +201,7 @@ public:
      * - Exception: Throws an std::out_of_range exception if the counter is out of range.
      * - Assert: Uses an assertion to ensure the counter is within bounds (debug builds only).
      * - LimitToBound: Limits the element count to a valid bound if it's out of range.
+     * - UB: Don't perform any checks. Bound violation will lead to undefined behavior
      *
      * @tparam N Size of the C-style array
      * @param array The C-style array to wrap
@@ -226,6 +228,7 @@ public:
      * - Exception: Throws an std::out_of_range exception if the counter is out of range.
      * - Assert: Uses an assertion to ensure the counter is within bounds (debug builds only).
      * - LimitToBound: Limits the element count to a valid bound if it's out of range.
+     * - UB: Don't perform any checks. Bound violation will lead to undefined behavior
      *
      * @param array Pointer to the raw array
      * @param array_max_size Maximum size of the array
@@ -265,6 +268,7 @@ public:
      * - @c Assert: Uses an assertion to ensure count does not exceed capacity (debug builds only).
      * - @c Exception: Throws an `std::out_of_range` exception if `count` exceeds capacity.
      * - @c LimitToBound: Limits `count` to a valid bound if it's out of range.
+     * - @c UB: Don't perform any checks. Bound violation will lead to undefined behavior
      *
      * @param count The number of elements to assign
      * @param value The value to assign to each element
@@ -293,16 +297,17 @@ public:
      * }
      * @endcode
      */
+    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr void assign (size_type count, const T& value)
     {
         using enum BoundCheckStrategy;
 
-        if constexpr ( bc_strategy == Assert )
+        if constexpr ( custom_bc_strategy == Assert )
             assert(count <= capacity( ));
-        if constexpr ( bc_strategy == Exception )
+        if constexpr ( custom_bc_strategy == Exception )
             if ( count > capacity( ) )
                 throw std::out_of_range("count exceeds capacity");
-        if constexpr ( bc_strategy == LimitToBound )
+        if constexpr ( custom_bc_strategy == LimitToBound )
             count = std::min(count, capacity( ));
 
         clear( );
@@ -344,23 +349,31 @@ public:
      * }
      * @endcode
      */
-    template<std::input_iterator InputIt>
-    constexpr void assign (InputIt first, InputIt last)
+    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+    constexpr void assign (std::input_iterator auto first, std::input_iterator auto last)
     {
         using enum BoundCheckStrategy;
 
-        const auto n = std::distance(first, last);
+        auto              n   = std::distance(first, last);
+        const decltype(n) cap = capacity( );
 
-        if constexpr ( bc_strategy == Assert )
-            assert(n <= capacity( ));
-        if constexpr ( bc_strategy == Exception )
-            if ( n > capacity( ) )
-                throw std::out_of_range("count exceeds capacity");
-        if constexpr ( bc_strategy == LimitToBound )
-            last = std::min(last, first + capacity( ));
+        if constexpr ( custom_bc_strategy == Assert ) {
+            assert(n <= cap);
+            assert(n > 0);
+        }
+        if constexpr ( custom_bc_strategy == Exception ) {
+            if ( n > cap )
+                throw std::out_of_range {std::format("count {} exceeds capacity {}", n, cap)};
+            if ( n < 0 )
+                throw std::runtime_error("start iterator is greater then finish");
+        }
+        if constexpr ( custom_bc_strategy == LimitToBound ) {
+            n = std::min(n, cap);
+            n = std::max(n, static_cast<decltype(n)>(0));
+        }
 
         clear( );
-        std::uninitialized_copy(first, last, begin( ));
+        std::uninitialized_copy_n(first, n, begin( ));
         elements_count_ = n;
     }
 
@@ -395,18 +408,19 @@ public:
      * }
      * @endcode
      */
+    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr void assign (std::initializer_list<T> ilist)
     {
         auto first = ilist.begin( );
         auto last  = ilist.end( );
 
         using enum BoundCheckStrategy;
-        if constexpr ( bc_strategy == BoundCheckStrategy::Exception )
+        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception )
             if ( ilist.size( ) > capacity( ) )
                 throw std::overflow_error("initializer list is longer then container capacity");
-        if constexpr ( bc_strategy == BoundCheckStrategy::Assert )
+        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Assert )
             assert(ilist.size( ) <= capacity( ));
-        if constexpr ( bc_strategy == BoundCheckStrategy::LimitToBound )
+        if constexpr ( custom_bc_strategy == BoundCheckStrategy::LimitToBound )
             last = std::min(last, first + capacity( ));
 
         return assign(first, last);
@@ -436,7 +450,7 @@ public:
      * }
      * @endcode
      */
-    [[nodiscard]] constexpr auto at (size_type pos) const -> const_reference
+    [[nodiscard]] constexpr const_reference at (size_type pos) const
     {
         if ( pos >= size( ) )
 #if __cpp_lib_format >= 201907L
@@ -565,12 +579,13 @@ public:
      * std::cout << "First element: " << firstElement << std::endl; // Outputs: First element: 1
      * @endcode
      */
-    [[nodiscard]] constexpr reference front ( ) noexcept(bc_strategy != BoundCheckStrategy::Exception)
+    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+    [[nodiscard]] constexpr reference front ( ) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception)
     {
-        if constexpr ( bc_strategy == BoundCheckStrategy::Exception )
+        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception )
             if ( empty( ) )
                 throw std::out_of_range("empty container");
-        if constexpr ( bc_strategy == BoundCheckStrategy::Assert )
+        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Assert )
             assert(!empty( ));
 
         return *begin( );
@@ -586,12 +601,13 @@ public:
      *
      * @throws {@code std::out_of_range} if the container is empty (depending on implementation of `not_empty_container_check`).
      */
-    [[nodiscard]] constexpr const_reference front ( ) const noexcept(bc_strategy != BoundCheckStrategy::Exception)
+    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+    [[nodiscard]] constexpr const_reference front ( ) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception)
     {
-        if constexpr ( bc_strategy == BoundCheckStrategy::Exception )
+        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception )
             if ( empty( ) )
                 throw std::out_of_range("empty container");
-        if constexpr ( bc_strategy == BoundCheckStrategy::Assert )
+        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Assert )
             assert(!empty( ));
 
         return *begin( );
@@ -617,12 +633,13 @@ public:
      * std::cout << "Last element: " << lastElement << std::endl; // Outputs: Last element: 5
      * @endcode
      */
-    [[nodiscard]] constexpr reference back ( ) noexcept(bc_strategy != BoundCheckStrategy::Exception)
+    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+    [[nodiscard]] constexpr reference back ( ) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception)
     {
-        if constexpr ( bc_strategy == BoundCheckStrategy::Exception )
+        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception )
             if ( empty( ) )
                 throw std::out_of_range("empty container");
-        if constexpr ( bc_strategy == BoundCheckStrategy::Assert )
+        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Assert )
             assert(!empty( ));
 
         return *std::prev(end( ));
@@ -638,12 +655,13 @@ public:
      *
      * @throws {@code std::out_of_range} if the container is empty (depending on implementation of `not_empty_container_check`).
      */
-    [[nodiscard]] constexpr const_reference back ( ) const noexcept(bc_strategy != BoundCheckStrategy::Exception)
+    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+    [[nodiscard]] constexpr const_reference back ( ) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception)
     {
-        if constexpr ( bc_strategy == BoundCheckStrategy::Exception )
+        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception )
             if ( empty( ) )
                 throw std::out_of_range("empty container");
-        if constexpr ( bc_strategy == BoundCheckStrategy::Assert )
+        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Assert )
             assert(!empty( ));
 
         return *std::prev(end( ));
@@ -797,14 +815,15 @@ public:
      */
     [[nodiscard]] constexpr bool empty ( ) const noexcept { return size( ) == 0; }
 
-    constexpr void pop_back ( ) noexcept(bc_strategy != BoundCheckStrategy::Exception)
+    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+    constexpr void pop_back ( ) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception)
     {
-        if constexpr ( bc_strategy == BoundCheckStrategy::Exception )
+        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception )
             if ( empty( ) )
                 throw std::out_of_range("empty container");
-        if constexpr ( bc_strategy == BoundCheckStrategy::Assert )
+        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Assert )
             assert(!empty( ));
-        if constexpr ( bc_strategy == BoundCheckStrategy::LimitToBound )
+        if constexpr ( custom_bc_strategy == BoundCheckStrategy::LimitToBound )
             if ( empty( ) )
                 return;
 
@@ -902,23 +921,210 @@ public:
         return begin( ) + offset;
     }
 
-    constexpr iterator insert(const_iterator pos, const_reference value);
+    /**
+     * @brief Inserts a single element at the specified position.
+     *
+     * This function inserts a copy of the given value before the element at the specified
+     * position, effectively increasing the container size by one. The current element at pos
+     * and all elements beyond it are shifted one position to the right.
+     *
+     * The method supports different bound check strategies:
+     * - Exception: Throws an exception if the insertion is out of bounds.
+     * - Assert: Uses assertions to ensure that the insertion is within bounds (use in debug mode).
+     * - LimitToBound: Limits the position to valid boundaries without throwing exceptions or using assertions.
+     * - UB: Don't perform any checks. Bound violation will lead to undefined behavior
+     *
+     * @tparam custom_bc_strategy Strategy for bound checking (defaults to bc_strategy)
+     * @param pos Iterator pointing to the position where the new element will be inserted
+     * @param value Value to insert before the specified position
+     * @return Iterator pointing to the newly inserted element
+     *
+     * @throws std::out_of_range If the insertion is out of bounds and Exception strategy is used.
+     *
+     * @code
+     * static_vector_adapter<int, 5> adapter;
+     * for (size_t i = 0; i < 3; ++i) {
+     *     adapter.push_back(i);
+     * }
+     * auto it = adapter.insert(adapter.begin() + 1, 99); // Inserts 99 at position 1
+     *
+     * // Output: [0, 99, 1, 2]
+     * @endcode
+     */
+    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+    constexpr iterator insert (const_iterator pos, const_reference value)
+    {
+        using enum BoundCheckStrategy;
+        if constexpr ( custom_bc_strategy == Exception ) {
+            if ( size( ) + 1 > capacity( ) )
+                throw std::overflow_error("vector is full, no new element can be inserted");
+            if ( pos < begin( ) || pos > end( ) )
+                throw std::out_of_range("pos is out of range");
+        }
+        if constexpr ( custom_bc_strategy == Assert ) {
+            assert(size( ) + 1 <= capacity( ));
+            assert(pos >= begin( ) && pos <= end( ));
+        }
+        if constexpr ( custom_bc_strategy == LimitToBound ) {
+            if ( size( ) >= capacity( ) )
+                return end( );
+            if ( pos > end( ) )
+                pos = end( );
+            if ( pos < begin( ) )
+                pos = begin( );
+        }
 
-    constexpr iterator insert(const_iterator pos, value_type&& value);
+        const auto offset = std::distance(cbegin( ), pos);
+        if ( offset != elements_count_ )
+            shift_elements_right(offset, 1);
 
-    constexpr iterator insert(const_iterator pos, size_type count, const_reference value);
+#if __cplusplus >= 202002L
+        std::construct_at<value_type>(begin( ) + offset, value);
+#else
+        ::new (begin( ) + offset) value_type(value);
+#endif
+        ++elements_count_;
+        return begin( ) + offset;
+    }
 
-    template<std::forward_iterator InputIt>
-    constexpr iterator insert(const_iterator pos, InputIt first, InputIt last);
+    /**
+     * @brief Inserts a value at the specified position.
+     *
+     * This function inserts a new element into the static vector at the position
+     * specified by `pos`. The iterator `pos` must be valid and within the range of
+     * the container. If `pos` is not at the end, existing elements are shifted to
+     * the right to make space for the new element.
+     *
+     * @tparam T The type of elements in the static vector.
+     * @tparam custom_bc_strategy The bound check strategy to use. Possible values are:
+     * - Exception: Throws an exception if bounds are violated
+     * - Assert: Uses assertions to check bounds (debug mode only)
+     * - LimitToBound: Silently limits the position to valid range without throwing
+     * - UB: don't perform any checks. Bound violation will lead to undefined behavior
+     * @param pos An iterator pointing to the position where the value should be inserted.
+     * @param value The value to insert. This is an rvalue reference, indicating that the value may be
+     *              moved from rather than copied.
+     * @return An iterator pointing to the newly inserted element.
+     *
+     * @throw std::overflow_error if the vector is full (size + 1 > capacity) and `custom_bc_strategy` is set to Exception
+     * @throw std::out_of_range if pos is out of range and `custom_bc_strategy` is set to Exception
+     */
+    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+    constexpr iterator insert (const_iterator pos, value_type&& value)
+    {
+        using enum BoundCheckStrategy;
+        if constexpr ( custom_bc_strategy == Exception ) {
+            if ( size( ) + 1 > capacity( ) )
+                throw std::overflow_error("vector is full, no new element can be inserted");
+            if ( pos < begin( ) || pos > end( ) )
+                throw std::out_of_range("pos is out of range");
+        }
+        if constexpr ( custom_bc_strategy == Assert ) {
+            assert(size( ) + 1 <= capacity( ));
+            assert(pos >= begin( ) && pos <= end( ));
+        }
+        if constexpr ( custom_bc_strategy == LimitToBound ) {
+            if ( size( ) >= capacity( ) )
+                return end( );
+            if ( pos > end( ) )
+                pos = end( );
+            if ( pos < begin( ) )
+                pos = begin( );
+        }
 
-    constexpr iterator insert(const_iterator pos, std::initializer_list<value_type> ilist);
+        const auto offset = std::distance(cbegin( ), pos);
+        if ( offset != elements_count_ )
+            shift_elements_right(offset, 1);
+
+#if __cplusplus >= 202002L
+        std::construct_at<value_type>(begin( ) + offset, std::move(value));
+#else
+        ::new (begin( ) + offset) value_type(std::move(value));
+#endif
+        ++elements_count_;
+        return begin( ) + offset;
+    }
+
+    constexpr iterator insert (const_iterator pos, size_type count, const_reference value)
+    {
+        // count_overflow_check(count);
+        // valid_iterator_check(pos);
+
+        const auto offset = std::distance(cbegin( ), pos);
+
+        if ( offset != elements_count_ )
+            shift_elements_right(offset, count);
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+        std::uninitialized_fill_n(exec_policy, begin( ) + offset, count, value);
+#else
+        std::uninitialized_fill_n(begin( ) + offset, count, value);
+#endif
+
+        elements_count_ += count;
+        return begin( ) + offset;
+    }
+
+    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+    constexpr iterator insert (const_iterator pos, std::input_iterator auto first, std::input_iterator auto last)
+    {
+        // count_overflow_check(std::distance(first, last));
+        // valid_iterator_check(pos);
+        // valid_range_check(first, last);
+
+        const auto offset = std::distance(cbegin( ), pos);
+        const auto length = std::distance(first, last);
+
+        if ( offset != elements_count_ )
+            shift_elements_right(offset, length);
+#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
+        std::uninitialized_copy(exec_policy, first, last, begin( ) + offset);
+#else
+        std::uninitialized_copy(first, last, begin( ) + offset);
+#endif
+
+        elements_count_ += length;
+        return begin( ) + offset;
+    }
+
+    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+    constexpr iterator insert (const_iterator pos, std::initializer_list<value_type> ilist)
+    {
+        // count_overflow_check(ilist.size( ));
+        // valid_iterator_check(pos);
+
+        return insert(pos, ilist.begin( ), ilist.end( ));
+    }
 
     template<class... Args>
-    constexpr iterator emplace(const_iterator pos, Args&&... args);
+    constexpr iterator emplace (const_iterator pos, Args&&... args)
+    {
+        //    valid_iterator_check(pos);
 
-    constexpr void resize(size_type count, const_reference value);
+        const auto offset = std::distance(cbegin( ), pos);
 
-    constexpr void resize(size_type count);
+        if ( offset != elements_count_ )
+            shift_elements_right(offset, 1);
+#if __cplusplus >= 202002L
+        std::construct_at<value_type>(begin( ) + offset, std::forward<Args>(args)...);
+#else
+        ::new (begin( ) + offset) value_type(std::forward<Args>(args)...);
+#endif
+        ++elements_count_;
+        return begin( ) + offset;
+    }
+
+    constexpr void resize (size_type count, const_reference value)
+    {
+        if ( count > max_size( ) )
+            throw std::length_error {"capacity would exceed max_size()"};
+        if ( count > size( ) ) {
+            insert(end( ), count - size( ), value);
+        } else if ( count < size( ) ) {
+            erase(begin( ) + count, end( ));
+        }
+    }
+
+    constexpr void resize (size_type count) { return resize(count, value_type { }); }
 
 private:
     static constexpr size_t element_size_ = sizeof(value_type);
