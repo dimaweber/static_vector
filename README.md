@@ -1,6 +1,6 @@
 # static_vector
 
-stack-allocated vector that mimics std::vector interface
+Stack-allocated vector that mimics std::vector interface.
 
 ### Tested for compatibility:
 
@@ -15,7 +15,93 @@ stack-allocated vector that mimics std::vector interface
     - gcc-12
     - gcc-13
     - gcc-14
-    - clang-15 (partial, benchmark fail to compile)
+    - clang-15 (partial, benchmark fails to compile)
     - clang-16
-    - clang-17 (partial, benchmark fail to compile)
+    - clang-17 (partial, benchmark fails to compile)
     - clang-18
+
+---
+
+Static Vector provides two C++ template classes that offer functionality similar to `std::vector` but with fixed capacity:
+
+1. **static_vector**: A container that stores data in internal memory allocated on the stack.
+2. **static_vector_adapter**: A non-owning wrapper over existing C-arrays or `std::array`.
+
+Both classes attempt to mimic the `std::vector` API as closely as possible, with limitations related to their fixed-size nature.
+
+## Features
+
+- Fixed capacity containers
+- Customizable bounds checking (Exception, Assertion, LimitToBound, or NoCheck)
+- Memory-efficient
+- Compatible with C++20 and above
+- Comprehensive test suite using Google Test framework
+- Benchmarks using Google Benchmark
+
+## Build Requirements
+
+- CMake 3.10 or higher
+- C++20 compatible compiler (GCC, Clang, etc.)
+- Google Test framework (for unit tests)
+- Google Benchmark library (for performance testing)
+- Doxygen (optional, for documentation generation)
+
+## Building the Project
+
+```
+bash mkdir build cd build cmake .. make
+``` 
+
+## Components
+
+The project consists of several components:
+
+### static_vector.hxx
+
+The main header file containing both `static_vector` and `static_vector_adapter` class template definitions.
+
+### sv_demo.cpp
+
+A simple demonstration program showcasing basic usage of the vector classes.
+
+### Unit Tests (static_vector.unittest.cpp)
+
+Comprehensive unit tests using Google Test framework to verify functionality.
+
+### Benchmarks (static_vector.benchmark.cpp)
+
+Performance benchmarks using Google Benchmark library.
+
+## Container Types
+
+The project offers two types of containers:
+
+1. **`static_vector`**: A container that stores data in internal memory allocated on the stack.
+2. **`static_vector_adapter`**: A non-owning wrapper over existing C-arrays or `std::array`.
+
+Both classes attempt to mimic the `std::vector` API as closely as possible, with limitations related to their fixed-size nature.
+
+## Bound Checking Strategies
+
+Both classes support different bound checking strategies, controlled by the `BoundCheckStrategy` enum:
+
+- **Exception**: Throws an exception if bounds are violated
+    - Throws `std::overflow_error` when vector is full
+    - Throws `std::out_of_range` for invalid iterator positions
+- **Assert**: Uses assertions to check bounds (debug mode only)
+- **LimitToBound**: Silently limits the position to valid range without throwing
+- **NoCheck** (UB): No checks are performed; bound violations lead to undefined behavior
+
+## Documentation
+
+API documentation can be generated using Doxygen. If Doxygen is found during configuration, it will generate HTML documentation in the build directory.
+
+```
+bash cd build cmake -DBUILD_DOCS=ON .. make docs
+``` 
+
+The generated documentation will be available in `build/docs/html`.
+
+## License
+
+This project is licensed under the MIT License.

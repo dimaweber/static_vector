@@ -16,40 +16,6 @@
     #include <format>
 #endif
 
-#if !defined(wbr_STATIC_VECTOR_DO_RANGE_CHECKS)
-    #define wbr_STATIC_VECTOR_DO_RANGE_CHECKS 0
-#endif
-
-/*
-#define wbr_NOEXCEPT noexcept
-
-
-        #include <exception>
-
-        #undef wbr_NOEXCEPT
-        #define wbr_NOEXCEPT
-
-        #define valid_index_check(idx_)              \
-            if ( idx_ < 0 || idx_ >= this->size( ) ) \
-            throw std::out_of_range("index out of range")
-
-        #define not_empty_container_check( ) \
-            if ( empty( ) )                  \
-            throw std::underflow_error("vector is empty")
-
-        #define count_overflow_check(count_)            \
-            if ( this->size( ) + count_ > max_size( ) ) \
-            throw std::overflow_error("count exceed max size")
-
-        #define valid_iterator_check(iter_)             \
-            if ( iter_ < cbegin( ) || iter_ > cend( ) ) \
-            throw std::out_of_range("iterator is outside of [begin(), end()) bounds")
-
-        #define valid_range_check(first_, last_) \
-            if ( first_ > last_ )                \
-            throw std::out_of_range("first should be before last")
-*/
-
 #if !defined(wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS)
     #define wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS 0
 #endif

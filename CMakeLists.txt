@@ -17,9 +17,6 @@ set(HEADERS
         static_vector.hxx
 )
 
-add_compile_definitions(wbr_STATIC_VECTOR_DO_RANGE_CHECKS=0)
-add_compile_definitions(wbr_THROW_EXCEPTION_ON_ERROR=0)
-
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -O0")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3 -O0")
 
