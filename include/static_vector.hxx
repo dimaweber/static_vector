@@ -123,7 +123,7 @@ public:
      * This constructor initializes the adapter with a reference to an std::array and a counter
      * that tracks the number of elements currently in use. Various bound check strategies can be
      * applied based on the template parameter bc_strategy:
-     * - Exception: Throws an std::out_of_range exception if the counter is out of range.
+     * - Exception: Throws an `std::out_of_range` exception if the counter is out of range.
      * - Assert: Uses an assertion to ensure the counter is within bounds (debug builds only).
      * - LimitToBound: Limits the element count to a valid bound if it's out of range.
      * - UB: Don't perform any checks. Bound violation will lead to undefined behavior
@@ -668,7 +668,7 @@ public:
      * ```c/c++
      * std::array<int, 10> array = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
      * size_t count = 10;
-     * static_vector_adapter<int> adapter(array, count);
+     * static_vector_adapter adapter(array, count);
      *
      * // Get pointer to the underlying array
      * int* ptr = adapter.data();
@@ -696,7 +696,7 @@ public:
      * ```c/c++
      * std::array<std::string, 5> array = {"Hello", "world!", "This", "is", "a test."};
      * size_t count = 5;
-     * static_vector_adapter<std::string> adapter(array, count);
+     * static_vector_adapter adapter(array, count);
      *
      * // Get pointer to the underlying array
      * std::string* ptr = adapter.data();
@@ -710,15 +710,44 @@ public:
     [[nodiscard]] constexpr const_pointer data ( ) const noexcept { return elements_; }
 
     /**
-     * @brief Gets an iterator to the beginning of the container
+     * @brief Gets an iterator to the beginning of the container.
      *
-     * @throws Do not throw.
-     * @return Iterator pointing to the first element
+     * This function returns an iterator pointing to the first element in the array. It is commonly used with range-based loops and other algorithms that require a start iterator.
+     *
+     * @throws Does not throw exceptions.
+     * @return Iterator pointing to the first element.
+     *
+     * Example usage:
+     * @code
+     * std::array<int, 5> data = {1, 2, 3, 4, 5};
+     * size_t count = 5;
+     * static_vector_adapter vec(data, count);
+     *
+     * for (auto it = vec.begin(); it != vec.end(); ++it) {
+     *     std::cout << "Element: " << *it << std::endl; // Prints all elements
+     * }
+     * @endcode
      */
     [[nodiscard]] constexpr iterator begin ( ) noexcept { return data( ); }
 
+    /**
+     * @brief Gets a const iterator to the beginning of the container.
+     *
+     * This function returns a const_iterator pointing to the first element in the array. It is used when you need a read-only view of the elements.
+     *
+     * @throws Does not throw exceptions.
+     * @return Const iterator pointing to the first element.
+     */
     [[nodiscard]] constexpr const_iterator cbegin ( ) noexcept { return data( ); }
 
+    /**
+     * @brief Gets a const iterator to the beginning of the container (const version).
+     *
+     * This function returns a const_iterator pointing to the first element in the array. It's used when working with a const instance of static_vector_adapter.
+     *
+     * @throws Does not throw exceptions.
+     * @return Const iterator pointing to the first element.
+     */
     [[nodiscard]] constexpr const_iterator begin ( ) const noexcept { return cbegin( ); }
 
     /**
@@ -727,7 +756,7 @@ public:
      * This function returns an iterator pointing to one past the last element in the array. This is useful for
      * range-based loops and other algorithms that require an end iterator.
      *
-     * @throws Do not throw.
+     * @throws Does not throw exceptions.
      * @return Iterator to the end of the container.
      *
      * Example usage:
@@ -743,20 +772,98 @@ public:
      */
     [[nodiscard]] constexpr iterator end ( ) noexcept { return begin( ) + size( ); }
 
+    /**
+     * @brief Returns a const iterator to the end of the container.
+     *
+     * This function returns a const_iterator pointing to one past the last element in the array. It is used when you need a read-only view of the elements.
+     *
+     * @throws Does not throw exceptions.
+     * @return Const iterator to the end of the container.
+     */
     [[nodiscard]] constexpr const_iterator cend ( ) noexcept { return cbegin( ) + size( ); }
 
+    /**
+     * @brief Returns a const iterator to the end of the container (const version).
+     *
+     * This function returns a const_iterator pointing to one past the last element in the array. It's used when working with a const instance of static_vector_adapter.
+     *
+     * @throws Does not throw exceptions.
+     * @return Const iterator to the end of the container.
+     */
     [[nodiscard]] constexpr const_iterator end ( ) const noexcept { return cend( ); }
 
+    /**
+     * @brief Gets a reverse iterator to the beginning of the reversed container.
+     *
+     * This function returns a reverse_iterator pointing to the last element in the array (as if the array was reversed). It is useful for iterating backwards through elements.
+     *
+     * @throws Does not throw exceptions.
+     * @return Reverse iterator pointing to the last element.
+     *
+     * Example usage:
+     * @code
+     * std::array<int, 5> data = {1, 2, 3, 4, 5};
+     * size_t count = 5;
+     * static_vector_adapter vec(data, count);
+     *
+     * for (auto it = vec.rbegin(); it != vec.rend(); ++it) {
+     *     std::cout << "Element: " << *it << std::endl; // Prints elements in reverse order
+     * }
+     * @endcode
+     */
     [[nodiscard]] constexpr auto rbegin ( ) noexcept { return std::make_reverse_iterator(end( )); }
 
+    /**
+     * @brief Gets a const reverse iterator to the beginning of the reversed container.
+     *
+     * This function returns a const_reverse_iterator pointing to the last element in the array (as if the array was reversed). It is used when you need a read-only view while iterating backwards.
+     *
+     * @throws Does not throw exceptions.
+     * @return Const reverse iterator pointing to the last element.
+     */
     [[nodiscard]] constexpr auto crbegin ( ) noexcept { return std::make_reverse_iterator(cend( )); }
 
+    /**
+     * @brief Gets a const reverse iterator to the beginning of the reversed container (const version).
+     *
+     * This function returns a const_reverse_iterator pointing to the last element in the array (as if the array was reversed). It's used when working with a const instance of static_vector_adapter
+     * while iterating backwards.
+     *
+     * @throws Does not throw exceptions.
+     * @return Const reverse iterator pointing to the last element.
+     */
     [[nodiscard]] constexpr auto rbegin ( ) const noexcept { return crbegin( ); }
 
+    /**
+     * @brief Gets a reverse iterator to the end of the reversed container.
+     *
+     * This function returns a reverse_iterator pointing to the first element in the array (as if the array was reversed). It is useful for range-based loops that iterate backwards through elements.
+     *
+     * @throws Does not throw exceptions.
+     * @return Reverse iterator to the end of the reversed container.
+     */
     [[nodiscard]] constexpr auto rend ( ) noexcept { return std::make_reverse_iterator(begin( )); }
 
+    /**
+     * @brief Gets a const reverse iterator to the end of the reversed container.
+     *
+     * This function returns a const_reverse_iterator pointing to the first element in the array (as if the array was reversed). It is used when you need a read-only view while iterating backwards
+     * through elements.
+     *
+     * @throws Does not throw exceptions.
+     * @return Const reverse iterator to the end of the reversed container.
+     */
     [[nodiscard]] constexpr auto crend ( ) noexcept { return std::make_reverse_iterator(cbegin( )); }
 
+    /**
+     * @brief Gets a const reverse iterator to the end of the reversed container (const version).
+     *
+     * This function returns a const_reverse_iterator pointing to the first element in the array (as if the array was reversed). It's used when working with a const instance of static_vector_adapter
+     * while iterating backwards through elements.
+     *
+     * @throws Does not throw exceptions.
+     * @return Const reverse iterator to the end of the reversed container.
+     */
     [[nodiscard]] constexpr auto rend ( ) const noexcept { return crend( ); }
 
     /**

@@ -67,7 +67,12 @@ endif ()
 
 if (BUILD_EXAMPLES)
     find_package(fmt 11)
-    add_executable(${TARGET_DM} examples/sv_demo.cpp)
+    add_executable(${TARGET_DM}
+            examples/base_usage.cpp
+            examples/range-based-for-loop.cpp
+            examples/sv_demo.cpp
+            examples/standard-algorithm-functions.cpp
+    )
     target_link_libraries(${TARGET_DM} PRIVATE ${TARGET_LIB})
     if (fmt_FOUND)
         add_compile_definitions(USE_FMT=1)
