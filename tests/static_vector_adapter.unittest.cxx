@@ -110,7 +110,9 @@ TEST(StaticVectorAdapterTest, AssignCountExceedingCapacity)
     EXPECT_EQ(element_count, 5);
 
     // custom bound check strategy: assert
+#if !defined(NDEBUG)
     EXPECT_EXIT(adapter.assign<BoundCheckStrategy::Assert>(6, 99), KilledBySignal(SIGABRT), "");
+#endif
 }
 
 // Test assign with input iterators exceeding capacity
@@ -158,8 +160,10 @@ TEST(StaticVectorAdapterTest, AssignSwappedInputIterators)
     EXPECT_EQ(adapter.size( ), 0);
     EXPECT_EQ(element_count, 0);
 
+#if !defined(NDEBUG)
     // custom bound check strategy: assert
     EXPECT_EXIT(adapter.assign<BoundCheckStrategy::Assert>(other_data + 6, other_data), KilledBySignal(SIGABRT), "");
+#endif
 }
 
 // Test for push_back method
@@ -423,8 +427,9 @@ TEST(StaticVectorAdapterTest, Front_Method)
     // Note: Behavior depends on your implementation, might throw or return undefined value
     // For this example, we assume it throws.
     EXPECT_THROW(std::ignore = adapter.front<BoundCheckStrategy::Exception>( ), std::out_of_range);
-
+#if !defined(NDEBUG)
     EXPECT_EXIT(std::ignore = adapter.front<BoundCheckStrategy::Assert>( ), KilledBySignal(SIGABRT), "");
+#endif
 }
 
 TEST(StaticVectorAdapterTest, Back_Method)
@@ -443,7 +448,9 @@ TEST(StaticVectorAdapterTest, Back_Method)
     // Note: Behavior depends on your implementation, might throw or return undefined value
     // For this example, we assume it throws.
     EXPECT_THROW(std::ignore = adapter.back<BoundCheckStrategy::Exception>( ), std::out_of_range);
+#if !defined(NDEBUG)
     EXPECT_EXIT(std::ignore = adapter.back<BoundCheckStrategy::Assert>( ), KilledBySignal(SIGABRT), "");
+#endif
 }
 
 TEST(StaticVectorAdapterTest, BasicInsertion)
@@ -500,7 +507,9 @@ TEST(StaticVectorAdapterTest, InsertOutsideOfRangePosition)
     static_vector_adapter adapter {data_c_array, element_count};
 
     EXPECT_THROW(adapter.insert<BoundCheckStrategy::Exception>(adapter.end( ) + 1, 333), std::out_of_range);
+#if !defined(NDEBUG)
     EXPECT_EXIT(adapter.insert<BoundCheckStrategy::Assert>(adapter.end( ) + 1, 333), KilledBySignal(SIGABRT), "");
+#endif
 
     const int expected_c_array[6] = {10, 20, 30, 40, 50, 333};
     auto      it                  = adapter.begin( );
