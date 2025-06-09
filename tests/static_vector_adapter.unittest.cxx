@@ -86,7 +86,9 @@ TEST(StaticVectorAdapterTest, AssignInitializerListExceedingCapacity)
     EXPECT_EQ(adapter.size( ), 5);
     EXPECT_EQ(element_count, 5);
 
+#if !defined(NDEBUG)
     EXPECT_EXIT(adapter.assign<BoundCheckStrategy::Assert>(ilist), KilledBySignal(SIGABRT), "");
+#endif
 }
 
 // Test assign with count exceeding capacity
@@ -132,7 +134,9 @@ TEST(StaticVectorAdapterTest, AssignInputIteratorsExceedingCapacity)
     EXPECT_EQ(element_count, 5);
 
     // custom bound check strategy: assert
+#if !defined(NDEBUG)
     EXPECT_EXIT(adapter.assign<BoundCheckStrategy::Assert>(other_data, other_data + 6), KilledBySignal(SIGABRT), "");
+#endif
 }
 
 TEST(StaticVectorAdapterTest, AssignSwappedInputIterators)
@@ -400,7 +404,7 @@ TEST(StaticVectorAdapterTest, At_Method_OutOfBounds)
     }
 
     // Act & Assert: Expect an out_of_range exception when accessing beyond the vector's size
-    EXPECT_THROW(adapter.at(adapter.capacity( )), std::out_of_range);
+    EXPECT_THROW(std::ignore = adapter.at(adapter.capacity( )), std::out_of_range);
 }
 
 TEST(StaticVectorAdapterTest, Front_Method)
@@ -418,9 +422,9 @@ TEST(StaticVectorAdapterTest, Front_Method)
     // Assert: Expected behavior with an empty container
     // Note: Behavior depends on your implementation, might throw or return undefined value
     // For this example, we assume it throws.
-    EXPECT_THROW(adapter.front<BoundCheckStrategy::Exception>( ), std::out_of_range);
+    EXPECT_THROW(std::ignore = adapter.front<BoundCheckStrategy::Exception>( ), std::out_of_range);
 
-    EXPECT_EXIT(adapter.front<BoundCheckStrategy::Assert>( ), KilledBySignal(SIGABRT), "");
+    EXPECT_EXIT(std::ignore = adapter.front<BoundCheckStrategy::Assert>( ), KilledBySignal(SIGABRT), "");
 }
 
 TEST(StaticVectorAdapterTest, Back_Method)
@@ -438,8 +442,8 @@ TEST(StaticVectorAdapterTest, Back_Method)
     // Assert: Expected behavior with an empty container
     // Note: Behavior depends on your implementation, might throw or return undefined value
     // For this example, we assume it throws.
-    EXPECT_THROW(adapter.back<BoundCheckStrategy::Exception>( ), std::out_of_range);
-    EXPECT_EXIT(adapter.back<BoundCheckStrategy::Assert>( ), KilledBySignal(SIGABRT), "");
+    EXPECT_THROW(std::ignore = adapter.back<BoundCheckStrategy::Exception>( ), std::out_of_range);
+    EXPECT_EXIT(std::ignore = adapter.back<BoundCheckStrategy::Assert>( ), KilledBySignal(SIGABRT), "");
 }
 
 TEST(StaticVectorAdapterTest, BasicInsertion)
@@ -506,7 +510,10 @@ TEST(StaticVectorAdapterTest, InsertOutsideOfRangePosition)
     EXPECT_TRUE(std::ranges::equal(adapter, expected_c_array));
 
     EXPECT_THROW(adapter.insert<BoundCheckStrategy::Exception>(adapter.begin( ) - 1, 222), std::out_of_range);
+
+#if !defined(NDEBUG)
     EXPECT_EXIT(adapter.insert<BoundCheckStrategy::Assert>(adapter.begin( ) - 1, 222), KilledBySignal(SIGABRT), "");
+#endif
 
     const int expected_c_array_2[7] = {222, 10, 20, 30, 40, 50, 333};
     EXPECT_NO_THROW(it = adapter.insert<BoundCheckStrategy::LimitToBound>(adapter.begin( ) - 1, 222));
@@ -522,7 +529,10 @@ TEST(StaticVectorAdapterTest, InsertWithFullCapacity)
     static_vector_adapter adapter {data_c_array, element_count};
 
     EXPECT_THROW(adapter.insert<BoundCheckStrategy::Exception>(adapter.end( ), 400), std::overflow_error);
+
+#if !defined(NDEBUG)
     EXPECT_EXIT(adapter.insert<BoundCheckStrategy::Assert>(adapter.end( ), 400), KilledBySignal(SIGABRT), "");
+#endif
 
     decltype(adapter)::iterator iter;
     EXPECT_NO_THROW(adapter.insert<BoundCheckStrategy::LimitToBound>(adapter.end( ), 400));

@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 project(static_vector)
 
-set(TARGET sv_demo)
+include(GNUInstallDirs)
+
+set(TARGET_LIB static_vector)
+set(TARGET_DM sv_demo)
 set(TARGET_UT sv_unittest)
 set(TARGET_BM sv_benchmark)
 
@@ -9,12 +12,9 @@ set(CMAKE_CXX_STANDARD 23)
 
 list(APPEND CMAKE_PREFIX_PATH $ENV{HOME}/.local/lib/cmake)
 
-set(SOURCES
-        sv_demo.cpp
-)
-
 set(HEADERS
-        static_vector.hxx
+        include/static_vector.hxx
+        include/skl_string.h
 )
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -O0")
@@ -23,36 +23,73 @@ set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3 -O0")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}  -O3")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}  -O3")
 
-enable_testing()
+OPTION(BUILD_BENCHMARK "static_vector benchmark" ON)
+OPTION(BUILD_TESTS "static_vector test" ON)
+OPTION(BUILD_EXAMPLES "static_vector examples" ON)
+OPTION(BUILD_DOCS "static_vector documentation" ON)
 
-find_package(GTest REQUIRED)
-find_package(benchmark)
+if (NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    set(BUILD_TESTS OFF)
+    set(BUILD_EXAMPLES OFF)
+    set(BUILD_BENCHMARK OFF)
+    set(BUILD_DOCS OFF)
+endif ()
 
-add_executable(${TARGET} ${SOURCES} ${HEADERS})
-add_executable(${TARGET_UT} static_vector.unittest.cpp
-        static_vector_adapter.unittest.cxx)
-add_executable(${TARGET_BM} static_vector.benchmark.cpp)
+add_library(${TARGET_LIB} INTERFACE)
+target_include_directories(${TARGET_LIB} INTERFACE include)
 
-target_link_libraries(${TARGET_UT} GTest::gtest_main)
-target_link_libraries(${TARGET_BM} benchmark::benchmark_main)
+if (BUILD_TESTS)
+    enable_testing()
 
-include(GoogleTest)
-gtest_discover_tests(${TARGET_UT})
+    find_package(GTest REQUIRED)
+    add_executable(${TARGET_UT}
+            tests/static_vector.unittest.cpp
+            tests/static_vector_adapter.unittest.cxx
+    )
 
-# Find Doxygen
-find_package(Doxygen)
-if (DOXYGEN_FOUND)
-    message(STATUS "Doxygen found: generating documentation")
-    set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
-    set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+    include(GoogleTest)
+    gtest_discover_tests(${TARGET_UT})
+    target_link_libraries(${TARGET_UT} PRIVATE GTest::gtest_main ${TARGET_LIB})
+endif ()
 
-    # Configure and generate Doxyfile
-    configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
-    add_custom_target(doc_doxygen ALL
-            COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMENT "Generating API documentation with Doxygen"
-            VERBATIM)
-else (DOXYGEN_FOUND)
-    message(STATUS "Doxygen not found: skipping documentation generation")
-endif (DOXYGEN_FOUND)
+if (BUILD_BENCHMARK)
+    find_package(benchmark)
+
+    add_executable(${TARGET_BM} benchmark/static_vector.benchmark.cpp)
+
+    target_link_libraries(${TARGET_BM} PRIVATE ${TARGET_LIB} benchmark::benchmark_main)
+endif ()
+
+if (BUILD_EXAMPLES)
+    find_package(fmt 11)
+    add_executable(${TARGET_DM} examples/sv_demo.cpp)
+    target_link_libraries(${TARGET_DM} PRIVATE ${TARGET_LIB})
+    if (fmt_FOUND)
+        add_compile_definitions(USE_FMT=1)
+        target_link_libraries(${TARGET_DM} PRIVATE fmt::fmt)
+    else ()
+        add_compile_definitions(USE_FMT=0)
+    endif ()
+endif ()
+
+if (BUILD_DOCS)
+    # Find Doxygen
+    find_package(Doxygen)
+    if (DOXYGEN_FOUND)
+        message(STATUS "Doxygen found: generating documentation")
+        set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)
+        set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+
+        # Configure and generate Doxyfile
+        configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+        doxygen_add_docs(doc_doxygen ALL
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+                CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+                COMMENT "Generating API documentation with Doxygen"
+        )
+    else (DOXYGEN_FOUND)
+        message(STATUS "Doxygen not found: skipping documentation generation")
+    endif (DOXYGEN_FOUND)
+endif ()
+
+INSTALL(FILES ${HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/wbr)

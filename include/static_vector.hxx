@@ -8,28 +8,10 @@
 #include <iterator>
 #include <memory>
 #include <stdexcept>
-
-#if __cplusplus >= 202002L
-    #include <compare>
-#endif
 #if __cpp_lib_format >= 201907L
     #include <format>
 #endif
 
-#if !defined(wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS)
-    #define wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS 0
-#endif
-
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-    #include <execution>
-constexpr auto exec_policy = std::execution::par;
-#endif
-
-#if __cplusplus >= 202002L
-    #define CXX20_CONSTEXPR constexpr
-#else
-    #define CXX20_CONSTEXPR
-#endif
 /** @file
  *
  *  utility class
@@ -54,11 +36,7 @@ NoThrowForwardIt uninitialized_move_backward (InputIt first, InputIt last, NoThr
 {
     if ( d_first == last )
         return first;
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-    auto iter = std::uninitialized_move(exec_policy, std::reverse_iterator(last), std::reverse_iterator(first), std::reverse_iterator(d_first));
-#else
     auto iter = std::uninitialized_move(std::reverse_iterator(last), std::reverse_iterator(first), std::reverse_iterator(d_first));
-#endif
     return iter.base( );
 }
 
@@ -329,7 +307,11 @@ public:
         }
         if constexpr ( custom_bc_strategy == Exception ) {
             if ( n > cap )
+#if __cpp_lib_format >= 201907L
                 throw std::out_of_range {std::format("count {} exceeds capacity {}", n, cap)};
+#else
+                throw std::out_of_range {"count  exceeds capacity"};
+#endif
             if ( n < 0 )
                 throw std::runtime_error("start iterator is greater then finish");
         }
@@ -533,7 +515,7 @@ public:
      *
      * @return Reference to the first element.
      *
-     * @throws {@code std::out_of_range} if the container is empty (depending on implementation of {@code not_empty_container_check}).
+     * @throws `std::out_of_range` if the container is empty (depending on implementation of `not_empty_container_check`).
      *
      * Example usage:
      * @code
@@ -565,7 +547,7 @@ public:
      *
      * @return Const reference to the first element.
      *
-     * @throws {@code std::out_of_range} if the container is empty (depending on implementation of `not_empty_container_check`).
+     * @throws `std::out_of_range` if the container is empty (depending on implementation of `not_empty_container_check`).
      */
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     [[nodiscard]] constexpr const_reference front ( ) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception)
@@ -587,7 +569,7 @@ public:
      *
      * @return Reference to the last element.
      *
-     * @throws {@code std::out_of_range} if the container is empty (depending on implementation of `not_empty_container_check`).
+     * @throws `std::out_of_range` if the container is empty (depending on implementation of `not_empty_container_check`).
      *
      * Example usage:
      * @code
@@ -619,7 +601,7 @@ public:
      *
      * @return Const reference to the last element.
      *
-     * @throws {@code std::out_of_range} if the container is empty (depending on implementation of `not_empty_container_check`).
+     * @throws `std::out_of_range` if the container is empty (depending on implementation of `not_empty_container_check`).
      */
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     [[nodiscard]] constexpr const_reference back ( ) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception)
@@ -810,11 +792,7 @@ public:
             if ( size( ) == capacity( ) )
                 return back( );
 
-#if __cplusplus >= 202002L
         std::construct_at<value_type>(begin( ) + elements_count_, std::forward<Args>(args)...);
-#else
-        ::new (begin( ) + elementsCount) value_type(std::forward<Args>(args)...);
-#endif
         ++elements_count_;
         return back( );
     }
@@ -844,11 +822,8 @@ public:
             if ( size( ) == capacity( ) )
                 return;
 
-#if __cplusplus >= 202002L
         std::construct_at<value_type>(end( ), value);
-#else
-        ::new (end( )) value_type(value);
-#endif
+
         ++elements_count_;
     }
 
@@ -944,11 +919,7 @@ public:
         if ( offset != elements_count_ )
             shift_elements_right(offset, 1);
 
-#if __cplusplus >= 202002L
         std::construct_at<value_type>(begin( ) + offset, value);
-#else
-        ::new (begin( ) + offset) value_type(value);
-#endif
         ++elements_count_;
         return begin( ) + offset;
     }
@@ -1002,11 +973,7 @@ public:
         if ( offset != elements_count_ )
             shift_elements_right(offset, 1);
 
-#if __cplusplus >= 202002L
         std::construct_at<value_type>(begin( ) + offset, std::move(value));
-#else
-        ::new (begin( ) + offset) value_type(std::move(value));
-#endif
         ++elements_count_;
         return begin( ) + offset;
     }
@@ -1020,12 +987,7 @@ public:
 
         if ( offset != elements_count_ )
             shift_elements_right(offset, count);
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-        std::uninitialized_fill_n(exec_policy, begin( ) + offset, count, value);
-#else
         std::uninitialized_fill_n(begin( ) + offset, count, value);
-#endif
-
         elements_count_ += count;
         return begin( ) + offset;
     }
@@ -1042,12 +1004,7 @@ public:
 
         if ( offset != elements_count_ )
             shift_elements_right(offset, length);
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-        std::uninitialized_copy(exec_policy, first, last, begin( ) + offset);
-#else
         std::uninitialized_copy(first, last, begin( ) + offset);
-#endif
-
         elements_count_ += length;
         return begin( ) + offset;
     }
@@ -1070,11 +1027,7 @@ public:
 
         if ( offset != elements_count_ )
             shift_elements_right(offset, 1);
-#if __cplusplus >= 202002L
         std::construct_at<value_type>(begin( ) + offset, std::forward<Args>(args)...);
-#else
-        ::new (begin( ) + offset) value_type(std::forward<Args>(args)...);
-#endif
         ++elements_count_;
         return begin( ) + offset;
     }
@@ -1120,11 +1073,7 @@ private:
         if constexpr ( std::is_trivially_copyable_v<T> )
             std::move(first, last, dfirst);
         else
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-            std::uninitialized_move(exec_policy, begin( ) + offset + count, end( ), begin( ) + offset);
-#else
             std::uninitialized_move(begin( ) + offset + count, end( ), begin( ) + offset);
-#endif
     }
 };
 
@@ -1195,7 +1144,7 @@ public:
     constexpr explicit static_vector(const static_vector& vec);
     constexpr static_vector(static_vector&& vec) noexcept;
 
-    CXX20_CONSTEXPR ~static_vector( );
+    constexpr ~static_vector( );
 
     constexpr static_vector& operator= (const static_vector& other);
     constexpr static_vector& operator= (static_vector&& other) noexcept;
@@ -1499,11 +1448,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::shift_elements_left (size_type
     if constexpr ( std::is_trivially_copyable_v<T> )
         std::move(first, last, dfirst);
     else
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-        std::uninitialized_move(exec_policy, begin( ) + offset + count, end( ), begin( ) + offset);
-#else
         std::uninitialized_move(begin( ) + offset + count, end( ), begin( ) + offset);
-#endif
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
@@ -1529,11 +1474,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::emplace (const_iterator pos, A
 
     if ( offset != elementsCount )
         shift_elements_right(offset, 1);
-#if __cplusplus >= 202002L
     std::construct_at<value_type>(begin( ) + offset, std::forward<Args>(args)...);
-#else
-    ::new (begin( ) + offset) value_type(std::forward<Args>(args)...);
-#endif
     ++elementsCount;
     return begin( ) + offset;
 }
@@ -1551,15 +1492,9 @@ constexpr auto static_vector<T, SZ, bc_strategy>::swap (static_vector& other) no
 
         std::swap_ranges(begin( ), begin( ) + min, other.begin( ));
         if ( s > other_s )
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-            std::uninitialized_move_n(exec_policy, begin( ) + min, diff, other.end( ));
-        else
-            std::uninitialized_move_n(exec_policy, other.begin( ) + min, diff, end( ));
-#else
             std::uninitialized_move_n(begin( ) + min, diff, other.end( ));
         else
             std::uninitialized_move_n(other.begin( ) + min, diff, end( ));
-#endif
     }
     std::swap(elementsCount, other.elementsCount);
 }
@@ -1604,11 +1539,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_i
 
     if ( offset != elementsCount )
         shift_elements_right(offset, length);
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-    std::uninitialized_copy(exec_policy, first, last, begin( ) + offset);
-#else
     std::uninitialized_copy(first, last, begin( ) + offset);
-#endif
 
     elementsCount += length;
     return begin( ) + offset;
@@ -1624,11 +1555,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_i
 
     if ( offset != elementsCount )
         shift_elements_right(offset, count);
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-    std::uninitialized_fill_n(exec_policy, begin( ) + offset, count, value);
-#else
     std::uninitialized_fill_n(begin( ) + offset, count, value);
-#endif
 
     elementsCount += count;
     return begin( ) + offset;
@@ -1644,11 +1571,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_i
     if ( offset != elementsCount )
         shift_elements_right(offset, 1);
 
-#if __cplusplus >= 202002L
     std::construct_at<value_type>(begin( ) + offset, std::move(value));
-#else
-    ::new (begin( ) + offset) value_type(std::move(value));
-#endif
     ++elementsCount;
     return begin( ) + offset;
 }
@@ -1663,11 +1586,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_i
     if ( offset != elementsCount )
         shift_elements_right(offset, 1);
 
-#if __cplusplus >= 202002L
     std::construct_at<value_type>(begin( ) + offset, value);
-#else
-    ::new (begin( ) + offset) value_type(value);
-#endif
     ++elementsCount;
     return begin( ) + offset;
 }
@@ -1725,11 +1644,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::emplace_back (Args&&... args) 
 {
     // count_overflow_check(1);
 
-#if __cplusplus >= 202002L
     std::construct_at<value_type>(begin( ) + elementsCount, std::forward<Args>(args)...);
-#else
-    ::new (begin( ) + elementsCount) value_type(std::forward<Args>(args)...);
-#endif
     ++elementsCount;
     return back( );
 }
@@ -1747,11 +1662,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::push_back (const_reference val
 {
     // count_overflow_check(1);
 
-#if __cplusplus >= 202002L
     std::construct_at<value_type>(end( ), value);
-#else
-    ::new (end( )) value_type(value);
-#endif
     ++elementsCount;
 }
 
@@ -1982,11 +1893,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::assign (InputIt first, InputIt
     // count_fit_capacity_check<bc_strategy>(std::distance(first, last), capacity( ));
 
     clear( );
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-    std::uninitialized_copy(exec_policy, first, last, begin( ));
-#else
     std::uninitialized_copy(first, last, begin( ));
-#endif
     elementsCount = std::distance(first, last);
 }
 
@@ -1996,11 +1903,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::assign (static_vector::size_ty
     // count_fit_capacity_check<bc_strategy>(count, capacity( ));
 
     clear( );
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-    std::uninitialized_fill_n(exec_policy, begin( ), count, value);
-#else
     std::uninitialized_fill_n(begin( ), count, value);
-#endif
     elementsCount = count;
 }
 
@@ -2010,11 +1913,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::operator= (std::initializer_li
     // count_fit_capacity_check<bc_strategy>(ilist.size( ), capacity( ));
 
     clear( );
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-    std::uninitialized_copy(exec_policy, ilist.begin( ), ilist.end( ), begin( ));
-#else
     std::uninitialized_copy(ilist.begin( ), ilist.end( ), begin( ));
-#endif
     elementsCount = ilist.size( );
     return *this;
 }
@@ -2026,11 +1925,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::operator= (static_vector&& oth
 
     if ( &other != this ) {
         clear( );
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-        std::uninitialized_move(exec_policy, other.begin( ), other.end( ), begin( ));
-#else
         std::uninitialized_move(other.begin( ), other.end( ), begin( ));
-#endif
         elementsCount = other.elementsCount;
     }
     return *this;
@@ -2043,18 +1938,14 @@ constexpr auto static_vector<T, SZ, bc_strategy>::operator= (const static_vector
 
     if ( &other != this ) {
         clear( );
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-        std::uninitialized_copy(exec_policy, other.begin( ), other.end( ), begin( ));
-#else
         std::uninitialized_copy(other.begin( ), other.end( ), begin( ));
-#endif
         elementsCount = other.elementsCount;
     }
     return *this;
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-CXX20_CONSTEXPR inline static_vector<T, SZ, bc_strategy>::~static_vector( )
+constexpr static_vector<T, SZ, bc_strategy>::~static_vector( )
 {
     clear( );
 }
@@ -2062,22 +1953,14 @@ CXX20_CONSTEXPR inline static_vector<T, SZ, bc_strategy>::~static_vector( )
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
 constexpr static_vector<T, SZ, bc_strategy>::static_vector(static_vector&& vec) noexcept
 {
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-    std::uninitialized_move(exec_policy, vec.begin( ), vec.end( ), begin( ));
-#else
     std::uninitialized_move(vec.begin( ), vec.end( ), begin( ));
-#endif
     elementsCount = vec.elementsCount;
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
 constexpr static_vector<T, SZ, bc_strategy>::static_vector(const static_vector& vec)
 {
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-    std::uninitialized_copy(exec_policy, vec.cbegin( ), vec.cend( ), begin( ));
-#else
     std::uninitialized_copy(vec.cbegin( ), vec.cend( ), begin( ));
-#endif
     elementsCount = vec.elementsCount;
 }
 
@@ -2086,11 +1969,7 @@ constexpr static_vector<T, SZ, bc_strategy>::static_vector(size_type count, cons
 {
     count_fit_capacity_check<bc_strategy>(elementsCount, capacity( ));
 
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-    std::uninitialized_fill_n(exec_policy, begin( ), count, value);
-#else
     std::uninitialized_fill_n(begin( ), count, value);
-#endif
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
@@ -2098,11 +1977,7 @@ constexpr static_vector<T, SZ, bc_strategy>::static_vector(size_type count) : el
 {
     count_fit_capacity_check<bc_strategy>(elementsCount, capacity( ));
 
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-    std::uninitialized_default_construct_n(exec_policy, begin( ), count);
-#else
     std::uninitialized_default_construct_n(begin( ), count);
-#endif
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
@@ -2110,11 +1985,7 @@ constexpr static_vector<T, SZ, bc_strategy>::static_vector(std::initializer_list
 {
     count_fit_capacity_check<bc_strategy>(elementsCount, capacity( ));
 
-#if wbr_STATIC_VECTOR_USE_PARALLEL_ALGORITHMS
-    std::uninitialized_copy(exec_policy, init.begin( ), init.end( ), begin( ));
-#else
     std::uninitialized_copy(init.begin( ), init.end( ), begin( ));
-#endif
 }
 
 template<class T, size_t SZ, BoundCheckStrategy astrat, BoundCheckStrategy bstrat>
