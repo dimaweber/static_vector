@@ -125,7 +125,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/static_vector-config.cmake
 )
 
 install(TARGETS ${TARGET_LIB}
-        EXPORT static_vector-targets
+        EXPORT wbr-targets
         #DESTINATION ${INSTALL_CMAKE_DIR}
         #FILE_SET HEADERS
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -133,7 +133,7 @@ install(TARGETS ${TARGET_LIB}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
-install(EXPORT static_vector-targets
+install(EXPORT wbr-targets
         NAMESPACE wbr::
         DESTINATION ${INSTALL_CMAKE_DIR}
 )

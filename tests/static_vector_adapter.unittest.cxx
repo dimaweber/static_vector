@@ -549,3 +549,38 @@ TEST(StaticVectorAdapterTest, InsertWithFullCapacity)
     const int expected_data_c_array[5] = {10, 20, 30, 40, 50};
     EXPECT_TRUE(std::ranges::equal(adapter, expected_data_c_array));
 }
+
+TEST(StaticVectorAdapterTest, DataMethodConst)
+{
+    std::array<int, 10>        array = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    size_t                     count = 10;
+    static_vector_adapter<int> adapter(array, count);
+
+    const auto* ptr = adapter.data( );
+
+    EXPECT_EQ(ptr, array.data( ));
+    EXPECT_EQ(ptr[0], array[0]);
+    EXPECT_EQ(ptr[5], array[5]);
+    EXPECT_EQ(ptr[9], array[9]);
+}
+
+TEST(StaticVectorAdapterTest, DataMethodNonConst)
+{
+    std::array<int, 10>        array = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    size_t                     count = 10;
+    static_vector_adapter<int> adapter(array, count);
+
+    auto* ptr = adapter.data( );
+
+    EXPECT_EQ(ptr, array.data( ));
+    EXPECT_EQ(ptr[0], array[0]);
+    EXPECT_EQ(ptr[5], array[5]);
+    EXPECT_EQ(ptr[9], array[9]);
+
+    // Modify the array through the pointer
+    ptr[1] = 10;
+    ptr[2] = 20;
+
+    EXPECT_EQ(adapter[1], 10);
+    EXPECT_EQ(adapter[2], 20);
+}

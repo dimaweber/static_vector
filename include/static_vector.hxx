@@ -42,25 +42,21 @@ NoThrowForwardIt uninitialized_move_backward (InputIt first, InputIt last, NoThr
 
 }  // namespace
 
+/* \brief Strategy used for bounds checking in static_vector and static_vector_adapter.
+
+ This enumeration defines different strategies for handling out-of-bounds access:
+ - NoCheck: No checks are performed, leading to undefined behavior on bound violations.
+ - Assert: Bounds are checked using assertions (only effective in debug mode).
+ - Exception: Throws exceptions when bounds are violated.
+ - LimitToBound: Silently limits positions to valid range without throwing exceptions.
+ */
 enum class BoundCheckStrategy {
-    NoCheck,
-    UB = NoCheck,
-    Assert,
-    Exception,
-    LimitToBound,
+    NoCheck,       ///< No checks, leading to undefined behavior on bound violations
+    UB = NoCheck,  ///< Alias for NoCheck, indicating unsafe (undefined behavior) mode
+    Assert,        ///< Checks bounds using assertions (debug mode only)
+    Exception,     ///< Throws exceptions when bounds are violated
+    LimitToBound,  ///< Silently limits positions to valid range without throwing exceptions
 };
-
-template<BoundCheckStrategy bc_strategy>
-constexpr void count_fit_capacity_check (size_t count, size_t capacity)
-{
-    using enum BoundCheckStrategy;
-
-    if constexpr ( bc_strategy == Assert )
-        assert(count < capacity);
-    if constexpr ( bc_strategy == Exception )
-        if ( count >= capacity )
-            throw std::out_of_range("count exceeds capacity");
-}
 
 constexpr const char* to_string (BoundCheckStrategy e, const char* defValue = nullptr) noexcept
 {
@@ -74,6 +70,18 @@ constexpr const char* to_string (BoundCheckStrategy e, const char* defValue = nu
     return defValue;
 }
 
+template<BoundCheckStrategy bc_strategy>
+constexpr void count_fit_capacity_check (size_t count, size_t capacity)
+{
+    using enum BoundCheckStrategy;
+
+    if constexpr ( bc_strategy == Assert )
+        assert(count < capacity);
+    if constexpr ( bc_strategy == Exception )
+        if ( count >= capacity )
+            throw std::out_of_range("count exceeds capacity");
+}
+
 template<typename T>
 concept IsVector = requires(T vec) {
                        vec.begin( );
@@ -84,17 +92,17 @@ concept IsVector = requires(T vec) {
 
 /**
  * @class static_vector_adapter
- * @brief Adapter for {@code std::array} and c-array that provides {@code std::vector}-like interface
+ * @brief Adapter for `std::array` and c-array that provides `std::vector`-like interface.
  *
- * The static_vector_adapter class is a lightweight wrapper around an {@code std::array} or c-array that provides
- * a subset of functionality similar to {@code std::vector}, but without heap allocation.
+ * The static_vector_adapter class is a lightweight wrapper around an `std::array` or c-array that provides
+ * a subset of functionality similar to `std::vector`, but without heap allocation.
  *
- * This adapter is useful when you want to use {@code std::vector}-like operations on a fixed-size array
+ * This adapter is useful when you want to use `std::vector`-like operations on a fixed-size array
  * that's allocated on the stack rather than the heap. It maintains size tracking and provides
  * basic container operations.
  *
- * @tparam T The type of elements stored in the array
- * @tparam SZ The fixed size of the array
+ * @tparam T The type of elements stored in the array.
+ * @tparam bc_strategy The strategy used for bounds checking (default is BoundCheckStrategy::UB).
  */
 template<typename T, BoundCheckStrategy bc_strategy = BoundCheckStrategy::UB>
 class static_vector_adapter
@@ -645,9 +653,61 @@ public:
         elements_count_ = 0;
     }
 
-    constexpr pointer data ( ) noexcept { return elements_; }
+    /**
+     * @brief Returns a pointer to the underlying array.
+     *
+     * This method provides direct access to the internal storage of the adapter,
+     * similar to `std::vector::data()`.
+     *
+     * @return A pointer to the first element in the underlying array.
+     *
+     * @throws This function does not throw exceptions as it is a noexcept operation.
+     *
+     * @usage Example usage:
+     *
+     * ```c/c++
+     * std::array<int, 10> array = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+     * size_t count = 10;
+     * static_vector_adapter<int> adapter(array, count);
+     *
+     * // Get pointer to the underlying array
+     * int* ptr = adapter.data();
+     *
+     * // Access elements via pointer
+     * for (size_t i = 0; i < count; ++i) {
+     *     std::cout << ptr[i] << " ";
+     * }
+     * ```
+     */
+    [[nodiscard]] constexpr pointer data ( ) noexcept { return elements_; }
 
-    constexpr const_pointer data ( ) const noexcept { return elements_; }
+    /**
+     * @brief Returns a non-const pointer to the underlying array.
+     *
+     * This method provides direct access to the internal storage of the adapter,
+     * similar to `std::vector::data()`.
+     *
+     * @return A pointer to the first element in the underlying array.
+     *
+     * @throws This function does not throw exceptions as it is a noexcept operation.
+     *
+     * @usage Example usage:
+     *
+     * ```c/c++
+     * std::array<std::string, 5> array = {"Hello", "world!", "This", "is", "a test."};
+     * size_t count = 5;
+     * static_vector_adapter<std::string> adapter(array, count);
+     *
+     * // Get pointer to the underlying array
+     * std::string* ptr = adapter.data();
+     *
+     * // Access elements via pointer
+     * for (size_t i = 0; i < count; ++i) {
+     *     std::cout << ptr[i] << " ";
+     * }
+     * ```
+     */
+    [[nodiscard]] constexpr const_pointer data ( ) const noexcept { return elements_; }
 
     /**
      * @brief Gets an iterator to the beginning of the container
