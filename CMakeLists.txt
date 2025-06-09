@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(static_vector)
+project(static_vector VERSION 0.2 DESCRIPTION "stack-allocated vector with standard api")
 
 include(GNUInstallDirs)
 
@@ -10,7 +10,7 @@ set(TARGET_BM sv_benchmark)
 
 set(CMAKE_CXX_STANDARD 23)
 
-list(APPEND CMAKE_PREFIX_PATH $ENV{HOME}/.local/lib/cmake)
+#list(APPEND CMAKE_PREFIX_PATH $ENV{HOME}/.local/lib/cmake)
 
 set(HEADERS
         include/static_vector.hxx
@@ -36,7 +36,12 @@ if (NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 endif ()
 
 add_library(${TARGET_LIB} INTERFACE)
-target_include_directories(${TARGET_LIB} INTERFACE include)
+target_include_directories(${TARGET_LIB}
+        INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+
 
 if (BUILD_TESTS)
     enable_testing()
@@ -92,4 +97,43 @@ if (BUILD_DOCS)
     endif (DOXYGEN_FOUND)
 endif ()
 
-INSTALL(FILES ${HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/wbr)
+
+set(INSTALL_CMAKE_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/static_vector)
+
+include(CMakePackageConfigHelpers)
+set(EXPORT_TARGETS wbr::static_vector)
+configure_package_config_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/static_vector-config.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/static_vector-config.cmake
+        INSTALL_DESTINATION ${INSTALL_CMAKE_DIR}
+        PATH_VARS CMAKE_INSTALL_INCLUDEDIR CMAKE_INSTALL_LIBDIR
+)
+unset(EXPORT_TARGETS)
+
+write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/static_vector-config-version.cmake
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY SameMajorVersion
+)
+
+
+install(FILES ${HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/static_vector-config.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/static_vector-config-version.cmake
+        DESTINATION ${INSTALL_CMAKE_DIR}
+)
+
+install(TARGETS ${TARGET_LIB}
+        EXPORT static_vector-targets
+        #DESTINATION ${INSTALL_CMAKE_DIR}
+        #FILE_SET HEADERS
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+install(EXPORT static_vector-targets
+        NAMESPACE wbr::
+        DESTINATION ${INSTALL_CMAKE_DIR}
+)

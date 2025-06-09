@@ -1,0 +1,16 @@
+@PACKAGE_INIT@
+
+
+set(static_vector_VERSION @PROJECT_VERSION@)
+set_and_check(static_vector_INCLUDE_DIR "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
+
+include("${CMAKE_CURRENT_LIST_DIR}/static_vector-targets.cmake")
+
+set(static_vector_LIBRARIES "@EXPORT_TARGETS@")
+
+if (NOT TARGET static_vector)
+    add_library(static_vector INTERFACE IMPORTED)
+    target_link_libraries(static_vector INTERFACE static_vector)
+endif()
+
+check_required_components(static_vector)
