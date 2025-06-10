@@ -14,7 +14,8 @@ set(CMAKE_CXX_STANDARD 23)
 
 set(HEADERS
         include/static_vector.hxx
-        include/skl_string.h
+        include/static_string.hxx
+        include/bound_check.hxx
 )
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -O0")
@@ -35,7 +36,14 @@ if (NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(BUILD_DOCS OFF)
 endif ()
 
-add_library(${TARGET_LIB} INTERFACE)
+if (BUILD_TESTS)
+    add_compile_definitions(BUILD_TESTS=1)
+else ()
+    add_compile_definitions(BUILD_TESTS=0)
+endif ()
+
+add_library(${TARGET_LIB} INTERFACE
+        include/bound_check.hxx)
 target_include_directories(${TARGET_LIB}
         INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -44,17 +52,20 @@ target_include_directories(${TARGET_LIB}
 
 
 if (BUILD_TESTS)
-    enable_testing()
 
+    enable_testing()
     find_package(GTest REQUIRED)
     add_executable(${TARGET_UT}
             tests/static_vector.unittest.cpp
             tests/static_vector_adapter.unittest.cxx
+            tests/static_string.unittest.cxx
     )
 
     include(GoogleTest)
     gtest_discover_tests(${TARGET_UT})
     target_link_libraries(${TARGET_UT} PRIVATE GTest::gtest_main ${TARGET_LIB})
+else ()
+    add_compile_definitions(BUILD_TESTS=0)
 endif ()
 
 if (BUILD_BENCHMARK)

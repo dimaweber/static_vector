@@ -4,7 +4,7 @@ PROJECT_NAME           = "static_vector"
 OUTPUT_DIRECTORY       = ./docs
 RECURSIVE              = YES
 INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/
-FILE_PATTERNS          = *.cpp *.hxx *.c *.h
+FILE_PATTERNS          = *.cxx *.hxx
 GENERATE_HTML          = YES
 
 # Additional options can be added here

@@ -584,3 +584,168 @@ TEST(StaticVectorAdapterTest, DataMethodNonConst)
     EXPECT_EQ(adapter[1], 10);
     EXPECT_EQ(adapter[2], 20);
 }
+
+TEST(StaticVectorAdapterTest, InsertNoBoundsChecking)
+{
+    std::array<int, 10> data_array {1, 2, 3, 4};
+    std::size_t         element_count = 4;
+    auto                vec           = make_adapter<BoundCheckStrategy::NoCheck>(data_array, element_count);
+
+    // prerequisites: no need check functionality, if these are failed
+    ASSERT_EQ(vec.size( ), 4);
+    ASSERT_EQ(vec.capacity( ), 10);
+    ASSERT_EQ(vec.free_space( ), 6);
+
+    {  // Insert at valid position
+
+        auto pos = vec.cbegin( );
+        std::advance(pos, 2);  // Position before the third element
+        auto iter     = vec.insert(pos, 2, 99);
+        auto expected = {1, 2, 99, 99, 3, 4};
+
+        EXPECT_EQ(iter, vec.cbegin( ) + 2);
+        EXPECT_EQ(vec.size( ), expected.size( ));
+        EXPECT_TRUE(std::ranges::equal(vec, expected));
+    }
+
+    {  // Insert at the beginning
+        auto pos      = vec.cbegin( );
+        auto iter     = vec.insert(pos, 1, 88);
+        auto expected = {88, 1, 2, 99, 99, 3, 4};
+        EXPECT_EQ(iter, vec.begin( ));
+        EXPECT_EQ(vec.size( ), expected.size( ));
+        EXPECT_TRUE(std::ranges::equal(vec, expected));
+    }
+
+    {  // Insert at the end
+        auto pos      = vec.cend( );
+        auto iter     = vec.insert(pos, 2, 77);
+        auto expected = {88, 1, 2, 99, 99, 3, 4, 77, 77};
+        EXPECT_EQ(iter, vec.end( ) - 2);
+        EXPECT_EQ(vec.size( ), expected.size( ));
+        EXPECT_TRUE(std::ranges::equal(vec, expected));
+    }
+}
+
+TEST(StaticVectorAdapterTest, InsertExceptionBoundsChecking)
+{
+    std::array<int, 10> data_array {1, 2, 3, 4};
+    std::size_t         element_count = 4;
+    auto                vec           = make_adapter<BoundCheckStrategy::Exception>(data_array, element_count);
+
+    // Insert at valid position
+    auto pos = vec.cbegin( );
+    std::advance(pos, 1);  // Position before the second element
+    auto iter     = vec.cbegin( );
+    auto expected = {1, 99, 2, 3, 4};
+
+    EXPECT_NO_THROW(iter = vec.insert(pos, 1, 99));
+    EXPECT_EQ(iter, vec.begin( ) + 1);
+    EXPECT_EQ(vec.size( ), expected.size( ));
+    EXPECT_TRUE(std::ranges::equal(vec, expected));
+
+    // Try to insert at invalid position (beyond end)
+    pos = vec.cend( ) + 1;
+    EXPECT_THROW(vec.insert(pos, 1, 88), std::out_of_range);
+
+    // Try to insert too many elements
+    pos = vec.cbegin( );
+    EXPECT_THROW(vec.insert(pos, 10, 77), std::length_error);
+}
+
+TEST(StaticVectorAdapterTest, InsertAssertBoundsChecking)
+{
+#ifdef NDEBUG
+    GTEST_SKIP( ) << "Assert checking is only active in debug mode";
+#endif
+
+    std::array<int, 10> data_array {1, 2, 3, 4};
+    std::size_t         element_count = 4;
+    auto                vec           = make_adapter<BoundCheckStrategy::Assert>(data_array, element_count);
+
+    {  // Insert at valid position
+        auto pos = vec.cbegin( );
+        std::advance(pos, 1);  // Position before the second element
+        auto iter     = vec.begin( );
+        auto expected = {1, 99, 2, 3, 4};
+        EXPECT_NO_THROW(iter = vec.insert(pos, 1, 99));
+        EXPECT_EQ(iter, vec.begin( ) + 1);
+        EXPECT_EQ(vec.size( ), expected.size( ));
+        EXPECT_TRUE(std::ranges::equal(vec, expected));
+    }
+
+    {  // Insert at the beginning
+        auto pos      = vec.cbegin( );
+        auto iter     = vec.begin( );
+        auto expected = {88, 1, 99, 2, 3, 4};
+        EXPECT_NO_THROW(iter = vec.insert(pos, 1, 88));
+        EXPECT_EQ(iter, vec.begin( ));
+        EXPECT_EQ(vec.size( ), expected.size( ));
+        EXPECT_TRUE(std::ranges::equal(vec, expected));
+    }
+
+    {  // Insert at the end
+        auto pos      = vec.cend( );
+        auto iter     = vec.begin( );
+        auto expected = {88, 1, 99, 2, 3, 4, 77};
+        EXPECT_NO_THROW(iter = vec.insert(pos, 1, 77));
+        EXPECT_EQ(iter, vec.end( ) - 1);
+        EXPECT_EQ(vec.size( ), expected.size( ));
+        EXPECT_TRUE(std::ranges::equal(vec, expected));
+    }
+
+    {  // Try to insert at invalid position (beyond end)
+        auto pos = vec.cend( ) + 1;
+        EXPECT_EXIT(vec.insert(pos, 1, 88), KilledBySignal(SIGABRT), "");
+    }
+}
+
+TEST(StaticVectorAdapterTest, InsertLimitToBoundsChecking)
+{
+    std::array<int, 10> data_array {1, 2, 3, 4};
+    std::size_t         element_count = 2;
+    auto                vec           = make_adapter<BoundCheckStrategy::LimitToBound>(data_array, element_count);
+
+    {  // Insert at valid position
+        auto pos = vec.cbegin( );
+        std::advance(pos, 1);  // Position before the second element
+        auto iter     = vec.begin( );
+        auto expected = {1, 99, 2};
+        EXPECT_NO_THROW(iter = vec.insert(pos, 1, 99));
+        EXPECT_EQ(iter, vec.begin( ) + 1);
+        EXPECT_EQ(vec.size( ), expected.size( ));
+        EXPECT_TRUE(std::ranges::equal(vec, expected));
+    }
+
+    {  // Insert at position before beginning
+
+        auto pos      = vec.cbegin( ) - 1;
+        auto iter     = vec.cbegin( );
+        auto expected = {88, 1, 99, 2};
+        EXPECT_NO_THROW(iter = vec.insert(pos, 1, 88));
+        EXPECT_EQ(iter, vec.begin( ));
+        EXPECT_EQ(vec.size( ), expected.size( ));
+        EXPECT_TRUE(std::ranges::equal(vec, expected));
+    }
+    {  // Insert at position after end
+
+        auto pos      = vec.cend( ) + 1;
+        auto iter     = vec.cbegin( );
+        auto expected = {88, 1, 99, 2, 77, 77};
+        EXPECT_NO_THROW(iter = vec.insert(pos, 2, 77));
+        EXPECT_EQ(iter, vec.end( ) - 2);
+        EXPECT_EQ(vec.size( ), expected.size( ));
+        EXPECT_TRUE(std::ranges::equal(vec, expected));
+    }
+
+    {  // Try to insert too many elements (should be limited by available space)
+
+        auto pos      = vec.cbegin( );
+        auto iter     = vec.cend( );
+        auto expected = {66, 66, 66, 66, 88, 1, 99, 2, 77, 77};
+        EXPECT_NO_THROW(iter = vec.insert(pos, 6, 66));
+        EXPECT_EQ(iter, vec.begin( ));
+        EXPECT_EQ(vec.size( ), expected.size( ));
+        EXPECT_TRUE(std::ranges::equal(vec, expected));  // Insert at position before beginning
+    }
+}

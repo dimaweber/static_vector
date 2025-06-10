@@ -11,6 +11,7 @@
 #if __cpp_lib_format >= 201907L
     #include <format>
 #endif
+#include "bound_check.hxx"
 
 /** @file
  *
@@ -31,7 +32,7 @@ namespace
  * @param d_first
  * @return
  */
-template<class InputIt, class NoThrowForwardIt>
+template<std::input_iterator InputIt, std::forward_iterator NoThrowForwardIt>
 NoThrowForwardIt uninitialized_move_backward (InputIt first, InputIt last, NoThrowForwardIt d_first)
 {
     if ( d_first == last )
@@ -41,34 +42,6 @@ NoThrowForwardIt uninitialized_move_backward (InputIt first, InputIt last, NoThr
 }
 
 }  // namespace
-
-/* \brief Strategy used for bounds checking in static_vector and static_vector_adapter.
-
- This enumeration defines different strategies for handling out-of-bounds access:
- - NoCheck: No checks are performed, leading to undefined behavior on bound violations.
- - Assert: Bounds are checked using assertions (only effective in debug mode).
- - Exception: Throws exceptions when bounds are violated.
- - LimitToBound: Silently limits positions to valid range without throwing exceptions.
- */
-enum class BoundCheckStrategy {
-    NoCheck,       ///< No checks, leading to undefined behavior on bound violations
-    UB = NoCheck,  ///< Alias for NoCheck, indicating unsafe (undefined behavior) mode
-    Assert,        ///< Checks bounds using assertions (debug mode only)
-    Exception,     ///< Throws exceptions when bounds are violated
-    LimitToBound,  ///< Silently limits positions to valid range without throwing exceptions
-};
-
-constexpr const char* to_string (BoundCheckStrategy e, const char* defValue = nullptr) noexcept
-{
-    switch ( e ) {
-        using enum BoundCheckStrategy;
-        case NoCheck:      return "no check (undefined behavior)";
-        case Assert:       return "assert";
-        case Exception:    return "exception";
-        case LimitToBound: return "bound-limit";
-    }
-    return defValue;
-}
 
 template<BoundCheckStrategy bc_strategy>
 constexpr void count_fit_capacity_check (size_t count, size_t capacity)
@@ -133,7 +106,10 @@ public:
      * @param counter Reference to the count of elements currently in use (size)
      */
     template<size_type SZ>
-    constexpr static_vector_adapter(std::array<T, SZ>& array, std::size_t& counter) noexcept : elements_count_ {counter}, max_elements_count_ {array.size( )}, elements_ {array.data( )}
+    constexpr static_vector_adapter(std::array<T, SZ>& array, std::size_t& counter) noexcept(bc_strategy != BoundCheckStrategy::Exception) :
+        elements_count_ {counter},
+        max_elements_count_ {array.size( )},
+        elements_ {array.data( )}
     {
         if constexpr ( bc_strategy == BoundCheckStrategy::Exception )
             if ( counter > array.size( ) )
@@ -160,7 +136,7 @@ public:
      * @param counter Reference to the count of elements currently in use (size)
      */
     template<size_t N>
-    constexpr static_vector_adapter(T (&array)[N], std::size_t& counter) noexcept : elements_count_ {counter}, max_elements_count_ {N}, elements_ {array}
+    constexpr static_vector_adapter(T (&array)[N], std::size_t& counter) noexcept(bc_strategy != BoundCheckStrategy::Exception) : elements_count_ {counter}, max_elements_count_ {N}, elements_ {array}
     {
         if constexpr ( bc_strategy == BoundCheckStrategy::Exception )
             if ( counter > N )
@@ -186,7 +162,10 @@ public:
      * @param array_max_size Maximum size of the array
      * @param counter Reference to the count of elements currently in use (size)
      */
-    constexpr static_vector_adapter (T* array, std::size_t array_max_size, std::size_t& counter) noexcept : elements_count_ {counter}, max_elements_count_ {array_max_size}, elements_ {array}
+    constexpr static_vector_adapter (T* array, std::size_t array_max_size, std::size_t& counter) noexcept(bc_strategy != BoundCheckStrategy::Exception) :
+        elements_count_ {counter},
+        max_elements_count_ {array_max_size},
+        elements_ {array}
     {
         if constexpr ( bc_strategy == BoundCheckStrategy::Exception )
             if ( counter > array_max_size )
@@ -227,6 +206,7 @@ public:
      *
      * @throws std::out_of_range if `count` > `capacity()` and `bc_strategy` is `Exception`
      *
+     * @par Example usage:
      * @code{.cpp}
      * #include <iostream>
      * #include "static_vector_adapter.h"
@@ -235,7 +215,7 @@ public:
      *     std::array<int, 5> data_array = {0, 1, 2, 3, 4};
      *     std::size_t element_count = 3; // Only using first 3 elements
      *
-     *     static_vector_adapter adapter(data_array, element_count);
+     *     wbr::static_vector_adapter adapter(data_array, element_count);
      *
      *     // Assign a single value to all elements
      *     adapter.assign(3, 99);
@@ -278,6 +258,7 @@ public:
      *
      * @throws std::out_of_range if distance(first, last) > SZ
      *
+     * @par Example usage:
      * @code{.cpp}
      * #include <iostream>
      * #include "static_vector_adapter.h"
@@ -286,7 +267,7 @@ public:
      *     std::array<int, 5> data_array = {0, 1, 2, 3, 4};
      *     std::size_t element_count = 3; // Only using first 3 elements
      *
-     *     static_vector_adapter adapter(data_array, element_count);
+     *     wbr::static_vector_adapter adapter(data_array, element_count);
      *
      *     // Assign values from a different array
      *     int other_data[] = {10, 20, 30};
@@ -342,6 +323,7 @@ public:
      *
      * @throws std::out_of_range if ilist.size() > SZ
      *
+     * @par Example usage:
      * @code{.cpp}
      * #include <iostream>
      * #include "static_vector_adapter.h"
@@ -350,7 +332,7 @@ public:
      *     std::array<int, 5> data_array = {0, 1, 2, 3, 4};
      *     std::size_t element_count = 3; // Only using first 3 elements
      *
-     *     static_vector_adapter adapter(data_array, element_count);
+     *     wbr::static_vector_adapter adapter(data_array, element_count);
      *
      *     // Assign values from an initializer list
      *     adapter.assign({100, 200, 300});
@@ -392,11 +374,12 @@ public:
      * @return Reference to the element at the specified position.
      * @throws std::out_of_range If `pos` is not within the valid range [0, size()).
      *
-     * Example usage:
-     * @code
+     * @par Example usage:
+     * @code{.cpp}
      * std::array<int, 5> data_array = {0, 1, 2, 3, 4};
      * std::size_t element_count = 5;
-     * static_vector_adapter vec {data_array, element_count};
+     *
+     * wbr::static_vector_adapter vec {data_array, element_count};
      *
      * try {
      *     int val& = vec.at(2); // Access the element at position 2 (value is 3)
@@ -427,11 +410,12 @@ public:
      * @return Const reference to the element at the specified position.
      * @throws std::out_of_range If `pos` is not within the valid range [0, size()).
      *
-     * Example usage:
-     * @code
+     * @par Example usage:
+     * @code{.cpp}
      * std::array<int, 5> data_array = {0, 1, 2, 3, 4, 5};
      * std::size_t element_count = 5;
-     * const static_vector_adapter vec {data_array, element_count};
+     *
+     * const wbr::static_vector_adapter vec {data_array, element_count};
      *
      * try {
      *     const int& val = vec.at(2); // Access the element at position 2 (value is 3)
@@ -462,11 +446,12 @@ public:
      * @return Reference to the element at the specified position.
      * @note No bounds checking is performed. Accessing out-of-bounds indices results in undefined behavior.
      *
-     * Example usage:
-     * @code
+     * @par Example usage:
+     * @code{.cpp}
      * std::array<int, 5> data_array = {1, 2, 3, 4, 5};
      * std::size_t element_count = 5;
-     * static_vector_adapter vec  {data_array, element_count};
+     *
+     * wbr::static_vector_adapter vec  {data_array, element_count};
      *
      * int& val = vec[2]; // Access the element at position 2 (value is 3)
      * vec[3] = 40;
@@ -496,9 +481,11 @@ public:
      * @return Const reference to the element at the specified position.
      * @note No bounds checking is performed. Accessing out-of-bounds indices results in undefined behavior.
      *
-     * Example usage:
-     * @code
-     * const static_vector_adapter<int, 5> vec = {1, 2, 3, 4, 5};
+     * @par Example usage:
+     * @code{.cpp}
+     * std::array<int, 5> data = {1, 2, 3, 4, 5};
+     * std::size_t count = 0; // Simulate an empty container
+     * const wbr::static_vector_adapter<int, 5> vec = {1, 2, 3, 4, 5};
      * int val = vec[2]; // Access the element at position 2 (value is 3)
      * @endcode
      */
@@ -525,11 +512,11 @@ public:
      *
      * @throws `std::out_of_range` if the container is empty (depending on implementation of `not_empty_container_check`).
      *
-     * Example usage:
-     * @code
+     * @par Example usage:
+     * @code{.cpp}
      * std::array<int, 5> data = {1, 2, 3, 4, 5};
-     * size_t count = 5;
-     * static_vector_adapter<int, 5> vec(data, count);
+     * std::size_t count = 5;
+     * wbr::static_vector_adapter vec(data, count);
      *
      * int firstElement = vec.front(); // Accesses the first element
      * std::cout << "First element: " << firstElement << std::endl; // Outputs: First element: 1
@@ -579,11 +566,11 @@ public:
      *
      * @throws `std::out_of_range` if the container is empty (depending on implementation of `not_empty_container_check`).
      *
-     * Example usage:
-     * @code
+     * @par Example usage:
+     * @code{.cpp}
      * std::array<int, 5> data = {1, 2, 3, 4, 5};
-     * size_t count = 5;
-     * static_vector_adapter<int, 5> vec(data, count);
+     * std::size_t count = 5;
+     * wbr::static_vector_adapter vec(data, count);
      *
      * int lastElement = vec.back(); // Accesses the last element
      * std::cout << "Last element: " << lastElement << std::endl; // Outputs: Last element: 5
@@ -631,13 +618,13 @@ public:
      *
      * @note If `T` is not trivially destructible, it will call the destructor for each element.
      *
-     * @throws Do not throw.
+     * @throws Does not throw exceptions.
      *
-     * Example usage:
-     * @code
+     * @par Example usage:
+     * @code{.cpp}
      * std::array<int,5> data_array = {1, 2, 3, 4, 5};
      * std::size_t element_count = 5;
-     * static_vector_adapter vec {data_array, element_count};
+     * wbr::static_vector_adapter vec {data_array, element_count};
      *
      * std::cout << "Size before clear: " << vec.size() << std::endl; // Outputs: Size before clear: 5
      *
@@ -663,12 +650,11 @@ public:
      *
      * @throws This function does not throw exceptions as it is a noexcept operation.
      *
-     * @usage Example usage:
-     *
-     * ```c/c++
+     * @par Example usage:
+     * @code{.cpp}
      * std::array<int, 10> array = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-     * size_t count = 10;
-     * static_vector_adapter adapter(array, count);
+     * std::size_t count = 10;
+     * wbr::static_vector_adapter adapter(array, count);
      *
      * // Get pointer to the underlying array
      * int* ptr = adapter.data();
@@ -677,7 +663,7 @@ public:
      * for (size_t i = 0; i < count; ++i) {
      *     std::cout << ptr[i] << " ";
      * }
-     * ```
+     * @endcode
      */
     [[nodiscard]] constexpr pointer data ( ) noexcept { return elements_; }
 
@@ -691,12 +677,11 @@ public:
      *
      * @throws This function does not throw exceptions as it is a noexcept operation.
      *
-     * @usage Example usage:
-     *
-     * ```c/c++
+     * @par Example usage:
+     * @code{.cpp}
      * std::array<std::string, 5> array = {"Hello", "world!", "This", "is", "a test."};
-     * size_t count = 5;
-     * static_vector_adapter adapter(array, count);
+     * std::size_t count = 5;
+     * wbr::static_vector_adapter adapter(array, count);
      *
      * // Get pointer to the underlying array
      * std::string* ptr = adapter.data();
@@ -705,7 +690,7 @@ public:
      * for (size_t i = 0; i < count; ++i) {
      *     std::cout << ptr[i] << " ";
      * }
-     * ```
+     * @endcode
      */
     [[nodiscard]] constexpr const_pointer data ( ) const noexcept { return elements_; }
 
@@ -717,11 +702,11 @@ public:
      * @throws Does not throw exceptions.
      * @return Iterator pointing to the first element.
      *
-     * Example usage:
-     * @code
+     * @par Example usage:
+     * @code{.cpp}
      * std::array<int, 5> data = {1, 2, 3, 4, 5};
-     * size_t count = 5;
-     * static_vector_adapter vec(data, count);
+     * std::size_t count = 5;
+     * wbr::static_vector_adapter vec(data, count);
      *
      * for (auto it = vec.begin(); it != vec.end(); ++it) {
      *     std::cout << "Element: " << *it << std::endl; // Prints all elements
@@ -759,11 +744,11 @@ public:
      * @throws Does not throw exceptions.
      * @return Iterator to the end of the container.
      *
-     * Example usage:
-     * @code
+     * @par Example usage:
+     * @code{.cpp}
      * std::array<int, 5> data = {1, 2, 3, 4, 5};
      * std::size_t count = 5;
-     * static_vector_adapter vec(data, count);
+     * wbr::static_vector_adapter vec(data, count);
      *
      * for (auto it = vec.begin(); it != vec.end(); ++it) {
      *     std::cout << "Element: " << *it << std::endl; // Prints all elements
@@ -800,11 +785,11 @@ public:
      * @throws Does not throw exceptions.
      * @return Reverse iterator pointing to the last element.
      *
-     * Example usage:
-     * @code
+     * @par Example usage:
+     * @code{.cpp}
      * std::array<int, 5> data = {1, 2, 3, 4, 5};
      * size_t count = 5;
-     * static_vector_adapter vec(data, count);
+     * wbr::static_vector_adapter vec(data, count);
      *
      * for (auto it = vec.rbegin(); it != vec.rend(); ++it) {
      *     std::cout << "Element: " << *it << std::endl; // Prints elements in reverse order
@@ -871,14 +856,14 @@ public:
      *
      * This function returns the maximum size of the container, which is determined by the fixed size of the underlying {@code std::array}.
      *
-     * @throws Do not throw.
+     * @throws Does not throw exceptions.
      * @return Maximum size of the container.
      *
-     * Example usage:
-     * @code
+     * @par Example usage:
+     * @code{.cpp}
      * std::array<int, 5> data = {1, 2, 3, 4, 5};
      * size_t count = 5;
-     * static_vector_adapter<int, 5> vec(data, count);
+     * wbr::static_vector_adapter vec(data, count);
      *
      * std::cout << "Max size: " << vec.max_size() << std::endl; // Outputs: Max size: 5
      * @endcode
@@ -893,14 +878,14 @@ public:
      * This function returns the current size (number of elements) that are actively used in the array. Note that
      * this may be less than or equal to the maximum size.
      *
-     * @throws Do not throw.
+     * @throws Does not throw exceptions.
      * @return Number of elements currently in use.
      *
-     * Example usage:
-     * @code
-     * {@code}std::array<int, 5>{@code} data = {1, 2, 3, 4, 5};
+     * @par Example usage:
+     * @code{.cpp}
+     * std::array<int, 5> data = {1, 2, 3, 4, 5};
      * size_t count = 5;
-     * static_vector_adapter<int, 5> vec(data, count);
+     * wbr::static_vector_adapter vec(data, count);
      *
      * std::cout << "Current size: " << vec.size() << std::endl; // Outputs: Current size: 5
      * @endcode
@@ -915,11 +900,11 @@ public:
      * @throws Do not throw.
      * @return True if the container has no elements, false otherwise.
      *
-     * Example usage:
+     * @par Example usage:
      * @code
-     * {@code}std::array<int, 5>{@code} data = {1, 2, 3, 4, 5};
+     * std::array<int, 5> data = {1, 2, 3, 4, 5};
      * size_t count = 0; // Simulate an empty container
-     * static_vector_adapter<int, 5> vec(data, count);
+     * wbr::static_vector_adapter vec(data, count);
      *
      * if (vec.empty()) {
      *     std::cout << "The container is empty." << std::endl;
@@ -930,6 +915,42 @@ public:
      */
     [[nodiscard]] constexpr bool empty ( ) const noexcept { return size( ) == 0; }
 
+    /**
+     * @brief Removes the last element from the container.
+     *
+     * This function removes the last element in the static vector. It handles different bound check strategies:
+     * - @c Exception: Throws an `std::out_of_range` exception if the container is empty.
+     * - @c Assert: Uses assertions to ensure the container is not empty (debug builds only).
+     * - @c LimitToBound: Silently returns without doing anything if the container is empty.
+     * - @c UB: No checks are performed. Accessing an empty container leads to undefined behavior.
+     *
+     * @tparam custom_bc_strategy The bound check strategy for this operation
+     *
+     * @throw std::out_of_range If the container is empty and the `custom_bc_strategy` is set to `BoundCheckStrategy::Exception`.
+     *
+     * @par Example usage:
+     * @code{.cpp}
+     * #include "static_vector.hxx"
+     * #include <iostream>
+     *
+     * int main()
+     * {
+     *   int array[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+     *   size_t count{10};
+     *   wbr::static_vector_adapter vec {array, count};
+     *   // Remove last element
+         vec.pop_back();
+
+        // Using range-based for loop to print remaining elements
+        for (auto& elem : vec) {
+            std::cout << elem << " ";
+        }
+        std::cout << std::endl;
+
+        return 0;
+        }
+        @endcode
+     */
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr void pop_back ( ) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception)
     {
@@ -1049,8 +1070,11 @@ public:
      *
      * @throws std::out_of_range If the insertion is out of bounds and Exception strategy is used.
      *
+     * @par Example usage:
      * @code
-     * static_vector_adapter<int, 5> adapter;
+     * std::array<int, 5> data = {1, 2, 3, 4, 5};
+     * size_t count = 0; // Simulate an empty container
+     * wbr::static_vector_adapter vec(data, count);
      * for (size_t i = 0; i < 3; ++i) {
      *     adapter.push_back(i);
      * }
@@ -1145,10 +1169,74 @@ public:
         return begin( ) + offset;
     }
 
+    /**
+     * @brief Inserts a specified number of elements at a given position.
+     *
+     * This function inserts `count` copies of the element `value` at the position
+     * specified by `pos`.  If `pos` is not at the end, existing elements are shifted to
+     * the right to make space for the new elements. The behavior and checks performed depend on the bounds checking strategy.
+     *
+     * @tparam custom_bc_strategy The strategy used for bounds checking (default is bc_strategy).
+     * - Exception: Throws an exception if `pos` is outside the valid range or if the insertion would exceed capacity.
+     * - Assert: Bounds are checked using assertions, which are only effective in debug mode.
+     * - LimitToBound: Silently limits the position to a valid range without throwing exceptions.
+     * - UB: No bounds checking is performed. Accessing out-of-bounds positions leads to undefined behavior.
+     * @param pos Position where elements will be inserted.
+     * @param count Number of elements to insert.
+     * @param value The value to insert.
+     * @return Iterator pointing to the first element inserted, or `pos` if no insertion happened.
+     *
+     * @throw std::out_of_range If bounds checking is set to Exception and the position `pos` is outside the valid range of the vector,
+     * @throw std::length_error If bounds checking is set to Exception and `count` exceeds the maximum size that can be held by the container.
+     *
+     * @par Example usage:
+     * @code
+     * #include <iostream>
+     * #include "static_vector.hxx"
+     *
+     * int main() {
+     *     std::array<int, 5> data = {1, 2, 3, 4, 5};
+     *     std::size_t count = 0; // Simulate an empty container
+     *     wbr::static_vector_adapter vec = {data, count};
+     *     auto pos = vec.cbegin();
+     *     std::advance(pos, 2); // Move to the beginning of the third element
+     *
+     *     // Insert 2 elements with value 99 before the third element
+     *     try {
+     *         vec.insert<wbr::BoundCheckStrategy::Exception>(pos, 2, 99);
+     *         for (int i : vec) {
+     *             std::cout << i << " ";
+     *         }
+     *         // Output will be: 1 2 99 99 3 4
+     *     } catch (const std::out_of_range& e) {
+     *         std::cerr << "Error: " << e.what() << '\n';
+     *     }
+     *
+     *     return 0;
+     * }
+     * @endcode
+     */
+    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr iterator insert (const_iterator pos, size_type count, const_reference value)
     {
-        // count_overflow_check(count);
-        // valid_iterator_check(pos);
+        using enum BoundCheckStrategy;
+        if constexpr ( custom_bc_strategy == Exception ) {
+            if ( size( ) + count > capacity( ) )
+                throw std::length_error("count exceeds free space in vector");
+            if ( pos < cbegin( ) || pos > cend( ) )
+                throw std::out_of_range("pos is out of vector bounds");
+        }
+        if constexpr ( custom_bc_strategy == Assert ) {
+            assert(size( ) + count <= capacity( ));
+            assert(pos >= cbegin( ) && pos <= cend( ));
+        }
+        if constexpr ( custom_bc_strategy == LimitToBound ) {
+            if ( pos < begin( ) )
+                pos = begin( );
+            if ( pos > end( ) )
+                pos = end( );
+            count = std::min(count, free_space( ));
+        }
 
         const auto offset = std::distance(cbegin( ), pos);
 
@@ -1211,6 +1299,8 @@ public:
     }
 
     constexpr void resize (size_type count) { return resize(count, value_type { }); }
+
+    [[nodiscard]] constexpr size_type free_space ( ) const noexcept { return capacity( ) - size( ); }
 
 private:
     static constexpr size_t element_size_ = sizeof(value_type);
