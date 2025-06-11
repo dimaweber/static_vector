@@ -6,8 +6,7 @@ using namespace testing;
 using namespace wbr;
 
 // Test assign with count and value
-TEST(StaticVectorAdapterTest, AssignCountValue)
-{
+TEST (StaticVectorAdapterTest, AssignCountValue) {
     std::array<int, 5>    data_array = {10, 20, 30, 40, 50};
     std::size_t           element_count {3};
     static_vector_adapter adapter {data_array, element_count};  // Initialized with only 3 elements (10, 20, 30)
@@ -25,9 +24,8 @@ TEST(StaticVectorAdapterTest, AssignCountValue)
     EXPECT_EQ(element_count, 3);
 }
 
-// Test assign with initializer list
-TEST(StaticVectorAdapterTest, AssignInitializerList)
-{
+// Test assign with an initializer list
+TEST (StaticVectorAdapterTest, AssignInitializerList) {
     std::array<int, 5>    data_array = {10, 20, 30, 40, 50};
     std::size_t           element_count {3};
     static_vector_adapter adapter {data_array, element_count};  // Initialized with only 3 elements (10, 20, 30)
@@ -35,7 +33,7 @@ TEST(StaticVectorAdapterTest, AssignInitializerList)
     // Assign values from an initializer list
     adapter.assign({100, 200, 300});
 
-    const std::array<int, 5> expected_data = {100, 200, 300, 40, 50};  // Only first 3 elements should be updated
+    const std::array<int, 5> expected_data = {100, 200, 300, 40, 50};  // Only the first 3 elements should be updated
 
     for ( std::size_t i = 0; i < data_array.size( ); ++i ) {
         EXPECT_EQ(data_array[i], expected_data[i]);
@@ -46,8 +44,7 @@ TEST(StaticVectorAdapterTest, AssignInitializerList)
 }
 
 // Test assign with input iterators
-TEST(StaticVectorAdapterTest, AssignInputIterators)
-{
+TEST (StaticVectorAdapterTest, AssignInputIterators) {
     std::array<int, 5>    data_array = {10, 20, 30, 40, 50};
     std::size_t           element_count {3};
     static_vector_adapter adapter {data_array, element_count};  // Initialized with only 3 elements (10, 20, 30)
@@ -56,7 +53,7 @@ TEST(StaticVectorAdapterTest, AssignInputIterators)
     const int other_data[] = {1, 2, 3};
     adapter.assign(other_data, other_data + 3);
 
-    const std::array<int, 5> expected_data = {1, 2, 3, 40, 50};  // Only first 3 elements should be updated
+    const std::array<int, 5> expected_data = {1, 2, 3, 40, 50};  // Only the first 3 elements should be updated
 
     for ( std::size_t i = 0; i < data_array.size( ); ++i ) {
         EXPECT_EQ(data_array[i], expected_data[i]);
@@ -67,8 +64,7 @@ TEST(StaticVectorAdapterTest, AssignInputIterators)
 }
 
 // Test assign with initializer list exceeding capacity
-TEST(StaticVectorAdapterTest, AssignInitializerListExceedingCapacity)
-{
+TEST (StaticVectorAdapterTest, AssignInitializerListExceedingCapacity) {
     std::array<int, 5> data_array = {10, 20, 30, 40, 50};
     std::size_t        element_count {3};
     auto               adapter = make_adapter<BoundCheckStrategy::UB>(data_array, element_count);  // Initialized with only 3 elements (10, 20, 30)
@@ -92,8 +88,7 @@ TEST(StaticVectorAdapterTest, AssignInitializerListExceedingCapacity)
 }
 
 // Test assign with count exceeding capacity
-TEST(StaticVectorAdapterTest, AssignCountExceedingCapacity)
-{
+TEST (StaticVectorAdapterTest, AssignCountExceedingCapacity) {
     std::array<int, 5> data_array = {10, 20, 30, 40, 50};
     std::size_t        element_count {3};
     auto               adapter = make_adapter<BoundCheckStrategy::UB>(data_array, element_count);  // Initialized with only 3 elements (10, 20, 30)'
@@ -116,8 +111,7 @@ TEST(StaticVectorAdapterTest, AssignCountExceedingCapacity)
 }
 
 // Test assign with input iterators exceeding capacity
-TEST(StaticVectorAdapterTest, AssignInputIteratorsExceedingCapacity)
-{
+TEST (StaticVectorAdapterTest, AssignInputIteratorsExceedingCapacity) {
     std::array<int, 5> data_array = {10, 20, 30, 40, 50};
     std::size_t        element_count {3};
     auto               adapter = make_adapter<BoundCheckStrategy::UB>(data_array, element_count);  // Initialized with only 3 elements (10, 20, 30)
@@ -141,8 +135,7 @@ TEST(StaticVectorAdapterTest, AssignInputIteratorsExceedingCapacity)
 #endif
 }
 
-TEST(StaticVectorAdapterTest, AssignSwappedInputIterators)
-{
+TEST (StaticVectorAdapterTest, AssignSwappedInputIterators) {
     std::array<int, 5> data_array = {10, 20, 30, 40, 50};
     std::size_t        element_count {3};
     auto               adapter = make_adapter<BoundCheckStrategy::UB>(data_array, element_count);  // Initialized with only 3 elements (10, 20, 30)
@@ -167,8 +160,7 @@ TEST(StaticVectorAdapterTest, AssignSwappedInputIterators)
 }
 
 // Test for push_back method
-TEST(StaticVectorAdapterTest, PushBack)
-{
+TEST (StaticVectorAdapterTest, PushBack) {
     std::array<int, 5>    data_array = {10, 20, 30, 40, 50};
     std::size_t           element_count {3};
     static_vector_adapter adapter {data_array, element_count};  // Initialized with only 3 elements (10, 20, 30)
@@ -209,8 +201,7 @@ TEST(StaticVectorAdapterTest, PushBack)
 }
 
 // Test for pop_back method
-TEST(StaticVectorAdapterTest, PopBack)
-{
+TEST (StaticVectorAdapterTest, PopBack) {
     std::array<int, 5>    data_array = {10, 20, 30, 40, 50};
     std::size_t           element_count {3};
     static_vector_adapter adapter {data_array, element_count};  // Initialized with only 3 elements (10, 20, 30)
@@ -246,8 +237,7 @@ TEST(StaticVectorAdapterTest, PopBack)
 }
 
 // Test for emplace_back method
-TEST(StaticVectorAdapterTest, EmplaceBack)
-{
+TEST (StaticVectorAdapterTest, EmplaceBack) {
     std::array<int, 5>    data_array = {10, 20, 30, 40, 50};
     std::size_t           element_count {3};
     static_vector_adapter adapter {data_array, element_count};  // Initialized with only 3 elements (10, 20, 30)
@@ -285,8 +275,7 @@ TEST(StaticVectorAdapterTest, EmplaceBack)
     EXPECT_EQ(element_count, 5);
 }
 
-TEST(StaticVectorAdapterTest, EraseSingleMethod)
-{
+TEST (StaticVectorAdapterTest, EraseSingleMethod) {
     int                   data_c_array[5] = {10, 20, 30, 40, 50};
     size_t                element_count   = std::size(data_c_array);
     static_vector_adapter adapter {data_c_array, element_count};
@@ -342,8 +331,7 @@ TEST(StaticVectorAdapterTest, EraseSingleMethod)
     EXPECT_EQ(element_count, 0);
 }
 
-TEST(StaticVectorAdapterTest, EraseMultiMethod)
-{
+TEST (StaticVectorAdapterTest, EraseMultiMethod) {
     int                   data_c_array[] = {10, 20, 30, 40, 50};
     size_t                element_count  = std::size(data_c_array);
     static_vector_adapter adapter {data_c_array, element_count};
@@ -381,8 +369,7 @@ TEST(StaticVectorAdapterTest, EraseMultiMethod)
     EXPECT_EQ(element_count, 0);
 }
 
-TEST(StaticVectorAdapterTest, At_Method_InBounds)
-{
+TEST (StaticVectorAdapterTest, At_Method_InBounds) {
     int                   data_c_array[] = {10, 20, 30, 40, 50};
     size_t                element_count  = std::size(data_c_array);
     static_vector_adapter adapter {data_c_array, element_count};
@@ -397,8 +384,7 @@ TEST(StaticVectorAdapterTest, At_Method_InBounds)
     }
 }
 
-TEST(StaticVectorAdapterTest, At_Method_OutOfBounds)
-{
+TEST (StaticVectorAdapterTest, At_Method_OutOfBounds) {
     int                   data_c_array[] = {10, 20, 30, 40, 50};
     size_t                element_count  = std::size(data_c_array);
     static_vector_adapter adapter {data_c_array, element_count};
@@ -411,8 +397,7 @@ TEST(StaticVectorAdapterTest, At_Method_OutOfBounds)
     EXPECT_THROW(std::ignore = adapter.at(adapter.capacity( )), std::out_of_range);
 }
 
-TEST(StaticVectorAdapterTest, Front_Method)
-{
+TEST (StaticVectorAdapterTest, Front_Method) {
     int                   data_c_array[] = {10, 20, 30, 40, 50};
     size_t                element_count  = std::size(data_c_array);
     static_vector_adapter adapter {data_c_array, element_count};
@@ -432,8 +417,7 @@ TEST(StaticVectorAdapterTest, Front_Method)
 #endif
 }
 
-TEST(StaticVectorAdapterTest, Back_Method)
-{
+TEST (StaticVectorAdapterTest, Back_Method) {
     int                   data_c_array[] = {10, 20, 30, 40, 50};
     size_t                element_count  = 4;
     static_vector_adapter adapter {data_c_array, element_count};
@@ -453,8 +437,7 @@ TEST(StaticVectorAdapterTest, Back_Method)
 #endif
 }
 
-TEST(StaticVectorAdapterTest, BasicInsertion)
-{
+TEST (StaticVectorAdapterTest, BasicInsertion) {
     int                   data_c_array[10] = {10, 20, 30, 40, 50};
     size_t                element_count    = 5;
     static_vector_adapter adapter {data_c_array, element_count};
@@ -469,8 +452,7 @@ TEST(StaticVectorAdapterTest, BasicInsertion)
     EXPECT_TRUE(std::equal(adapter.cbegin( ), adapter.cend( ), std::begin(expected_c_array)));
 }
 
-TEST(StaticVectorAdapterTest, InsertAtBeginning)
-{
+TEST (StaticVectorAdapterTest, InsertAtBeginning) {
     int                   data_c_array[10] = {10, 20, 30, 40, 50};
     size_t                element_count    = 5;
     static_vector_adapter adapter {data_c_array, element_count};
@@ -485,8 +467,7 @@ TEST(StaticVectorAdapterTest, InsertAtBeginning)
     EXPECT_TRUE(std::equal(adapter.cbegin( ), adapter.cend( ), std::begin(expected_c_array)));
 }
 
-TEST(StaticVectorAdapterTest, InsertAtEnd)
-{
+TEST (StaticVectorAdapterTest, InsertAtEnd) {
     int                   data_c_array[10] = {10, 20, 30, 40, 50};
     size_t                element_count    = 5;
     static_vector_adapter adapter {data_c_array, element_count};
@@ -500,8 +481,7 @@ TEST(StaticVectorAdapterTest, InsertAtEnd)
     EXPECT_TRUE(std::ranges::equal(adapter, expected_c_array));
 }
 
-TEST(StaticVectorAdapterTest, InsertOutsideOfRangePosition)
-{
+TEST (StaticVectorAdapterTest, InsertOutsideOfRangePosition) {
     int                   data_c_array[10] = {10, 20, 30, 40, 50};
     size_t                element_count    = 5;
     static_vector_adapter adapter {data_c_array, element_count};
@@ -524,15 +504,14 @@ TEST(StaticVectorAdapterTest, InsertOutsideOfRangePosition)
     EXPECT_EXIT(adapter.insert<BoundCheckStrategy::Assert>(adapter.begin( ) - 1, 222), KilledBySignal(SIGABRT), "");
 #endif
 
-    const int expected_c_array_2[7] = {222, 10, 20, 30, 40, 50, 333};
+    auto expected_2 = {222, 10, 20, 30, 40, 50, 333};
     EXPECT_NO_THROW(it = adapter.insert<BoundCheckStrategy::LimitToBound>(adapter.begin( ) - 1, 222));
     EXPECT_EQ(it, adapter.begin( ));
     EXPECT_EQ(adapter.size( ), 7);
-    EXPECT_TRUE(std::ranges::equal(adapter, expected_c_array_2));
+    EXPECT_TRUE(std::ranges::equal(adapter, expected_2));
 }
 
-TEST(StaticVectorAdapterTest, InsertWithFullCapacity)
-{
+TEST (StaticVectorAdapterTest, InsertWithFullCapacity) {
     int                   data_c_array[5] = {10, 20, 30, 40, 50};
     size_t                element_count   = 5;
     static_vector_adapter adapter {data_c_array, element_count};
@@ -543,15 +522,13 @@ TEST(StaticVectorAdapterTest, InsertWithFullCapacity)
     EXPECT_EXIT(adapter.insert<BoundCheckStrategy::Assert>(adapter.end( ), 400), KilledBySignal(SIGABRT), "");
 #endif
 
-    decltype(adapter)::iterator iter;
     EXPECT_NO_THROW(adapter.insert<BoundCheckStrategy::LimitToBound>(adapter.end( ), 400));
     EXPECT_EQ(adapter.size( ), 5);
-    const int expected_data_c_array[5] = {10, 20, 30, 40, 50};
-    EXPECT_TRUE(std::ranges::equal(adapter, expected_data_c_array));
+    auto expected_data = {10, 20, 30, 40, 50};
+    EXPECT_TRUE(std::ranges::equal(adapter, expected_data));
 }
 
-TEST(StaticVectorAdapterTest, DataMethodConst)
-{
+TEST (StaticVectorAdapterTest, DataMethodConst) {
     std::array<int, 10>        array = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     size_t                     count = 10;
     static_vector_adapter<int> adapter(array, count);
@@ -564,8 +541,7 @@ TEST(StaticVectorAdapterTest, DataMethodConst)
     EXPECT_EQ(ptr[9], array[9]);
 }
 
-TEST(StaticVectorAdapterTest, DataMethodNonConst)
-{
+TEST (StaticVectorAdapterTest, DataMethodNonConst) {
     std::array<int, 10>        array = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     size_t                     count = 10;
     static_vector_adapter<int> adapter(array, count);
@@ -585,8 +561,7 @@ TEST(StaticVectorAdapterTest, DataMethodNonConst)
     EXPECT_EQ(adapter[2], 20);
 }
 
-TEST(StaticVectorAdapterTest, InsertNoBoundsChecking)
-{
+TEST (StaticVectorAdapterTest, InsertNoBoundsChecking) {
     std::array<int, 10> data_array {1, 2, 3, 4};
     std::size_t         element_count = 4;
     auto                vec           = make_adapter<BoundCheckStrategy::NoCheck>(data_array, element_count);
@@ -627,8 +602,7 @@ TEST(StaticVectorAdapterTest, InsertNoBoundsChecking)
     }
 }
 
-TEST(StaticVectorAdapterTest, InsertExceptionBoundsChecking)
-{
+TEST (StaticVectorAdapterTest, InsertExceptionBoundsChecking) {
     std::array<int, 10> data_array {1, 2, 3, 4};
     std::size_t         element_count = 4;
     auto                vec           = make_adapter<BoundCheckStrategy::Exception>(data_array, element_count);
@@ -653,8 +627,7 @@ TEST(StaticVectorAdapterTest, InsertExceptionBoundsChecking)
     EXPECT_THROW(vec.insert(pos, 10, 77), std::length_error);
 }
 
-TEST(StaticVectorAdapterTest, InsertAssertBoundsChecking)
-{
+TEST (StaticVectorAdapterTest, InsertAssertBoundsChecking) {
 #ifdef NDEBUG
     GTEST_SKIP( ) << "Assert checking is only active in debug mode";
 #endif
@@ -700,8 +673,7 @@ TEST(StaticVectorAdapterTest, InsertAssertBoundsChecking)
     }
 }
 
-TEST(StaticVectorAdapterTest, InsertLimitToBoundsChecking)
-{
+TEST (StaticVectorAdapterTest, InsertLimitToBoundsChecking) {
     std::array<int, 10> data_array {1, 2, 3, 4};
     std::size_t         element_count = 2;
     auto                vec           = make_adapter<BoundCheckStrategy::LimitToBound>(data_array, element_count);

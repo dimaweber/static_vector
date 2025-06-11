@@ -8,7 +8,7 @@ set(TARGET_DM sv_demo)
 set(TARGET_UT sv_unittest)
 set(TARGET_BM sv_benchmark)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 
 #list(APPEND CMAKE_PREFIX_PATH $ENV{HOME}/.local/lib/cmake)
 

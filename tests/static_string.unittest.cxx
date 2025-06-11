@@ -3,10 +3,8 @@
 using namespace wbr;
 using namespace testing;
 
-namespace wbr
-{
-TEST(StaticStringAdapterTest, DefaultConstructor)
-{
+namespace wbr {
+TEST (StaticStringAdapterTest, DefaultConstructor) {
     std::array<char, 10> char_array = {'a', 'b', 'c', '\0'};
 
     static_string_adapter adapter(char_array.data( ), char_array.size( ));
@@ -19,8 +17,7 @@ TEST(StaticStringAdapterTest, DefaultConstructor)
     EXPECT_EQ(adapter.length( ), 0);
 }
 
-TEST(StaticStringAdapterTest, ConstructorWithLength)
-{
+TEST (StaticStringAdapterTest, ConstructorWithLength) {
     std::array<char, 10> char_array = {'a', 'b', 'c', '\0', 'd'};
 
     static_string_adapter adapter(char_array.data( ), char_array.size( ), 4);
@@ -37,8 +34,7 @@ TEST(StaticStringAdapterTest, ConstructorWithLength)
     EXPECT_EQ(adapter.length( ), 4);
 }
 
-TEST(StaticStringAdapterTest, ArrayConstructor)
-{
+TEST (StaticStringAdapterTest, ArrayConstructor) {
     std::array<char, 10> char_array = {'a', 'b', 'c', '\0'};
 
     static_string_adapter adapter(char_array);
@@ -51,8 +47,7 @@ TEST(StaticStringAdapterTest, ArrayConstructor)
     EXPECT_EQ(adapter.length( ), 0);
 }
 
-TEST(StaticStringAdapterTest, CArrayConstructor)
-{
+TEST (StaticStringAdapterTest, CArrayConstructor) {
     char c_array[10] = {'a', 'b', 'c', '\0'};
 
     static_string_adapter adapter(c_array);
@@ -65,8 +60,7 @@ TEST(StaticStringAdapterTest, CArrayConstructor)
     EXPECT_EQ(adapter.length( ), 0);
 }
 
-TEST(StaticStringAdapterTest, BoundaryCheck)
-{
+TEST (StaticStringAdapterTest, BoundaryCheck) {
     std::array<char, 10> char_array;
 
     EXPECT_THROW(static_string_adapter<BoundCheckStrategy::Exception>(char_array.data( ), 0), std::length_error);
@@ -76,8 +70,7 @@ TEST(StaticStringAdapterTest, BoundaryCheck)
     //@todo: add test for limitToBounds
 }
 
-TEST(StaticStringAdapterTest, LengthMethod)
-{
+TEST (StaticStringAdapterTest, LengthMethod) {
     char                  empty_buffer[50];
     static_string_adapter empty_str {empty_buffer, std::size(empty_buffer)};
     EXPECT_EQ(empty_str.length( ), 0);
@@ -87,8 +80,7 @@ TEST(StaticStringAdapterTest, LengthMethod)
     EXPECT_EQ(non_empty_str.length( ), 5);
 }
 
-TEST(StaticStringAdapterTest, SizeMethod)
-{
+TEST (StaticStringAdapterTest, SizeMethod) {
     char                  empty_buffer[50];
     static_string_adapter empty_str {empty_buffer, std::size(empty_buffer)};
     EXPECT_EQ(empty_str.size( ), 0);
@@ -98,8 +90,7 @@ TEST(StaticStringAdapterTest, SizeMethod)
     EXPECT_EQ(non_empty_str.size( ), 5);
 }
 
-TEST(StaticStringAdapterTest, MaxSizeMethod)
-{
+TEST (StaticStringAdapterTest, MaxSizeMethod) {
     char                  buffer[50];
     static_string_adapter str(buffer, sizeof(buffer));
     EXPECT_EQ(str.max_size( ), 49);  // max_size is capacity - 1 for null terminator
@@ -110,8 +101,7 @@ TEST(StaticStringAdapterTest, MaxSizeMethod)
     EXPECT_EQ(small_str.max_size( ), 19);
 }
 
-TEST(StaticStringAdapterTest, OperatorBrackets)
-{
+TEST (StaticStringAdapterTest, OperatorBrackets) {
     char                  buffer[50] = "Hello";
     static_string_adapter str(buffer, sizeof(buffer), 5);
 
@@ -123,10 +113,9 @@ TEST(StaticStringAdapterTest, OperatorBrackets)
     EXPECT_NO_THROW(auto c = str[5]);  // Past the string length, but within capacity
 }
 
-TEST(StaticStringAdapterTest, AssignIteratorRange)
-{
-    char                  buffer[50];
-    static_string_adapter str(buffer, sizeof(buffer));
+TEST (StaticStringAdapterTest, AssignIteratorRange) {
+    char                                                    buffer[50];
+    static_string_adapter<BoundCheckStrategy::LimitToBound> str(buffer, sizeof(buffer));
 
     // Test assigning a range of iterators
     std::string source = "Hello";
@@ -140,15 +129,14 @@ TEST(StaticStringAdapterTest, AssignIteratorRange)
 
     // Test with large range that should be truncated (with LimitToBound strategy)
     std::string large_source(100, 'A');
-    str.assign<BoundCheckStrategy::LimitToBound>(large_source.begin( ), large_source.end( ));
+    str.assign(large_source.begin( ), large_source.end( ));
     EXPECT_EQ(str.length( ), 49);  // Max size is buffer_size - 1
-    EXPECT_STREQ(str.c_str( ), "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+    EXPECT_STREQ(str.c_str( ), "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 }
 
-TEST(StaticStringAdapterTest, AssignCountValue)
-{
-    char                  buffer[50];
-    static_string_adapter str(buffer, sizeof(buffer));
+TEST (StaticStringAdapterTest, AssignCountValue) {
+    char                                                    buffer[50];
+    static_string_adapter<BoundCheckStrategy::LimitToBound> str(buffer, sizeof(buffer));
 
     // Test assigning count and value
     str.assign(5, 'X');
@@ -162,17 +150,16 @@ TEST(StaticStringAdapterTest, AssignCountValue)
     // Test with large count that should be truncated (with LimitToBound strategy)
     str.assign(100, 'Z');
     EXPECT_EQ(str.length( ), 49);  // Max size is buffer_size - 1
-    EXPECT_STREQ(str.c_str( ), "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
+    EXPECT_STREQ(str.c_str( ), "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
 }
 
-TEST(StaticStringAdapterTest, AssignStringView)
-{
-    char                  buffer[50];
-    static_string_adapter str(buffer, sizeof(buffer));
+TEST (StaticStringAdapterTest, AssignStringView) {
+    using namespace std::literals;
+    char                                                    buffer[50];
+    static_string_adapter<BoundCheckStrategy::LimitToBound> str(buffer, sizeof(buffer));
 
     // Test assigning from string_view
-    std::string source = "World";
-    str.assign(source);
+    str.assign("World"sv);
     EXPECT_EQ(str.length( ), 5);
     EXPECT_STREQ(str.c_str( ), "World");
 
@@ -182,36 +169,127 @@ TEST(StaticStringAdapterTest, AssignStringView)
 
     // Test with large string_view that should be truncated (with LimitToBound strategy)
     std::string large_source(100, 'B');
-    str.assign(large_source);
+    str.assign(std::string_view {large_source});
     EXPECT_EQ(str.length( ), 49);  // Max size is buffer_size - 1
-    EXPECT_STREQ(str.c_str( ), "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
+    EXPECT_STREQ(str.c_str( ), "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
 }
 
-TEST(StaticStringAdapterTest, AssignExceptionStrategy)
-{
-    char                  buffer[5];
-    static_string_adapter str(buffer, sizeof(buffer));
+TEST (StaticStringAdapterTest, AssignExceptionStrategy) {
+    char                                                 buffer[5];
+    static_string_adapter<BoundCheckStrategy::Exception> str(buffer, sizeof(buffer));
 
     // Test assigning a range longer than max_size should throw
     std::string long_source("123456789");
-    EXPECT_THROW(str.assign<BoundCheckStrategy::Exception>(long_source.begin( ), long_source.end( )), std::overflow_error);
+    EXPECT_THROW(str.assign(long_source.begin( ), long_source.end( )), std::overflow_error);
 
     // Test assigning count larger than max_size should throw
-    EXPECT_THROW(str.assign<BoundCheckStrategy::Exception>(10, 'X'), std::overflow_error);
+    EXPECT_THROW(str.assign(10, 'X'), std::overflow_error);
 }
 
-TEST(StaticStringAdapterTest, AssignAssertStrategy)
-{
-    char                  buffer[5];
-    static_string_adapter str(buffer, sizeof(buffer));
+TEST (StaticStringAdapterTest, AssignAssertStrategy) {
+    char                                              buffer[5];
+    static_string_adapter<BoundCheckStrategy::Assert> str(buffer, sizeof(buffer));
 
     // Set strategy to Assert for testing - this will fail assertion in debug mode
 #ifdef NDEBUG
     GTEST_SKIP( ) << "Assert strategy tests skipped in release build";
 #else
     std::string long_source("123456789");
-    EXPECT_DEATH(str.assign<BoundCheckStrategy::Assert>(long_source.begin( ), long_source.end( )), "");
+    EXPECT_DEATH(str.assign(long_source.begin( ), long_source.end( )), "");
 #endif
 }
 
+TEST (StaticStringTest, AssignAssertStrategy) {
+    static_string<5, BoundCheckStrategy::Assert> str;
+
+    // Set strategy to Assert for testing - this will fail assertion in debug mode
+#ifdef NDEBUG
+    GTEST_SKIP( ) << "Assert strategy tests skipped in release build";
+#else
+    std::string long_source("123456789");
+    EXPECT_DEATH(str.assign(long_source.begin( ), long_source.end( )), "");
+#endif
+}
+
+TEST (StaticStringAdapterTest, InsertSingleCharacter) {
+    std::array<char, 10>  char_array = {'a', 'b', 'c', '\0'};
+    static_string_adapter str(char_array.data( ), char_array.size( ), 3);
+
+    str.insert(0, 'x');
+    EXPECT_EQ(str.length( ), 4);
+    EXPECT_STREQ(str.c_str( ), "xabc");
+
+    str.insert(str.begin( ) + 2, 'y');
+    EXPECT_EQ(str.length( ), 5);
+    EXPECT_STREQ(str.c_str( ), "xaybc");
+}
+
+TEST (StaticStringAdapterTest, MultipleCharacters) {
+    char                  char_array[10] {'a', 'b', 'c', '\0'};
+    static_string_adapter str(char_array, std::size(char_array), 3);
+
+    // Insert multiple characters at the beginning
+    str.insert(0, "xyz");
+    EXPECT_EQ(str.length( ), 6);
+    EXPECT_STREQ(str.c_str( ), "xyzabc");
+
+    str.insert(2, 3, '-');
+    EXPECT_EQ(str.length( ), 9);
+    EXPECT_EQ(str.view( ), "xy---zabc");
+}
+
+class StaticStringAdapterInsertTest : public Test {
+private:
+    std::array<char, 24> data_array_;
+    size_t               elements_count_ {0};
+
+protected:
+    static_string_adapter<BoundCheckStrategy::Exception> adapter {data_array_.data( ), data_array_.size( ), elements_count_};
+
+    void SetUp ( ) override {
+        data_array_.fill('\0');
+        elements_count_ = 0;
+    }
+};
+
+TEST_F (StaticStringAdapterInsertTest, N1) {
+    // index, count, ch
+    using namespace std::literals;
+    EXPECT_NO_THROW(adapter.insert(0, 10, 'a'));
+    EXPECT_EQ(adapter.size( ), 10);
+    EXPECT_EQ(adapter.begin( ) + adapter.size( ), adapter.end( ));
+    EXPECT_STREQ(adapter.c_str( ), "aaaaaaaaaa");
+    EXPECT_TRUE(std::ranges::equal(adapter, "aaaaaaaaaa"sv));
+
+    EXPECT_NO_THROW(adapter.insert(3, 3, 'x'));
+    EXPECT_EQ(adapter.size( ), 13);
+    EXPECT_EQ(adapter.begin( ) + adapter.size( ), adapter.end( ));
+    EXPECT_STREQ(adapter.c_str( ), "aaaxxxaaaaaaa");
+    EXPECT_TRUE(std::ranges::equal(adapter, "aaaxxxaaaaaaa"sv));
+
+    EXPECT_NO_THROW(adapter.insert(13, 2, '-'));
+    EXPECT_EQ(adapter.size( ), 15);
+    EXPECT_STREQ(adapter.c_str( ), "aaaxxxaaaaaaa--");
+
+#if !defined(NDEBUG)
+    EXPECT_EXIT(adapter.insert<BoundCheckStrategy::Assert>(200, 3, 'f'), KilledBySignal(SIGABRT), "");
+#endif
+    EXPECT_THROW(adapter.insert<BoundCheckStrategy::Exception>(200, 3, 'f'), std::out_of_range);
+    EXPECT_NO_THROW(adapter.insert<BoundCheckStrategy::LimitToBound>(200, 3, 'f'));
+    EXPECT_STREQ(adapter.c_str( ), "aaaxxxaaaaaaa--fff");
+}
+
+TEST_F (StaticStringAdapterInsertTest, N2) {
+    // index, cstr
+    using namespace std::literals;
+    EXPECT_NO_THROW(adapter.insert(0, "lorem"));
+    EXPECT_EQ(adapter.size( ), 5);
+    EXPECT_EQ(adapter.begin( ) + adapter.size( ), adapter.end( ));
+    EXPECT_STREQ(adapter.c_str( ), "lorem");
+    EXPECT_TRUE(std::ranges::equal(adapter, "lorem"sv));
+
+    EXPECT_NO_THROW(adapter.insert(5, " ipsum"));
+    EXPECT_EQ(adapter.size( ), 11);
+    EXPECT_STREQ(adapter.c_str( ), "lorem ipsum");
+}
 }  // namespace wbr

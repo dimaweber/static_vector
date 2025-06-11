@@ -19,7 +19,7 @@ AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortBlocksOnASingleLine: Never
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortEnumsOnASingleLine: true
-AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLambdasOnASingleLine: All
 AllowShortLoopsOnASingleLine: false
@@ -29,7 +29,7 @@ AlwaysBreakTemplateDeclarations: Yes
 BinPackArguments: true
 BinPackParameters: true
 BreakAfterJavaFieldAnnotations: true
-BreakBeforeBraces: Linux
+BreakBeforeBraces: Attach
 BreakBeforeBinaryOperators: NonAssignment
 BreakConstructorInitializers: AfterColon
 BreakInheritanceList: AfterColon

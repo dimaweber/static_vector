@@ -1,0 +1,110 @@
+{
+  "version": 10,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 19,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "default",
+      "hidden": false,
+      "description": "Default configuration for static_vector project.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "20",
+        "BUILD_TESTS": "ON",
+        "BUILD_EXAMPLES": "ON",
+        "BUILD_BENCHMARK": "ON",
+        "BUILD_DOCS": "OFF"
+      }
+    },
+    {
+      "name": "with-docs",
+      "hidden": false,
+      "description": "Configuration with documentation generation.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-with-docs",
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "20",
+        "BUILD_TESTS": "ON",
+        "BUILD_EXAMPLES": "ON",
+        "BUILD_BENCHMARK": "ON",
+        "BUILD_DOCS": "ON"
+      }
+    },
+    {
+      "name": "debug",
+      "hidden": false,
+      "description": "Debug configuration for static_vector project.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_STANDARD": "20",
+        "BUILD_TESTS": "ON",
+        "BUILD_EXAMPLES": "ON",
+        "BUILD_BENCHMARK": "OFF",
+        "BUILD_DOCS": "OFF"
+      }
+    },
+    {
+      "name": "release",
+      "hidden": false,
+      "description": "Release configuration for static_vector project.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_STANDARD": "20",
+        "BUILD_TESTS": "ON",
+        "BUILD_EXAMPLES": "OFF",
+        "BUILD_BENCHMARK": "ON",
+        "BUILD_DOCS": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default",
+      "hidden": false,
+      "description": "Default build for static_vector project.",
+      "configurePreset": "default"
+    },
+    {
+      "name": "debug",
+      "hidden": false,
+      "description": "Debug build for static_vector project.",
+      "configurePreset": "debug"
+    },
+    {
+      "name": "release",
+      "hidden": false,
+      "description": "Release build for static_vector project.",
+      "configurePreset": "release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "default",
+      "hidden": false,
+      "description": "Default test configuration.",
+      "configurePreset": "debug",
+      "output": {
+        "outputLogFile": "${sourceDir}/build-debug/testing/test-results.txt",
+        "outputJUnitFile": "${sourceDir}/build-debug/testing/test-results-junit.xml"
+      }
+    },
+    {
+      "name": "release",
+      "hidden": false,
+      "description": "Release test configuration.",
+      "configurePreset": "release",
+      "output": {
+        "outputLogFile": "${sourceDir}/build-release/testing/test-results.txt",
+        "outputJUnitFile": "${sourceDir}/build-release/testing/test-results-junit.xml"
+      }
+    }
+  ]
+}
