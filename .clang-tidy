@@ -1,4 +1,5 @@
-Checks: '-*,
+Checks: |
+  -*,
   bugprone-argument-comment,
   bugprone-assert-side-effect,
   bugprone-bool-pointer-implicit-conversion,
@@ -31,11 +32,11 @@ Checks: '-*,
   readability-simplify-boolean-expr,
   readability-static-accessed-through-instance,
   readability-use-anyofallof,
+  readability-identifier-naming
   # bugprone-reserved-identifier
   # misc-const-correctness
-  readability-identifier-naming
   # google-readability-casting
-  '
+
 HeaderFilterRegex: '.*.hxx'
 WarningsAsErrors: '*,-readability-identifier-naming,-google-readability-casting'
 UseColor: true
@@ -48,5 +49,7 @@ CheckOptions:
   readability-identifier-naming.EnumPrefix: E_
   readability-identifier-naming.EnumConstantCase: CamelCase
   modernize-deprecated-headers.CheckHeaderFile: true
-  readability-identifier_naming.ConceptCase: CamelCase
-  readability-identifier_naming.ClassCase: lower_case
+  readability-identifier-naming.ConceptCase: CamelCase
+  readability-identifier-naming.ClassCase: lower_case
+  readability-identifier-naming.ClassMemberCase: lower_case
+  readability-identifier-naming.ClassMemberSuffix: _

@@ -1,8 +1,10 @@
 # CLion IDE
+.cache/
 .idea/
 
 #cmake builds from CLion
 build/
+build-debug/
 cmake-build-debug-*/
 cmake-build-release-*/
 icc/

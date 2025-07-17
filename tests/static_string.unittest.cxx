@@ -124,7 +124,8 @@ TEST (StaticStringAdapterTest, AssignIteratorRange) {
     EXPECT_STREQ(str.c_str( ), "Hello");
 
     // Test with empty range
-    str.assign("", "");
+    std::string_view em { };
+    str.assign(em.cbegin( ), em.cend( ));
     EXPECT_EQ(str.length( ), 0);
 
     // Test with large range that should be truncated (with LimitToBound strategy)
@@ -292,4 +293,75 @@ TEST_F (StaticStringAdapterInsertTest, N2) {
     EXPECT_EQ(adapter.size( ), 11);
     EXPECT_STREQ(adapter.c_str( ), "lorem ipsum");
 }
+
+TEST (StaticStringAdapterTest, ReplaceMethod) {
+    const std::size_t          buffer_size = 50;
+    char                       buffer[buffer_size];
+    wbr::static_string_adapter adapter(buffer, buffer_size);
+
+    // Initialize the string
+    adapter.assign("Hello, world!");
+
+    // Define the range to be replaced and the new content
+    auto first = adapter.cbegin( ) + 7;   // Points to 'w'
+    auto last  = adapter.cbegin( ) + 12;  // Points to '!' (exclusive)
+
+    // replace text with text (replace)
+    std::string_view replacement = "everyone";
+    EXPECT_NO_THROW(adapter.replace(first, last, replacement.cbegin( ), replacement.cend( )));
+    EXPECT_STREQ(adapter.c_str( ), "Hello, everyone!");
+
+    // replace empty range with text (insert)
+    std::string_view spaces = "  ";
+    EXPECT_NO_THROW(adapter.replace(adapter.begin( ), adapter.begin( ), spaces.cbegin( ), spaces.cend( )));
+    EXPECT_STREQ(adapter.c_str( ), "  Hello, everyone!");
+
+    // replace text with empty range (erase)
+    std::string_view empty_str = "";
+    EXPECT_NO_THROW(adapter.replace(adapter.cbegin( ), adapter.cbegin( ) + 2, empty_str.cbegin( ), empty_str.cend( )));
+    EXPECT_STREQ(adapter.c_str( ), "Hello, everyone!");
+
+    // replace end(),end() with text (append)
+    std::string_view ni_hao = "ni hao";
+    EXPECT_NO_THROW(adapter.replace(adapter.cend( ), adapter.cend( ), ni_hao.cbegin( ), ni_hao.cend( )));
+    EXPECT_STREQ(adapter.c_str( ), "Hello, everyone!ni hao");
+
+    EXPECT_NO_THROW(adapter.replace(adapter.cbegin( ) + 16, adapter.cbegin( ) + 16, spaces.begin( ), spaces.end( )));
+    EXPECT_STREQ(adapter.c_str( ), "Hello, everyone!  ni hao");
+
+    // replace begin(), end() with empty (clear)
+    EXPECT_NO_THROW(adapter.replace(adapter.cbegin( ), adapter.cend( ), empty_str.cbegin( ), empty_str.cend( )));
+    EXPECT_STREQ(adapter.c_str( ), "");
+
+    // replace begin(), end() with string (assign)
+    adapter.assign("some text");
+    std::string_view some_new_text = "lorem ipsum";
+    EXPECT_NO_THROW(adapter.replace(adapter.cbegin( ), adapter.cend( ), some_new_text.begin( ), some_new_text.cend( )));
+    EXPECT_EQ(adapter, some_new_text);
+}
+
+TEST (StaticStringAdapterTest, CompareMethod) {
+    using namespace std::literals;
+
+    std::array<char, 50>       char_array;
+    wbr::static_string_adapter adapter(char_array.data( ), char_array.size( ));
+
+    // Initialize the string
+    adapter.assign("Hello, world!");
+
+    // Test case where strings are equal
+    EXPECT_EQ(adapter.compare("Hello, world!"sv), 0);
+
+    // Test case where second string is lexicographically less than first string
+    EXPECT_GT(adapter.compare("Hello, everyone!"sv), 0);
+    EXPECT_GT(adapter.compare("Hello, wold!"sv), 0);  // Intentional typo
+
+    // Test with empty string
+    EXPECT_GT(adapter.compare(""sv), 0);
+
+    // Test where the first string is lexicographically greater than the second string
+    adapter.assign("Zebra");
+    EXPECT_GT(adapter.compare("Apple"sv), 0);
+}
+
 }  // namespace wbr
