@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(
   static_vector
-  VERSION 0.3.1
+  VERSION 0.4.0
   DESCRIPTION "stack-allocated vector with standard api")
 
 include(GNUInstallDirs)
@@ -23,7 +23,8 @@ endif()
 
 set(HEADERS
     include/static_vector.hxx include/static_string.hxx include/bound_check.hxx
-    include/tlv_vector.hxx include/string_manipulations.hxx)
+    include/tlv_vector.hxx include/string_manipulations.hxx
+    include/text_file_reader.hxx)
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -O0 -march=raptorlake")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3 -O0 -march=raptorlake")
