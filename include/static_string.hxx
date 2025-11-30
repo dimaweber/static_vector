@@ -1314,6 +1314,10 @@ public:
     static_string ( ) : parent {data_.data( ), SZ, 0} {
     }
 
+    static_string (std::string_view sv) : static_string( ) {
+        parent::assign(sv);
+    }
+
 private:
     std::array<typename parent::char_type, SZ> data_;
 };

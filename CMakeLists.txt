@@ -26,7 +26,6 @@ set(HEADERS
         include/static_string.hxx
         include/bound_check.hxx
         include/tlv_vector.hxx
-        include/string_manipulations.hxx
         include/text_file_reader.hxx
         include/system_handler.hxx)
 
@@ -61,16 +60,20 @@ target_include_directories(
         $<INSTALL_INTERFACE:include>)
 
 if (BUILD_TESTS)
+    find_package(fmt 11)
     enable_testing()
     find_package(GTest REQUIRED)
     add_executable(
             ${TARGET_UT}
-            tests/static_vector.unittest.cpp tests/static_vector_adapter.unittest.cxx
-            tests/static_string.unittest.cxx)
+            tests/static_string.unittest.cxx
+            tests/static_vector.unittest.cpp
+            tests/static_vector_adapter.unittest.cxx
+            tests/string_manipulations.unittest.cxx
+    )
 
     include(GoogleTest)
     gtest_discover_tests(${TARGET_UT})
-    target_link_libraries(${TARGET_UT} PRIVATE GTest::gtest_main ${TARGET_LIB})
+    target_link_libraries(${TARGET_UT} PRIVATE GTest::gtest_main ${TARGET_LIB} fmt::fmt)
 else ()
     add_compile_definitions(BUILD_TESTS=0)
 endif ()
