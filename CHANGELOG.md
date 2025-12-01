@@ -1,3 +1,10 @@
+### 0.4.2
+
+- add `static_string` constructor from `std::string_view`
+- rename `wbr::str::trimWhitespaces` to `wbr::str::trim`
+- rename `wbr::str::asHex` to `wbr::str::convertToHexString`
+- change default match to partial match for `wbr::str::num` function
+
 ### 0.4.1
 
 - add `system_handler.hxx` -- class name will be renamed soon to match naming schema in other files

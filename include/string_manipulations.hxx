@@ -52,39 +52,43 @@ concept InputStrIt = requires(InputIt i) {
  *     std::find_if(vector.begin(), vector.end(), [](std::string_view s){return s.empty();});
  *     @endcode
  */
-inline bool empty (std::string_view str) {
+[[nodiscard]] inline bool empty (std::string_view str) noexcept {
     return str.empty( );
 }
 
-inline bool isspace (char chr) {
+[[nodiscard]] inline bool nonempty (std::string_view str) noexcept {
+    return !empty(str);
+}
+
+[[nodiscard]] inline bool isspace (char chr) noexcept {
     return std::isspace(static_cast<unsigned char>(chr)) != 0;
 }
 
-inline bool isdigit (char chr) {
+[[nodiscard]] inline bool isdigit (char chr) noexcept {
     return std::isdigit(static_cast<unsigned char>(chr)) != 0;
 }
 
-inline bool isxdigit (char chr) {
+[[nodiscard]] inline bool isxdigit (char chr) noexcept {
     return std::isxdigit(static_cast<unsigned char>(chr)) != 0;
 }
 
-inline bool islower (char chr) {
+[[nodiscard]] inline bool islower (char chr) noexcept {
     return std::islower(static_cast<unsigned char>(chr)) != 0;
 }
 
-inline bool isupper (char chr) {
+[[nodiscard]] inline bool isupper (char chr) noexcept {
     return std::isupper(static_cast<unsigned char>(chr)) != 0;
 }
 
-inline bool iscntrl (char chr) {
+[[nodiscard]] inline bool iscntrl (char chr) noexcept {
     return std::iscntrl(static_cast<unsigned char>(chr)) != 0;
 }
 
-inline bool isalnum (char ch) {
+[[nodiscard]] inline bool isalnum (char ch) noexcept {
     return std::isalnum(static_cast<unsigned char>(ch));
 }
 
-inline bool isalpha (char ch) {
+[[nodiscard]] inline bool isalpha (char ch) noexcept {
     return std::isalpha(static_cast<unsigned char>(ch));
 }
 
@@ -109,7 +113,7 @@ inline std::string convertToHexString (const char* arr, std::string_view divider
  * @param[in] symbols list of symbols that should be considered a whitespace. By default ' ' and tabulation are used.
  * @return return new string, that begins with first non-white space character of original string and end at last non-white space character of original string
  */
-inline std::string_view trimWhitespaces (std::string_view str, std::string_view symbols = " \t") {
+inline std::string_view trim (std::string_view str, std::string_view symbols = " \t") {
     if ( str.empty( ) )
         return { };
 
@@ -124,7 +128,7 @@ inline std::string_view trimWhitespaces (std::string_view str, std::string_view 
 }
 
 template<std::invocable<char> P>
-inline std::string_view trimWhitespaces (std::string_view str, P is_space_predicate) {
+inline std::string_view trim (std::string_view str, P is_space_predicate) {
     if ( str.empty( ) )
         return { };
 
@@ -136,18 +140,18 @@ inline std::string_view trimWhitespaces (std::string_view str, P is_space_predic
 }
 
 /**
- * @brief split string into two parts at given position
+ * @brief split string into two parts at a given position
  *
- * Helper function to split single string into 2 parts. Both splat parts will be trimmed.
+ * Helper function to split a single string into 2 parts. Both splat parts will be trimmed.
  * If all symbols before pos are whitespaces -- function will fail
- * if pos is greater then input string length -- first part will be equal to trimmed input string and second part will be empty
+ * if pos is greater than input string length -- the first part will be equal to trimmed input string, and the second part will be empty
  *
  * Examples
  *    splitAtPos("Hello World!", 5) --> "Hello" "World!"
  *
  * @param[in] str input string. should not be empty
- * @param[in] pos position at which string should be splitted
- * @return if fail to split - return std::nullopt, otherwise return pair of strings
+ * @param[in] pos position at which string should be split
+ * @return if fail to split - return std::nullopt, otherwise return a pair of strings
  * @see trimWhitespace
  * @see splitAtFirst
  * @see splitAtLast
@@ -158,8 +162,8 @@ inline std::optional<std::pair<std::string_view, std::string_view>> splitAtPos (
 
     std::string_view key = {str.data( ), pos};
     std::string_view val = {str.data( ) + pos + 1, str.size( ) - pos - 1};
-    key                  = trimWhitespaces(key);
-    val                  = trimWhitespaces(val);
+    key                  = trim(key);
+    val                  = trim(val);
 
     if ( key.empty( ) )
         return std::nullopt;
@@ -171,6 +175,13 @@ template<StringType S>
 S& strlower (S& s) {
     std::ranges::transform(s, s.begin( ), tolower);
     return s;
+}
+
+template<StringType S, StringType O = std::string>
+O strlower (const S& s) {
+    O out;
+    std::ranges::transform(s, std::back_inserter(out), tolower);
+    return out;
 }
 
 template<StringType S>
@@ -186,23 +197,107 @@ O strupper (const S& s) {
     return out;
 }
 
+using TokenAction = std::function<void(std::string_view)>;
+using TokenFilter = std::function<bool(std::string_view)>;
+
+/** @brief Tokenizes a string and applies an action to each token.
+
+ * This function splits the input string using specified delimiters and applies a given callable to each resulting token.
+ *
+ * @param sv The string to be tokenized.
+ * @param action A callable that takes a std::string_view parameter. It will be invoked for each token found in the input string.
+ * @param delimiters The set of characters used to split the input string into tokens. Defaults to " " (space).
+ *
+ * Example:
+ * @code
+ *     auto print_token = [](std::string_view token) { std::cout << token << '\n'; };
+ *     tokenize_callback("Hello world", print_token, " ");
+ * @endcode
+ */
+inline void tokenize_callback (const std::string_view sv, TokenAction action, std::string_view delimiters = " ") {
+    if ( sv.empty( ) )
+        return;
+    std::string_view::size_type pos_token_start = 0;
+    std::string_view::size_type pos_token_end;
+    do {
+        pos_token_end = sv.find_first_of(delimiters, pos_token_start);
+        action(sv.substr(pos_token_start, pos_token_end - pos_token_start));
+        pos_token_start = pos_token_end + 1;
+    } while ( pos_token_end != std::string_view::npos );
+}
+
+/** @brief Tokenizes a string view into substrings based on specified delimiters and a filtering predicate.
+ *
+ * This function splits the input string view `sv` into tokens using the characters in `delimiters`
+ * as separators. Each token is then filtered using the provided `filter` predicate, and only those
+ * tokens for which the filter returns true are included in the resulting vector of string views.
+ *
+ * @param sv The string view to be tokenized.
+ * @param filter A predicate function that takes a string view and returns a boolean value. Only tokens
+ *               for which this function returns true will be included in the result.
+ * @param delimiters A string view containing characters used as delimiters for splitting `sv`.
+ *                   Defaults to " " (a single space character).
+ *
+ * @return A vector of string views representing the filtered tokens extracted from `sv`. */
+inline std::vector<std::string_view> tokenize_filtered (const std::string_view sv, TokenFilter filter, std::string_view delimiters = " ") {
+    std::vector<std::string_view> tokens;
+    tokenize_callback(sv, [&tokens, filter] (std::string_view token) {
+        if ( filter(token) )
+            tokens.emplace_back(token);
+    }, delimiters);
+    return tokens;
+}
+
+/**
+ * @brief Tokenizes a string view using specified delimiters and applies a filter and an action to each token.
+ *
+ * This function allows for concise code by applying a filter and an action to each token generated from the input string.
+ *
+ * @param sv The string view to be tokenized.
+ * @param filter A predicate that takes a string view and returns a boolean, indicating whether the token should be processed further.
+ * @param action A function that takes a string view and performs some operation on it.
+ * @param delimiters A string view containing the characters used as delimiters for tokenizing the input string. Defaults to " " (space).
+ */
+inline void tokenize (const std::string_view sv, TokenFilter filter, TokenAction action, std::string_view delimiters = " ") {
+    tokenize_callback(sv, [&action, filter] (std::string_view token) {
+        if ( filter(token) )
+            action(token);
+    }, delimiters);
+}
+
+/**
+ * @brief Tokenizes a string based on specified delimiters.
+ *
+ * Splits the input string into tokens using the provided delimiters and returns them as a vector of string views.
+ * The default delimiter is space character ' ', but this can be customized by specifying a different set of characters.
+ *
+ * @param str Input string to tokenize.
+ * @param delimiters Characters used to separate tokens (default is space).
+ * @return Vector of string views representing the tokens extracted from the input string.*/
 inline std::vector<std::string_view> tokenize (const std::string_view str, std::string_view delimiters = " ") {
     if ( str.empty( ) )
         return { };
 
     std::vector<std::string_view> vsv;
-    std::string_view::size_type   pos_token_start = 0;
-    std::string_view::size_type   pos_token_end;
 
-    do {
-        pos_token_end = str.find_first_of(delimiters, pos_token_start);
-        vsv.emplace_back(str.data( ) + pos_token_start, (pos_token_end == std::string_view::npos) ? str.size( ) - pos_token_start : pos_token_end - pos_token_start);
-        pos_token_start = pos_token_end + 1;
-    } while ( pos_token_end != std::string_view::npos );
-
+    tokenize_callback(str, [&vsv] (std::string_view token) { vsv.emplace_back(token); }, delimiters);
     return vsv;
 }
 
+/** @brief Tokenizes a C-style string into a vector of string views based on specified delimiters.
+ *
+ * This function provides a convenient way to split a null-terminated character string
+ * using the given delimiters. If the input string is nullptr, it returns an empty vector.
+ * Otherwise, it converts the C-string to a std::string_view and delegates the tokenization
+ * process to another overloaded version of this function that handles std::string_view inputs.
+ *
+ * @param str The null-terminated character string to be tokenized. If nullptr is provided,
+ *            an empty vector will be returned.
+ * @param delimiters The delimiters used to split the input string. Defaults to a single space
+ *                   if not specified.
+ * @return A std::vector<std::string_view> containing the tokens resulting from splitting
+ *         the input string by the provided delimiters.
+ */
 inline std::vector<std::string_view> tokenize (const char* str, std::string_view delimiters = " ") {
     if ( str == nullptr )
         return { };
@@ -210,27 +305,99 @@ inline std::vector<std::string_view> tokenize (const char* str, std::string_view
     return tokenize(std::string_view {str, strlen(str)}, delimiters);
 }
 
+/**
+ * @brief Tokenizes a null input string using the specified delimiter.
+ *
+ * This function is designed to handle a specific case where the input string is nullptr. It returns an empty vector of string views, effectively providing a no-op for tokenization purposes when given
+ * a null input.
+ *
+ * @param[in] ptr A pointer set to nullptr.
+ * @param[in] delm The delimiter used for tokenizing (default is " "). This parameter is unused in this implementation as the function only handles nullptr inputs.
+ *
+ * @return An empty vector of string views, signifying that no tokens are generated from a null input.*/
 inline std::vector<std::string_view> tokenize (std::nullptr_t, std::string_view = " ") {
     return { };
+}
+
+template<typename T>
+using TokenModifier = std::function<T(std::string_view)>;
+
+/**
+ * @brief Tokenizes a string and applies a modification function to each token.
+ *
+ * This function takes a string view, splits it into tokens based on the given delimiters,
+ * and applies a modification function to each token. The modified tokens are then returned as a vector of strings.
+ *
+ * @param sv The input string to be tokenized.
+ * @param modifier A function that modifies each token.
+ * @param delimiters The characters used to split the input string into tokens (default is space).
+ * @return A vector containing the modified tokens.
+ */
+template<typename T>
+std::vector<T> tokenize_modify (const std::string_view sv, TokenModifier<T> modifier, std::string_view delimiters = " ") {
+    std::vector<T> out;
+    tokenize_callback(sv, [&out, modifier] (std::string_view token) { out.emplace_back(modifier(token)); }, delimiters);
+    return out;
+}
+
+/** @brief Splits a string into tokens based on specified delimiters and modifies each token.
+
+ * The function splits the input string `sv` using the provided `delimiters`.
+ * Each token is filtered by `filter` and modified by `modifier`. The resulting modified tokens are returned as a vector of strings.
+ *
+ * @param sv Input string to be tokenized.
+ * @param filter Function object that filters out tokens based on custom criteria.
+ * @param modifier Function object that modifies each token.
+ * @param delimiters Delimiters used for splitting the input string. Default is " " (space).
+ * @return Vector of modified tokens.
+ *
+ * @par Example: Convert first letter of each word to uppercase
+ * @code
+ * auto result = wbr::str::tokenize_modify(
+ *     "hello world from cpp",
+ *     [](std::string_view) { return true; },  // keep all tokens
+ *     [](std::string_view token) -> std::string {
+ *         std::string s(token);
+ *         if (!s.empty())
+ *             s[0] = std::toupper(s[0]);
+ *         return s;
+ *     }
+ * );
+ * // result: {"Hello", "World", "From", "Cpp"}
+ * @endcode
+ *
+ * @par Example: Filter and uppercase non-empty tokens
+ * @code
+ * auto result = wbr::str::tokenize_modify(
+ *     "hello  world  ",
+ *     [](std::string_view token) { return !token.empty(); },
+ *     [](std::string_view token) { return wbr::str::strupper(std::string(token)); }
+ * );
+ * // result: {"HELLO", "WORLD"}
+ * @endcode
+ */
+template<typename T>
+std::vector<T> tokenize_modify (const std::string_view sv, TokenFilter filter, TokenModifier<T> modifier, std::string_view delimiters = " ") {
+    std::vector<T> out;
+    tokenize(sv, filter, [&out, modifier] (std::string_view token) { out.emplace_back(modifier(token)); }, delimiters);
+    return out;
 }
 
 template<typename S>
 concept CanBeEmpty = requires(S s) { wbr::str::empty(s); };
 
-//
-// template<template<class> class V, class S>
-// concept HasBeginEnd = requires(V<S> v) {
-//    std::begin(v);
-//    std::end(v);
-//};
-//
-// template<template<class> class V, class S>
-//    requires HasBeginEnd<V, S> && CanBeEmpty<S>
-// V<S> removeEmptyTokens (V<S> vec)
-//{
-//    std::erase_if(vec, SkString::empty);
-//    return vec;
-//}
+template<template<class> class V, class S>
+concept HasBeginEnd = requires(V<S> v) {
+                          std::begin(v);
+                          std::end(v);
+                      };
+
+template<template<class> class V, class S>
+    requires HasBeginEnd<V, S> && CanBeEmpty<S>
+V<S> removeEmptyTokens (V<S> vec) {
+    std::erase_if(vec, wbr::str::empty);
+    return vec;
+}
 
 template<CanBeEmpty S>
 std::vector<S> removeEmptyTokens (std::vector<S> tokens) {
@@ -240,7 +407,7 @@ std::vector<S> removeEmptyTokens (std::vector<S> tokens) {
 
 template<StringType String>
 std::vector<std::string_view> tokenizeSimplified (const String& str, std::string_view delimiters = " ") {
-    return tokenize(trimWhitespaces(str, delimiters), delimiters);
+    return tokenize(trim(str, delimiters), delimiters);
 }
 
 inline std::vector<std::string_view> tokenizeSimplified (const char* str, std::string_view delimiters = " ") {

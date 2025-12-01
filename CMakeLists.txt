@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(
         static_vector
-        VERSION 0.4.1
+        VERSION 0.4.2
         DESCRIPTION "stack-allocated vector with standard api")
 
 include(GNUInstallDirs)
@@ -11,7 +11,7 @@ set(TARGET_DM sv_demo)
 set(TARGET_UT sv_unittest)
 set(TARGET_BM sv_benchmark)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # list(APPEND CMAKE_PREFIX_PATH $ENV{HOME}/.local/lib/cmake)

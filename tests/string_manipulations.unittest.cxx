@@ -15,7 +15,7 @@ class TrimTest : public testing::TestWithParam<std::tuple<std::string, std::stri
 
 TEST_P (TrimTest, TrimmingStrings) {
     const auto& [in, delimiters, expected] = GetParam( );
-    std::string_view res                   = wbr::str::trimWhitespaces(in, delimiters);
+    std::string_view res                   = wbr::str::trim(in, delimiters);
     EXPECT_EQ(res, expected);
 }
 
@@ -23,7 +23,7 @@ TEST_P (TrimTest, TrimmingStringsPredicate) {
     const auto& [in, delimiters, expected] = GetParam( );
     auto is_space_pred                     = [delimiters] (char c) { return delimiters.find(c) != std::string::npos; };
 
-    std::string_view res = wbr::str::trimWhitespaces(in, is_space_pred);
+    std::string_view res = wbr::str::trim(in, is_space_pred);
     EXPECT_EQ(res, expected);
 }
 
@@ -530,4 +530,238 @@ TEST (AsHexTest, SpanAsHex) {
     EXPECT_EQ(wbr::str::convertToHexString(std::span {id, 8}), "a1 b2 c3 d4 e5 f6 78 90");
     EXPECT_EQ(wbr::str::convertToHexString(std::span {id, 8}, ""), "a1b2c3d4e5f67890");
     EXPECT_EQ(wbr::str::convertToHexString(std::span {id, 8}, ":"), "a1:b2:c3:d4:e5:f6:78:90");
+}
+
+// Tests for tokenize with action callback
+TEST (TokenizeActionTest, CollectAllTokens) {
+    std::vector<std::string> collected;
+    wbr::str::tokenize_callback("one two three", [&collected] (std::string_view token) { collected.emplace_back(token); });
+    EXPECT_EQ(collected.size( ), 3);
+    EXPECT_EQ(collected[0], "one");
+    EXPECT_EQ(collected[1], "two");
+    EXPECT_EQ(collected[2], "three");
+}
+
+TEST (TokenizeActionTest, CountTokens) {
+    size_t count = 0;
+    wbr::str::tokenize_callback("one two three four", [&count] (std::string_view) { count++; });
+    EXPECT_EQ(count, 4);
+}
+
+TEST (TokenizeActionTest, EmptyStringAction) {
+    size_t count = 0;
+    wbr::str::tokenize_callback("", [&count] (std::string_view) { count++; });
+    EXPECT_EQ(count, 0);
+}
+
+TEST (TokenizeActionTest, CustomDelimiters) {
+    std::vector<std::string> collected;
+    wbr::str::tokenize_callback("one:two:three", [&collected] (std::string_view token) { collected.emplace_back(token); }, ":");
+    EXPECT_EQ(collected.size( ), 3);
+    EXPECT_EQ(collected[0], "one");
+    EXPECT_EQ(collected[1], "two");
+    EXPECT_EQ(collected[2], "three");
+}
+
+TEST (TokenizeActionTest, MultipleDelimiters) {
+    std::vector<std::string> collected;
+    wbr::str::tokenize_callback("one:two;three,four", [&collected] (std::string_view token) { collected.emplace_back(token); }, ":;,");
+    EXPECT_EQ(collected.size( ), 4);
+    EXPECT_EQ(collected[0], "one");
+    EXPECT_EQ(collected[1], "two");
+    EXPECT_EQ(collected[2], "three");
+    EXPECT_EQ(collected[3], "four");
+}
+
+// Tests for tokenize with filter callback
+TEST (TokenizeFilterTest, FilterNonEmpty) {
+    const auto result = wbr::str::tokenize_filtered("one  two  three", wbr::str::nonempty);
+    EXPECT_EQ(result.size( ), 3);
+    EXPECT_EQ(result[0], "one");
+    EXPECT_EQ(result[1], "two");
+    EXPECT_EQ(result[2], "three");
+}
+
+TEST (TokenizeFilterTest, FilterByLength) {
+    auto result = wbr::str::tokenize_filtered("a bb ccc dddd", (wbr::str::TokenFilter)[](std::string_view token) { return token.length( ) >= 2; });
+    EXPECT_EQ(result.size( ), 3);
+    EXPECT_EQ(result[0], "bb");
+    EXPECT_EQ(result[1], "ccc");
+    EXPECT_EQ(result[2], "dddd");
+}
+
+TEST (TokenizeFilterTest, FilterStartsWith) {
+    auto result = wbr::str::tokenize_filtered("apple banana apricot cherry", [] (std::string_view token) { return token.starts_with('a'); });
+    EXPECT_EQ(result.size( ), 2);
+    EXPECT_EQ(result[0], "apple");
+    EXPECT_EQ(result[1], "apricot");
+}
+
+TEST (TokenizeFilterTest, FilterAllOut) {
+    auto result = wbr::str::tokenize_filtered("one two three", [] (std::string_view) { return false; });
+    EXPECT_TRUE(result.empty( ));
+}
+
+TEST (TokenizeFilterTest, FilterNoneOut) {
+    auto result = wbr::str::tokenize_filtered("one two three", [] (std::string_view) { return true; });
+    EXPECT_EQ(result.size( ), 3);
+    EXPECT_EQ(result[0], "one");
+    EXPECT_EQ(result[1], "two");
+    EXPECT_EQ(result[2], "three");
+}
+
+// Tests for tokenize with filter and action callbacks
+TEST (TokenizeFilterActionTest, FilterAndCollect) {
+    std::vector<std::string> collected;
+    wbr::str::tokenize("one two three four", [] (std::string_view token) { return token.length( ) > 3; }, [&collected] (std::string_view token) { collected.emplace_back(token); });
+    EXPECT_EQ(collected.size( ), 2);
+    EXPECT_EQ(collected[0], "three");
+    EXPECT_EQ(collected[1], "four");
+}
+
+TEST (TokenizeFilterActionTest, FilterAndCount) {
+    size_t count = 0;
+    wbr::str::tokenize("one two three four five", [] (std::string_view token) { return !token.empty( ); }, [&count] (std::string_view) { count++; });
+    EXPECT_EQ(count, 5);
+}
+
+TEST (TokenizeFilterActionTest, FilterEmptyAndCount) {
+    size_t count = 0;
+    wbr::str::tokenize("one  two  three", [] (std::string_view token) { return !token.empty( ); }, [&count] (std::string_view) { count++; });
+    EXPECT_EQ(count, 3);
+}
+
+TEST (TokenizeFilterActionTest, FilterAndTransform) {
+    std::vector<std::string> uppercased;
+    wbr::str::tokenize("hello world from cpp", [] (std::string_view) { return true; }, [&uppercased] (std::string_view token) { uppercased.push_back(wbr::str::strupper(std::string(token))); });
+    EXPECT_EQ(uppercased.size( ), 4);
+    EXPECT_EQ(uppercased[0], "HELLO");
+    EXPECT_EQ(uppercased[1], "WORLD");
+    EXPECT_EQ(uppercased[2], "FROM");
+    EXPECT_EQ(uppercased[3], "CPP");
+}
+
+// Tests for tokenizeModify without filter
+TEST (TokenizeModifyTest, UppercaseAll) {
+    auto result = wbr::str::tokenize_modify<std::string>("hello world from cpp", [] (std::string_view token) -> std::string { return wbr::str::strupper(std::string(token)); });
+    EXPECT_EQ(result.size( ), 4);
+    EXPECT_EQ(result[0], "HELLO");
+    EXPECT_EQ(result[1], "WORLD");
+    EXPECT_EQ(result[2], "FROM");
+    EXPECT_EQ(result[3], "CPP");
+}
+
+TEST (TokenizeModifyTest, LowercaseAll) {
+    auto result = wbr::str::tokenize_modify<std::string>("HELLO WORLD FROM CPP", [] (std::string_view token) -> std::string { return wbr::str::strlower(std::string(token)); });
+    EXPECT_EQ(result.size( ), 4);
+    EXPECT_EQ(result[0], "hello");
+    EXPECT_EQ(result[1], "world");
+    EXPECT_EQ(result[2], "from");
+    EXPECT_EQ(result[3], "cpp");
+}
+
+TEST (TokenizeModifyTest, CapitalizeFirstLetter) {
+    auto result = wbr::str::tokenize_modify<std::string>("hello world from cpp", [] (std::string_view token) -> std::string {
+        std::string s(token);
+        if ( !s.empty( ) )
+            s[0] = std::toupper(s[0]);
+        return s;
+    });
+    EXPECT_EQ(result.size( ), 4);
+    EXPECT_EQ(result[0], "Hello");
+    EXPECT_EQ(result[1], "World");
+    EXPECT_EQ(result[2], "From");
+    EXPECT_EQ(result[3], "Cpp");
+}
+
+TEST (TokenizeModifyTest, AddPrefix) {
+    auto result = wbr::str::tokenize_modify<std::string>("one two three", [] (std::string_view token) -> std::string { return std::string("prefix_") + std::string(token); });
+    EXPECT_EQ(result.size( ), 3);
+    EXPECT_EQ(result[0], "prefix_one");
+    EXPECT_EQ(result[1], "prefix_two");
+    EXPECT_EQ(result[2], "prefix_three");
+}
+
+TEST (TokenizeModifyTest, ConvertToLength) {
+    auto result = wbr::str::tokenize_modify<size_t>("one two three", [] (std::string_view token) -> size_t { return token.length( ); });
+    EXPECT_EQ(result.size( ), 3);
+    EXPECT_EQ(result[0], 3);
+    EXPECT_EQ(result[1], 3);
+    EXPECT_EQ(result[2], 5);
+}
+
+TEST (TokenizeModifyTest, EmptyString) {
+    auto result = wbr::str::tokenize_modify<std::string>("", [] (std::string_view token) -> std::string { return wbr::str::strupper(std::string(token)); });
+    EXPECT_TRUE(result.empty( ));
+}
+
+TEST (TokenizeModifyTest, CustomDelimiters) {
+    auto result = wbr::str::tokenize_modify<std::string>("one:two:three", [] (std::string_view token) -> std::string { return wbr::str::strupper(std::string(token)); }, ":");
+    EXPECT_EQ(result.size( ), 3);
+    EXPECT_EQ(result[0], "ONE");
+    EXPECT_EQ(result[1], "TWO");
+    EXPECT_EQ(result[2], "THREE");
+}
+
+// Tests for tokenizeModify with filter
+TEST (TokenizeModifyFilterTest, FilterAndUppercase) {
+    auto result = wbr::str::tokenize_modify<std::string>(
+        "hello  world  ", [] (std::string_view token) { return !token.empty( ); }, [] (std::string_view token) -> std::string { return wbr::str::strupper(std::string(token)); });
+    EXPECT_EQ(result.size( ), 2);
+    EXPECT_EQ(result[0], "HELLO");
+    EXPECT_EQ(result[1], "WORLD");
+}
+
+TEST (TokenizeModifyFilterTest, FilterByLengthAndCapitalize) {
+    auto result = wbr::str::tokenize_modify<std::string>("a bb ccc dddd eeeee", [] (std::string_view token) { return token.length( ) >= 3; }, [] (std::string_view token) -> std::string {
+        std::string s(token);
+        if ( !s.empty( ) )
+            s[0] = std::toupper(s[0]);
+        return s;
+    });
+    EXPECT_EQ(result.size( ), 3);
+    EXPECT_EQ(result[0], "Ccc");
+    EXPECT_EQ(result[1], "Dddd");
+    EXPECT_EQ(result[2], "Eeeee");
+}
+
+TEST (TokenizeModifyFilterTest, FilterStartsWithAndLength) {
+    auto result = wbr::str::tokenize_modify<size_t>(
+        "apple banana apricot cherry avocado", [] (std::string_view token) { return token.starts_with('a'); }, [] (std::string_view token) -> size_t { return token.length( ); });
+    EXPECT_EQ(result.size( ), 3);
+    EXPECT_EQ(result[0], 5);  // apple
+    EXPECT_EQ(result[1], 7);  // apricot
+    EXPECT_EQ(result[2], 7);  // avocado
+}
+
+TEST (TokenizeModifyFilterTest, FilterAllOut) {
+    auto result = wbr::str::tokenize_modify<std::string>("one two three", [] (std::string_view) { return false; }, [] (std::string_view token) -> std::string { return std::string(token); });
+    EXPECT_TRUE(result.empty( ));
+}
+
+TEST (TokenizeModifyFilterTest, FilterNoneOutAndReverse) {
+    auto result = wbr::str::tokenize_modify<std::string>("one two three", [] (std::string_view) { return true; }, [] (std::string_view token) -> std::string {
+        std::string s(token);
+        std::ranges::reverse(s);
+        return s;
+    });
+    EXPECT_EQ(result.size( ), 3);
+    EXPECT_EQ(result[0], "eno");
+    EXPECT_EQ(result[1], "owt");
+    EXPECT_EQ(result[2], "eerht");
+}
+
+TEST (TokenizeModifyFilterTest, ComplexExample) {
+    // Capitalize first letter of non-empty words longer than 2 characters
+    auto result =
+        wbr::str::tokenize_modify<std::string>("a is the cat on mat", [] (std::string_view token) { return !token.empty( ) && token.length( ) > 2; }, [] (std::string_view token) -> std::string {
+        std::string s(token);
+        if ( !s.empty( ) )
+            s[0] = std::toupper(s[0]);
+        return s;
+    });
+    EXPECT_EQ(result.size( ), 3);
+    EXPECT_EQ(result[0], "The");
+    EXPECT_EQ(result[1], "Cat");
+    EXPECT_EQ(result[2], "Mat");
 }
