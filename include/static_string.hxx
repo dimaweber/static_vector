@@ -20,7 +20,7 @@ template<typename SV>
 concept StringViewLike = std::is_convertible_v<const SV&, std::string_view> && !std::is_convertible_v<const SV&, const char*>;
 
 template<typename I>
-concept IndexLike = std::is_integral_v<I>;
+concept IndexLike = std::is_integral_v<I> && !std::is_pointer_v<I>;
 
 /**
  * @class static_string_adapter
@@ -77,7 +77,8 @@ public:
                 throw std::length_error {"zero-length array"};
         }
         if constexpr ( bc_strategy == LimitToBound )
-            return;  // will remain empty forever
+            if ( array_size == 0 )
+                return;  // will remain empty forever
 
         *tail_ = '\0';
     }
@@ -532,13 +533,13 @@ public:
     constexpr static_string_adapter& insert (IndexLike auto index, const StringViewLike auto& sv, size_type sv_index, size_type count = npos) noexcept(
         custom_bc_strategy != BoundCheckStrategy::Exception) {
         std::string_view t {sv};
-        insert<custom_bc_strategy>(index, t.substr(sv_index, count));
+        return insert<custom_bc_strategy>(index, t.substr(sv_index, count));
     }
 
     // 1
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr static_string_adapter& erase (IndexLike auto index = 0, size_type count = npos) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        return replace<custom_bc_strategy>(index, count, "");
+        return replace<custom_bc_strategy>(index, count == npos ? length( ) - index : count, "");
     }
 
     // 2
@@ -1198,13 +1199,21 @@ public:
     }
 
     // 3
-    size_type find (const char_type* cstr, IndexLike auto pos = 0) const noexcept {
+    size_type find (const char_type* cstr, IndexLike auto pos) const noexcept {
         return view( ).find(cstr, pos);
     }
 
+    size_type find (const char_type* cstr) const noexcept {
+        return view( ).find(cstr, 0);
+    }
+
     // 4
-    size_type find (char_type ch, IndexLike auto pos = 0) const noexcept {
+    size_type find (char_type ch, IndexLike auto pos) const noexcept {
         return view( ).find(ch, pos);
+    }
+
+    size_type find (char_type ch) const noexcept {
+        return find(ch, 0);
     }
 
     // 5
@@ -1214,14 +1223,48 @@ public:
 
     ///@}
 
+    constexpr char at (IndexLike auto pos) const {
+        if constexpr ( std::is_signed_v<decltype(pos)> )
+            if ( pos < 0 )
+                throw std::out_of_range("pos < 0");
+        if ( static_cast<size_type>(pos) >= size( ) )
+            throw std::out_of_range("pos >= size()");
+        return *(head_ + static_cast<size_type>(pos));
+    }
+
+    constexpr char& at (IndexLike auto pos) {
+        if constexpr ( std::is_signed_v<decltype(pos)> )
+            if ( pos < 0 )
+                throw std::out_of_range("pos < 0");
+        if ( static_cast<size_type>(pos) >= size( ) )
+            throw std::out_of_range("pos >= size()");
+        return *(head_ + static_cast<size_type>(pos));
+    }
+
+    [[nodiscard]] constexpr explicit operator std::string ( ) const noexcept(noexcept(view( ))) {
+        return std::string {view( )};
+    }
+
+    constexpr void reserve ( ) noexcept {
+        // for compatibility only, do nothing since static_string don't reallocate memory
+        return;
+    }
+
+    constexpr void shrink_to_fit ( ) noexcept {
+        // for compatibility only, do nothing since static_string don't reallocate memory
+        return;
+    }
+
+    [[nodiscard]] constexpr std::string_view substr (IndexLike auto pos = 0, size_type count = npos) const {
+        return view( ).substr(pos, count);
+    }
+
+    constexpr size_type copy (char* dest, size_type count, IndexLike auto pos = 0) const {
+        return view( ).copy(dest, count, pos);
+    }
+
     /*
      * public:
-    constexpr char  at(size_type pos) const;
-    constexpr char& at(size_type pos);
-    constexpr std::string std_str( ) const noexcept;
-    constexpr virtual void reserve(size_type new_cap) = 0;
-    virtual void shrink_to_fit( ) = 0;
-    constexpr std::string_view substr(size_type pos = 0, size_type count = npos) const;
     constexpr size_type copy(char* dest, size_type count, size_type pos = 0) const;
     constexpr void resize(size_type count);
     constexpr void resize(size_type count, char ch);
@@ -1265,8 +1308,7 @@ public:
     constexpr skl::string& formatAssign (fmt::format_string<T...> fmt, T&&... args)
      */
 private:
-    const pointer head_ {nullptr};  ///< Pointer to the beginning of the string
-
+    const pointer   head_ {nullptr};  ///< Pointer to the beginning of the string
     pointer         tail_ {nullptr};  ///< Pointer to one past the end of the string (points to null terminator)
     const size_type max_length_;      ///< Maximum allowed length for the string (excluding null terminator)
 

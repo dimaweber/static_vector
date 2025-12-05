@@ -60,9 +60,19 @@ concept InputStrIt = requires(InputIt i) {
     return !empty(str);
 }
 
+inline auto not_emtpy = std::not_fn(empty);
+
 [[nodiscard]] inline bool isspace (char chr) noexcept {
     return std::isspace(static_cast<unsigned char>(chr)) != 0;
 }
+
+inline auto not_isspace = std::not_fn(isspace);
+
+[[nodiscard]] inline bool isblank (char chr) noexcept {
+    return std::isblank(static_cast<unsigned char>(chr)) != 0;
+}
+
+inline auto not_isblank = std::not_fn(isblank);
 
 [[nodiscard]] inline bool isdigit (char chr) noexcept {
     return std::isdigit(static_cast<unsigned char>(chr)) != 0;
