@@ -1263,50 +1263,324 @@ public:
         return view( ).copy(dest, count, pos);
     }
 
-    /*
-     * public:
-    constexpr size_type copy(char* dest, size_type count, size_type pos = 0) const;
-    constexpr void resize(size_type count);
-    constexpr void resize(size_type count, char ch);
-    constexpr void swap(string& other) noexcept;
-    constexpr size_type find_first_of(const string& str, size_type pos = 0) const noexcept;
-    constexpr size_type find_first_of(const std::string& str, size_type pos = 0) const noexcept;
-    constexpr size_type find_first_of(const char* s, size_type pos, size_type count) const;
-    constexpr size_type find_first_of(const char* s, size_type pos = 0) const;
-    constexpr size_type find_first_of(char ch, size_type pos = 0) const noexcept;
-    constexpr size_type find_first_of(std::string_view sv, size_type startPos = 0) const noexcept;
-    constexpr size_type find_first_not_of(const string& str, size_type pos = 0) const noexcept;
-    constexpr size_type find_first_not_of(const std::string& str, size_type pos = 0) const noexcept;
-    constexpr size_type find_first_not_of(const char* s, size_type pos, size_type count) const;
-    constexpr size_type find_first_not_of(const char* s, size_type pos = 0) const;
-    constexpr size_type find_first_not_of(char ch, size_type pos = 0) const noexcept;
-    constexpr size_type find_first_not_of(std::string_view sv, size_type startPos = 0) const noexcept;
-    constexpr size_type find_last_of(const string& str, size_type pos = 0) const noexcept;
-    constexpr size_type find_last_of(const std::string& str, size_type pos = 0) const noexcept;
-    constexpr size_type find_last_of(const char* s, size_type pos, size_type count) const;
-    constexpr size_type find_last_of(const char* s, size_type pos = 0) const;
-    constexpr size_type find_last_of(char ch, size_type pos = npos) const noexcept;
-    constexpr size_type find_last_of(std::string_view sv, size_type startPos = 0) const noexcept;
-    constexpr size_type find_last_not_of(const string& str, size_type pos = 0) const noexcept;
-    constexpr size_type find_last_not_of(const std::string& str, size_type pos = 0) const noexcept;
-    constexpr size_type find_last_not_of(const char* s, size_type pos, size_type count) const;
-    constexpr size_type find_last_not_of(const char* s, size_type pos = 0) const;
-    constexpr size_type find_last_not_of(char ch, size_type pos = npos) const noexcept;
-    constexpr size_type find_last_not_of(std::string_view sv, size_type startPos = 0) const noexcept;
-    constexpr bool operator== (const skl::string& mystr) const;
-    constexpr bool operator== (std::string_view sv) const;
-    constexpr bool operator== (const std::string& str) const;
-    constexpr bool operator== (const char* cstr) const;
-    constexpr int operator<=> (const skl::string& mystr) const;
-    constexpr int operator<=> (const std::string& str) const;
-    constexpr int operator<=> (std::string_view sv) const;
-    constexpr int operator<=> (const char* cstr) const;
+    // https://en.cppreference.com/w/cpp/string/basic_string/resize
+    // 1
+    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+    constexpr void resize (size_type count) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+        resize<custom_bc_strategy>(count, '\0');
+    }
 
+    // 2
+    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+    constexpr void resize (size_type count, char ch) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Assert ) {
+            assert(count <= capacity( ));
+        }
+        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception ) {
+            if ( count > capacity( ) )
+                throw std::length_error("resize count exceeds capacity");
+        }
+        if constexpr ( custom_bc_strategy == BoundCheckStrategy::LimitToBound ) {
+            count = std::min(count, capacity( ));
+        }
+
+        if ( count > size( ) ) {
+            // Append characters to reach desired size
+            append<custom_bc_strategy>(count - size( ), ch);
+        } else if ( count < size( ) ) {
+            // Truncate to desired size
+            tail_  = head_ + count;
+            *tail_ = '\0';
+        }
+        // If count == size(), do nothing
+    }
+
+    // https://en.cppreference.com/w/cpp/string/basic_string/find_first_of
+    // 1
+    constexpr size_type find_first_of (const std::string& str, size_type pos = 0) const noexcept {
+        return view( ).find_first_of(str, pos);
+    }
+
+    // 2
+    constexpr size_type find_first_of (const char* s, size_type pos, size_type count) const {
+        return view( ).find_first_of(s, pos, count);
+    }
+
+    // 3
+    constexpr size_type find_first_of (const char* s, size_type pos = 0) const {
+        return view( ).find_first_of(s, pos);
+    }
+
+    // 4
+    constexpr size_type find_first_of (char ch, size_type pos = 0) const noexcept {
+        return view( ).find_first_of(ch, pos);
+    }
+
+    // 5
+    constexpr size_type find_first_of (const StringViewLike auto& sv, size_type pos = 0) const noexcept {
+        return view( ).find_first_of(std::string_view {sv}, pos);
+    }
+
+    // https://en.cppreference.com/w/cpp/string/basic_string/find_first_not_of
+    // 1
+    constexpr size_type find_first_not_of (const std::string& str, size_type pos = 0) const noexcept {
+        return view( ).find_first_not_of(str, pos);
+    }
+
+    // 2
+    constexpr size_type find_first_not_of (const char* s, size_type pos, size_type count) const {
+        return view( ).find_first_not_of(s, pos, count);
+    }
+
+    // 3
+    constexpr size_type find_first_not_of (const char* s, size_type pos = 0) const {
+        return view( ).find_first_not_of(s, pos);
+    }
+
+    // 4
+    constexpr size_type find_first_not_of (char ch, size_type pos = 0) const noexcept {
+        return view( ).find_first_not_of(ch, pos);
+    }
+
+    // 5
+    constexpr size_type find_first_not_of (const StringViewLike auto& sv, size_type pos = 0) const noexcept {
+        return view( ).find_first_not_of(std::string_view {sv}, pos);
+    }
+
+    // https://en.cppreference.com/w/cpp/string/basic_string/find_last_of
+    // 1
+    constexpr size_type find_last_of (const std::string& str, size_type pos = npos) const noexcept {
+        return view( ).find_last_of(str, pos);
+    }
+
+    // 2
+    constexpr size_type find_last_of (const char* s, size_type pos, size_type count) const {
+        return view( ).find_last_of(s, pos, count);
+    }
+
+    // 3
+    constexpr size_type find_last_of (const char* s, size_type pos = npos) const {
+        return view( ).find_last_of(s, pos);
+    }
+
+    // 4
+    constexpr size_type find_last_of (char ch, size_type pos = npos) const noexcept {
+        return view( ).find_last_of(ch, pos);
+    }
+
+    // 5
+    constexpr size_type find_last_of (const StringViewLike auto& sv, size_type pos = npos) const noexcept {
+        return view( ).find_last_of(std::string_view {sv}, pos);
+    }
+
+    // https://en.cppreference.com/w/cpp/string/basic_string/find_last_not_of
+    // 1
+    constexpr size_type find_last_not_of (const std::string& str, size_type pos = npos) const noexcept {
+        return view( ).find_last_not_of(str, pos);
+    }
+
+    // 2
+    constexpr size_type find_last_not_of (const char* s, size_type pos, size_type count) const {
+        return view( ).find_last_not_of(s, pos, count);
+    }
+
+    // 3
+    constexpr size_type find_last_not_of (const char* s, size_type pos = npos) const {
+        return view( ).find_last_not_of(s, pos);
+    }
+
+    // 4
+    constexpr size_type find_last_not_of (char ch, size_type pos = npos) const noexcept {
+        return view( ).find_last_not_of(ch, pos);
+    }
+
+    // 5
+    constexpr size_type find_last_not_of (const StringViewLike auto& sv, size_type pos = npos) const noexcept {
+        return view( ).find_last_not_of(std::string_view {sv}, pos);
+    }
+
+    ///@name comparison operators
+    ///@{
+
+    /**
+     * @brief Compares this string with a string_view for equality.
+     *
+     * @param sv The string_view to compare with
+     * @return true if the strings are equal, false otherwise
+     *
+     * @note This is a lexicographical comparison.
+     *
+     * @par Complexity
+     * Linear in the size of the strings.
+     *
+     * @par Example
+     * @code
+     * char buffer[20];
+     * wbr::static_string_adapter str(buffer, sizeof(buffer));
+     * str.assign("Hello");
+     * bool equal = (str == "Hello");  // true
+     * @endcode
+     */
+    constexpr bool operator== (const StringViewLike auto& sv) const noexcept {
+        return view( ) == sv;
+    }
+
+    /**
+     * @brief Compares this string with a std::string for equality.
+     *
+     * @param str The std::string to compare with
+     * @return true if the strings are equal, false otherwise
+     */
+    constexpr bool operator== (const std::string& str) const noexcept {
+        return view( ) == str;
+    }
+
+    /**
+     * @brief Compares this string with a C-string for equality.
+     *
+     * @param cstr The null-terminated C-string to compare with
+     * @return true if the strings are equal, false otherwise
+     */
+    constexpr bool operator== (const char* cstr) const noexcept {
+        return view( ) == cstr;
+    }
+
+    /**
+     * @brief Three-way comparison with a std::string.
+     *
+     * Returns a value indicating the lexicographical relationship between this string and the parameter.
+     *
+     * @param str The std::string to compare with
+     * @return -1 if this < str, 0 if this == str, 1 if this > str
+     *
+     * @note Uses lexicographical comparison.
+     *
+     * @par Complexity
+     * Linear in the size of the strings.
+     */
+    constexpr int operator<=> (const std::string& str) const noexcept {
+        return compare(str);
+    }
+
+    /**
+     * @brief Three-way comparison with a string_view.
+     *
+     * Returns a value indicating the lexicographical relationship between this string and the parameter.
+     *
+     * @param sv The string_view to compare with
+     * @return -1 if this < sv, 0 if this == sv, 1 if this > sv
+     */
+    constexpr int operator<=> (const StringViewLike auto& sv) const noexcept {
+        return compare(sv);
+    }
+
+    /**
+     * @brief Three-way comparison with a C-string.
+     *
+     * Returns a value indicating the lexicographical relationship between this string and the parameter.
+     *
+     * @param cstr The null-terminated C-string to compare with
+     * @return -1 if this < cstr, 0 if this == cstr, 1 if this > cstr
+     */
+    constexpr int operator<=> (const char* cstr) const noexcept {
+        return compare(cstr);
+    }
+
+    ///@}
+
+    /**
+     * @brief Exchanges the contents of this string with another string.
+     *
+     * Swaps the contents of two static_string_adapter objects. This operation is efficient
+     * as it only exchanges the actual string data, not the underlying buffers themselves.
+     * Both strings must fit within each other's capacity constraints.
+     *
+     * @param other The other static_string_adapter to swap with
+     *
+     * @throws May throw std::bad_alloc for very large strings (>256 bytes) if memory allocation fails
+     *
+     * @note The underlying buffers (head_ and capacity) are NOT swapped. Only the string
+     *       contents are exchanged. After the swap, each string adapter still references
+     *       its original buffer but contains the other's content.
+     *
+     * @note If the strings have different capacities, the operation will succeed as long
+     *       as each string fits within the other's capacity. Otherwise, behavior depends
+     *       on the BoundCheckStrategy:
+     *       - NoCheck: May result in buffer overflow (undefined behavior)
+     *       - Assert: Will trigger assertion failure in debug builds
+     *       - Exception: Will throw std::length_error
+     *       - LimitToBound: Will truncate strings to fit available capacity
+     *
+     * @par Complexity
+     * Linear in the size of the larger string: O(max(size(), other.size()))
+     *
+     * @par Example
+     * @code
+     * char buffer1[20];
+     * char buffer2[20];
+     * wbr::static_string_adapter str1(buffer1, sizeof(buffer1));
+     * wbr::static_string_adapter str2(buffer2, sizeof(buffer2));
+     *
+     * str1.assign("Hello");
+     * str2.assign("World");
+     *
+     * str1.swap(str2);
+     * // str1 now contains "World"
+     * // str2 now contains "Hello"
+     * @endcode
+     *
+     * @see std::string::swap
+     */
+    void swap (static_string_adapter<bc_strategy>& other) {
+        // Handle self-swap
+        if ( this == &other ) {
+            return;
+        }
+
+        auto this_size  = size( );
+        auto other_size = other.size( );
+
+        // Determine if we need to use the large string path
+        const bool use_large_path = this_size > 256 || other_size > 256;
+
+        if ( !use_large_path ) {
+            // Use stack allocation for small strings (both < 256)
+            char temp_buffer[256];
+            std::copy_n(begin( ), this_size, temp_buffer);
+            temp_buffer[this_size] = '\0';
+
+            // Copy other's content to this
+            auto copy_size = std::min(other_size, capacity( ));
+            std::copy_n(other.begin( ), copy_size, begin( ));
+            tail_  = head_ + copy_size;
+            *tail_ = '\0';
+
+            // Copy temp to other
+            copy_size = std::min(this_size, other.capacity( ));
+            std::copy_n(temp_buffer, copy_size, other.begin( ));
+            other.tail_  = other.head_ + copy_size;
+            *other.tail_ = '\0';
+        } else {
+            // For large strings, we need to save one string's content first
+            // Create temporary copies as std::string to avoid view invalidation
+            std::string this_copy(view( ));
+            std::string other_copy(other.view( ));
+
+            // Now swap: assign from the copies
+            clear( );
+            assign(other_copy);
+            other.clear( );
+            other.assign(this_copy);
+        }
+    }
+
+    /*
     template<typename... T>
     constexpr skl::string& formatAppend (fmt::format_string<T...> fmt, T&&... args)
     template<typename... T>
     constexpr skl::string& formatAssign (fmt::format_string<T...> fmt, T&&... args)
-     */
+    */
+
 private:
     const pointer   head_ {nullptr};  ///< Pointer to the beginning of the string
     pointer         tail_ {nullptr};  ///< Pointer to one past the end of the string (points to null terminator)
