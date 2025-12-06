@@ -304,7 +304,7 @@ public:
 
     // 7
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& append (const std::string& str, IndexLike auto pos, size_type count = npos) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    constexpr static_string_adapter& append (const std::string& str, size_type pos, size_type count = npos) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
         const std::string_view sv {str};
         return append<custom_bc_strategy>(sv.substr(pos, count));
     }
@@ -1615,22 +1615,38 @@ private:
 };
 
 template<std::size_t SZ, BoundCheckStrategy bc_strategy = BoundCheckStrategy::NoCheck>
-class static_string :
-    public static_string_adapter<bc_strategy>
-
-{
+class static_string : public static_string_adapter<bc_strategy> {
     using parent = static_string_adapter<bc_strategy>;
+    std::array<typename parent::char_type, SZ> data_;
 
 public:
     static_string ( ) : parent {data_.data( ), SZ, 0} {
     }
 
-    static_string (std::string_view sv) : static_string( ) {
-        parent::assign(sv);
+    static_string (const StringViewLike auto& sv) : static_string( ) {
+        this->assign(sv);
+    }
+
+    static_string (const char* cstr) : static_string( ) {
+        this->assign(cstr);
+    }
+
+    static_string& operator= (const StringViewLike auto& sv) {
+        this->assign(sv);
+        return *this;
+    }
+
+    static_string& operator= (const char* cstr) {
+        this->assign(cstr);
+        return *this;
+    }
+
+    static_string& operator= (const static_string& str) {
+        this->assign(str.view( ));
+        return *this;
     }
 
 private:
-    std::array<typename parent::char_type, SZ> data_;
 };
 
 }  // namespace wbr

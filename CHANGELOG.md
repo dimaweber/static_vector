@@ -1,3 +1,8 @@
+### 0.6.0
+
+- add more string manipulations functions in external header
+- fix compilation warnings
+
 ### 0.5.0
 
 - add `len_string` class for buffer + length pair strings

@@ -11,10 +11,10 @@ set(TARGET_DM sv_demo)
 set(TARGET_UT sv_unittest)
 set(TARGET_BM sv_benchmark)
 
-set(CMAKE_CXX_STANDARD 26)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# list(APPEND CMAKE_PREFIX_PATH $ENV{HOME}/.local/lib/cmake)
+list(APPEND CMAKE_PREFIX_PATH $ENV{HOME}/.local/lib/cmake)
 
 find_program(CCACHE_PROGRAM ccache)
 if (CCACHE_PROGRAM)
@@ -27,17 +27,19 @@ set(HEADERS
         include/len_string.hxx
         include/static_string.hxx
         include/static_vector.hxx
+        include/string_manipulations.hxx
+        include/string_manipulations_ext.hxx
         include/system_handler.hxx
         include/text_file_reader.hxx
         include/tlv_vector.hxx
 )
 
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -O0 -march=raptorlake")
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3 -O0 -march=raptorlake")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -O0")   #-march=raptorlake
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3 -O0")       # -march=raptorlake
 
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}  -O3 -march=raptorlake")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}  -O3 -march=raptorlake")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}  -O3")      # -march=raptorlake
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}  -O3")  # -march=raptorlake
 
 option(BUILD_BENCHMARK "static_vector benchmark" ON)
 option(BUILD_TESTS "static_vector test" ON)
@@ -71,9 +73,10 @@ if (BUILD_TESTS)
     add_executable(
             ${TARGET_UT}
             tests/static_string.unittest.cxx
-            tests/static_vector.unittest.cpp
+            tests/static_vector.unittest.cxx
             tests/static_vector_adapter.unittest.cxx
             tests/string_manipulations.unittest.cxx
+            tests/string_manipulations_ext.unittest.cxx
             tests/len_string.unittest.cxx
     )
 

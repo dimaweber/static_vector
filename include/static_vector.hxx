@@ -18,10 +18,8 @@
  *  utility class
  *
  */
-namespace wbr
-{
-namespace
-{
+namespace wbr {
+namespace {
 /**
  * @brief std miss uninitialized variant of @c move_backward function, so define our.
  *
@@ -33,8 +31,7 @@ namespace
  * @return
  */
 template<std::input_iterator InputIt, std::forward_iterator NoThrowForwardIt>
-NoThrowForwardIt uninitialized_move_backward (InputIt first, InputIt last, NoThrowForwardIt d_first)
-{
+NoThrowForwardIt uninitialized_move_backward (InputIt first, InputIt last, NoThrowForwardIt d_first) {
     if ( d_first == last )
         return first;
     auto iter = std::uninitialized_move(std::reverse_iterator(last), std::reverse_iterator(first), std::reverse_iterator(d_first));
@@ -44,8 +41,7 @@ NoThrowForwardIt uninitialized_move_backward (InputIt first, InputIt last, NoThr
 }  // namespace
 
 template<BoundCheckStrategy bc_strategy>
-constexpr void count_fit_capacity_check (size_t count, size_t capacity)
-{
+constexpr void count_fit_capacity_check (size_t count, size_t capacity) {
     using enum BoundCheckStrategy;
 
     if constexpr ( bc_strategy == Assert )
@@ -78,8 +74,7 @@ concept IsVector = requires(T vec) {
  * @tparam bc_strategy The strategy used for bounds checking (default is BoundCheckStrategy::UB).
  */
 template<typename T, BoundCheckStrategy bc_strategy = BoundCheckStrategy::UB>
-class static_vector_adapter
-{
+class static_vector_adapter {
 public:
     using value_type      = T;
     using iterator        = value_type*;
@@ -109,8 +104,7 @@ public:
     constexpr static_vector_adapter(std::array<T, SZ>& array, std::size_t& counter) noexcept(bc_strategy != BoundCheckStrategy::Exception) :
         elements_count_ {counter},
         max_elements_count_ {array.size( )},
-        elements_ {array.data( )}
-    {
+        elements_ {array.data( )} {
         if constexpr ( bc_strategy == BoundCheckStrategy::Exception )
             if ( counter > array.size( ) )
                 throw std::out_of_range("counter is ouf of range");
@@ -136,8 +130,10 @@ public:
      * @param counter Reference to the count of elements currently in use (size)
      */
     template<size_t N>
-    constexpr static_vector_adapter(T (&array)[N], std::size_t& counter) noexcept(bc_strategy != BoundCheckStrategy::Exception) : elements_count_ {counter}, max_elements_count_ {N}, elements_ {array}
-    {
+    constexpr static_vector_adapter(T (&array)[N], std::size_t& counter) noexcept(bc_strategy != BoundCheckStrategy::Exception) :
+        elements_count_ {counter},
+        max_elements_count_ {N},
+        elements_ {array} {
         if constexpr ( bc_strategy == BoundCheckStrategy::Exception )
             if ( counter > N )
                 throw std::out_of_range("counter is ouf of range");
@@ -165,8 +161,7 @@ public:
     constexpr static_vector_adapter (T* array, std::size_t array_max_size, std::size_t& counter) noexcept(bc_strategy != BoundCheckStrategy::Exception) :
         elements_count_ {counter},
         max_elements_count_ {array_max_size},
-        elements_ {array}
-    {
+        elements_ {array} {
         if constexpr ( bc_strategy == BoundCheckStrategy::Exception )
             if ( counter > array_max_size )
                 throw std::out_of_range("counter is ouf of range");
@@ -230,8 +225,7 @@ public:
      * @endcode
      */
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr void assign (size_type count, const T& value)
-    {
+    constexpr void assign (size_type count, const T& value) {
         using enum BoundCheckStrategy;
 
         if constexpr ( custom_bc_strategy == Assert )
@@ -283,8 +277,7 @@ public:
      * @endcode
      */
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr void assign (std::input_iterator auto first, std::input_iterator auto last)
-    {
+    constexpr void assign (std::input_iterator auto first, std::input_iterator auto last) {
         using enum BoundCheckStrategy;
 
         auto              n   = std::distance(first, last);
@@ -347,8 +340,7 @@ public:
      * @endcode
      */
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr void assign (std::initializer_list<T> ilist)
-    {
+    constexpr void assign (std::initializer_list<T> ilist) {
         auto first = ilist.begin( );
         auto last  = ilist.end( );
 
@@ -389,8 +381,7 @@ public:
      * }
      * @endcode
      */
-    [[nodiscard]] constexpr const_reference at (size_type pos) const
-    {
+    [[nodiscard]] constexpr const_reference at (size_type pos) const {
         if ( pos >= size( ) )
 #if __cpp_lib_format >= 201907L
             throw std::out_of_range {std::format("static_vector::{}: pos (which is {}) >= this->size() (which is {})", __func__, pos, size( ))};
@@ -424,8 +415,7 @@ public:
      * }
      * @endcode
      */
-    [[nodiscard]] constexpr auto at (size_type pos) -> reference
-    {
+    [[nodiscard]] constexpr auto at (size_type pos) -> reference {
         if ( pos >= size( ) )
 #if __cpp_lib_format >= 201907L
             throw std::out_of_range {std::format("static_vector::{}: pos (which is {}) >= this->size() (which is {})", __func__, pos, size( ))};
@@ -457,8 +447,7 @@ public:
      * vec[3] = 40;
      * @endcode
      */
-    [[nodiscard]] constexpr reference operator[] (size_t pos) noexcept(bc_strategy != BoundCheckStrategy::Exception)
-    {
+    [[nodiscard]] constexpr reference operator[] (size_t pos) noexcept(bc_strategy != BoundCheckStrategy::Exception) {
         if constexpr ( bc_strategy == BoundCheckStrategy::Exception )
             if ( pos >= size( ) )
                 throw std::out_of_range("pos is out of  range");
@@ -489,8 +478,7 @@ public:
      * int val = vec[2]; // Access the element at position 2 (value is 3)
      * @endcode
      */
-    [[nodiscard]] constexpr const_reference operator[] (size_t pos) const noexcept(bc_strategy != BoundCheckStrategy::Exception)
-    {
+    [[nodiscard]] constexpr const_reference operator[] (size_t pos) const noexcept(bc_strategy != BoundCheckStrategy::Exception) {
         if constexpr ( bc_strategy == BoundCheckStrategy::Exception )
             if ( pos >= size( ) )
                 throw std::out_of_range("pos is out of  range");
@@ -523,8 +511,7 @@ public:
      * @endcode
      */
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    [[nodiscard]] constexpr reference front ( ) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception)
-    {
+    [[nodiscard]] constexpr reference front ( ) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
         if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception )
             if ( empty( ) )
                 throw std::out_of_range("empty container");
@@ -545,8 +532,7 @@ public:
      * @throws `std::out_of_range` if the container is empty (depending on implementation of `not_empty_container_check`).
      */
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    [[nodiscard]] constexpr const_reference front ( ) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception)
-    {
+    [[nodiscard]] constexpr const_reference front ( ) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
         if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception )
             if ( empty( ) )
                 throw std::out_of_range("empty container");
@@ -577,8 +563,7 @@ public:
      * @endcode
      */
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    [[nodiscard]] constexpr reference back ( ) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception)
-    {
+    [[nodiscard]] constexpr reference back ( ) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
         if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception )
             if ( empty( ) )
                 throw std::out_of_range("empty container");
@@ -599,8 +584,7 @@ public:
      * @throws `std::out_of_range` if the container is empty (depending on implementation of `not_empty_container_check`).
      */
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    [[nodiscard]] constexpr const_reference back ( ) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception)
-    {
+    [[nodiscard]] constexpr const_reference back ( ) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
         if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception )
             if ( empty( ) )
                 throw std::out_of_range("empty container");
@@ -633,8 +617,7 @@ public:
      * std::cout << "Size after clear: " << vec.size() << std::endl; // Outputs: Size after clear: 0
      * @endcode
      */
-    constexpr void clear ( ) noexcept
-    {
+    constexpr void clear ( ) noexcept {
         if constexpr ( !std::is_trivially_destructible_v<T> )
             std::destroy_n(begin( ), elements_count_);
         elements_count_ = 0;
@@ -665,7 +648,9 @@ public:
      * }
      * @endcode
      */
-    [[nodiscard]] constexpr pointer data ( ) noexcept { return elements_; }
+    [[nodiscard]] constexpr pointer data ( ) noexcept {
+        return elements_;
+    }
 
     /**
      * @brief Returns a non-const pointer to the underlying array.
@@ -692,7 +677,9 @@ public:
      * }
      * @endcode
      */
-    [[nodiscard]] constexpr const_pointer data ( ) const noexcept { return elements_; }
+    [[nodiscard]] constexpr const_pointer data ( ) const noexcept {
+        return elements_;
+    }
 
     /**
      * @brief Gets an iterator to the beginning of the container.
@@ -713,7 +700,9 @@ public:
      * }
      * @endcode
      */
-    [[nodiscard]] constexpr iterator begin ( ) noexcept { return data( ); }
+    [[nodiscard]] constexpr iterator begin ( ) noexcept {
+        return data( );
+    }
 
     /**
      * @brief Gets a const iterator to the beginning of the container.
@@ -723,7 +712,9 @@ public:
      * @throws Does not throw exceptions.
      * @return Const iterator pointing to the first element.
      */
-    [[nodiscard]] constexpr const_iterator cbegin ( ) noexcept { return data( ); }
+    [[nodiscard]] constexpr const_iterator cbegin ( ) noexcept {
+        return data( );
+    }
 
     /**
      * @brief Gets a const iterator to the beginning of the container (const version).
@@ -733,7 +724,9 @@ public:
      * @throws Does not throw exceptions.
      * @return Const iterator pointing to the first element.
      */
-    [[nodiscard]] constexpr const_iterator begin ( ) const noexcept { return cbegin( ); }
+    [[nodiscard]] constexpr const_iterator begin ( ) const noexcept {
+        return cbegin( );
+    }
 
     /**
      * @brief Returns an iterator to the end of the container.
@@ -755,7 +748,9 @@ public:
      * }
      * @endcode
      */
-    [[nodiscard]] constexpr iterator end ( ) noexcept { return begin( ) + size( ); }
+    [[nodiscard]] constexpr iterator end ( ) noexcept {
+        return begin( ) + size( );
+    }
 
     /**
      * @brief Returns a const iterator to the end of the container.
@@ -765,7 +760,9 @@ public:
      * @throws Does not throw exceptions.
      * @return Const iterator to the end of the container.
      */
-    [[nodiscard]] constexpr const_iterator cend ( ) noexcept { return cbegin( ) + size( ); }
+    [[nodiscard]] constexpr const_iterator cend ( ) noexcept {
+        return cbegin( ) + size( );
+    }
 
     /**
      * @brief Returns a const iterator to the end of the container (const version).
@@ -775,7 +772,9 @@ public:
      * @throws Does not throw exceptions.
      * @return Const iterator to the end of the container.
      */
-    [[nodiscard]] constexpr const_iterator end ( ) const noexcept { return cend( ); }
+    [[nodiscard]] constexpr const_iterator end ( ) const noexcept {
+        return cend( );
+    }
 
     /**
      * @brief Gets a reverse iterator to the beginning of the reversed container.
@@ -796,7 +795,9 @@ public:
      * }
      * @endcode
      */
-    [[nodiscard]] constexpr auto rbegin ( ) noexcept { return std::make_reverse_iterator(end( )); }
+    [[nodiscard]] constexpr auto rbegin ( ) noexcept {
+        return std::make_reverse_iterator(end( ));
+    }
 
     /**
      * @brief Gets a const reverse iterator to the beginning of the reversed container.
@@ -806,7 +807,9 @@ public:
      * @throws Does not throw exceptions.
      * @return Const reverse iterator pointing to the last element.
      */
-    [[nodiscard]] constexpr auto crbegin ( ) noexcept { return std::make_reverse_iterator(cend( )); }
+    [[nodiscard]] constexpr auto crbegin ( ) noexcept {
+        return std::make_reverse_iterator(cend( ));
+    }
 
     /**
      * @brief Gets a const reverse iterator to the beginning of the reversed container (const version).
@@ -817,7 +820,9 @@ public:
      * @throws Does not throw exceptions.
      * @return Const reverse iterator pointing to the last element.
      */
-    [[nodiscard]] constexpr auto rbegin ( ) const noexcept { return crbegin( ); }
+    [[nodiscard]] constexpr auto rbegin ( ) const noexcept {
+        return crbegin( );
+    }
 
     /**
      * @brief Gets a reverse iterator to the end of the reversed container.
@@ -827,7 +832,9 @@ public:
      * @throws Does not throw exceptions.
      * @return Reverse iterator to the end of the reversed container.
      */
-    [[nodiscard]] constexpr auto rend ( ) noexcept { return std::make_reverse_iterator(begin( )); }
+    [[nodiscard]] constexpr auto rend ( ) noexcept {
+        return std::make_reverse_iterator(begin( ));
+    }
 
     /**
      * @brief Gets a const reverse iterator to the end of the reversed container.
@@ -838,7 +845,9 @@ public:
      * @throws Does not throw exceptions.
      * @return Const reverse iterator to the end of the reversed container.
      */
-    [[nodiscard]] constexpr auto crend ( ) noexcept { return std::make_reverse_iterator(cbegin( )); }
+    [[nodiscard]] constexpr auto crend ( ) noexcept {
+        return std::make_reverse_iterator(cbegin( ));
+    }
 
     /**
      * @brief Gets a const reverse iterator to the end of the reversed container (const version).
@@ -849,7 +858,9 @@ public:
      * @throws Does not throw exceptions.
      * @return Const reverse iterator to the end of the reversed container.
      */
-    [[nodiscard]] constexpr auto rend ( ) const noexcept { return crend( ); }
+    [[nodiscard]] constexpr auto rend ( ) const noexcept {
+        return crend( );
+    }
 
     /**
      * @brief Returns the maximum number of elements that can be stored in the container.
@@ -868,9 +879,13 @@ public:
      * std::cout << "Max size: " << vec.max_size() << std::endl; // Outputs: Max size: 5
      * @endcode
      */
-    [[nodiscard]] constexpr size_type max_size ( ) const noexcept { return max_elements_count_; }
+    [[nodiscard]] constexpr size_type max_size ( ) const noexcept {
+        return max_elements_count_;
+    }
 
-    [[nodiscard]] constexpr size_type capacity ( ) const noexcept { return max_size( ); }
+    [[nodiscard]] constexpr size_type capacity ( ) const noexcept {
+        return max_size( );
+    }
 
     /**
      * @brief Returns the number of elements currently stored in the container.
@@ -890,7 +905,9 @@ public:
      * std::cout << "Current size: " << vec.size() << std::endl; // Outputs: Current size: 5
      * @endcode
      */
-    [[nodiscard]] constexpr size_type size ( ) const noexcept { return elements_count_; }
+    [[nodiscard]] constexpr size_type size ( ) const noexcept {
+        return elements_count_;
+    }
 
     /**
      * @brief Checks if the container is empty.
@@ -913,7 +930,9 @@ public:
      * }
      * @endcode
      */
-    [[nodiscard]] constexpr bool empty ( ) const noexcept { return size( ) == 0; }
+    [[nodiscard]] constexpr bool empty ( ) const noexcept {
+        return size( ) == 0;
+    }
 
     /**
      * @brief Removes the last element from the container.
@@ -952,8 +971,7 @@ public:
         @endcode
      */
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr void pop_back ( ) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception)
-    {
+    constexpr void pop_back ( ) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
         if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception )
             if ( empty( ) )
                 throw std::out_of_range("empty container");
@@ -969,8 +987,7 @@ public:
     }
 
     template<class... Args>
-    constexpr reference emplace_back (Args&&... args)
-    {
+    constexpr reference emplace_back (Args&&... args) {
         if constexpr ( bc_strategy == BoundCheckStrategy::Exception )
             if ( size( ) == capacity( ) )
                 throw std::overflow_error("attempt to insert to container led to overflow");
@@ -985,8 +1002,7 @@ public:
         return back( );
     }
 
-    constexpr void push_back (value_type&& value)
-    {
+    constexpr void push_back (value_type&& value) {
         if constexpr ( bc_strategy == BoundCheckStrategy::Exception )
             if ( size( ) == capacity( ) )
                 throw std::overflow_error("attempt to insert to container led to overflow");
@@ -999,8 +1015,7 @@ public:
         emplace_back(std::move(value));
     }
 
-    constexpr void push_back (const_reference value)
-    {
+    constexpr void push_back (const_reference value) {
         if constexpr ( bc_strategy == BoundCheckStrategy::Exception )
             if ( size( ) == capacity( ) )
                 throw std::overflow_error("attempt to insert to container led to overflow");
@@ -1015,8 +1030,7 @@ public:
         ++elements_count_;
     }
 
-    constexpr iterator erase (const_iterator pos)
-    {
+    constexpr iterator erase (const_iterator pos) {
         // valid_iterator_check(pos);
 
         if ( elements_count_ == 0 )
@@ -1032,8 +1046,7 @@ public:
         return begin( ) + offset;
     }
 
-    constexpr iterator erase (const_iterator first, const_iterator last)
-    {
+    constexpr iterator erase (const_iterator first, const_iterator last) {
         // valid_iterator_check(first);
         // valid_iterator_check(last);
         // valid_range_check(first, last);
@@ -1084,8 +1097,7 @@ public:
      * @endcode
      */
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr iterator insert (const_iterator pos, const_reference value)
-    {
+    constexpr iterator insert (const_iterator pos, const_reference value) {
         using enum BoundCheckStrategy;
         if constexpr ( custom_bc_strategy == Exception ) {
             if ( size( ) + 1 > capacity( ) )
@@ -1138,8 +1150,7 @@ public:
      * @throw std::out_of_range if pos is out of range and `custom_bc_strategy` is set to Exception
      */
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr iterator insert (const_iterator pos, value_type&& value)
-    {
+    constexpr iterator insert (const_iterator pos, value_type&& value) {
         using enum BoundCheckStrategy;
         if constexpr ( custom_bc_strategy == Exception ) {
             if ( size( ) + 1 > capacity( ) )
@@ -1217,8 +1228,7 @@ public:
      * @endcode
      */
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr iterator insert (const_iterator pos, size_type count, const_reference value)
-    {
+    constexpr iterator insert (const_iterator pos, size_type count, const_reference value) {
         using enum BoundCheckStrategy;
         if constexpr ( custom_bc_strategy == Exception ) {
             if ( size( ) + count > capacity( ) )
@@ -1248,8 +1258,7 @@ public:
     }
 
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr iterator insert (const_iterator pos, std::input_iterator auto first, std::input_iterator auto last)
-    {
+    constexpr iterator insert (const_iterator pos, std::input_iterator auto first, std::input_iterator auto last) {
         // count_overflow_check(std::distance(first, last));
         // valid_iterator_check(pos);
         // valid_range_check(first, last);
@@ -1265,8 +1274,7 @@ public:
     }
 
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr iterator insert (const_iterator pos, std::initializer_list<value_type> ilist)
-    {
+    constexpr iterator insert (const_iterator pos, std::initializer_list<value_type> ilist) {
         // count_overflow_check(ilist.size( ));
         // valid_iterator_check(pos);
 
@@ -1274,8 +1282,7 @@ public:
     }
 
     template<class... Args>
-    constexpr iterator emplace (const_iterator pos, Args&&... args)
-    {
+    constexpr iterator emplace (const_iterator pos, Args&&... args) {
         //    valid_iterator_check(pos);
 
         const auto offset = std::distance(cbegin( ), pos);
@@ -1287,8 +1294,7 @@ public:
         return begin( ) + offset;
     }
 
-    constexpr void resize (size_type count, const_reference value)
-    {
+    constexpr void resize (size_type count, const_reference value) {
         if ( count > max_size( ) )
             throw std::length_error {"capacity would exceed max_size()"};
         if ( count > size( ) ) {
@@ -1298,9 +1304,13 @@ public:
         }
     }
 
-    constexpr void resize (size_type count) { return resize(count, value_type { }); }
+    constexpr void resize (size_type count) {
+        return resize(count, value_type { });
+    }
 
-    [[nodiscard]] constexpr size_type free_space ( ) const noexcept { return capacity( ) - size( ); }
+    [[nodiscard]] constexpr size_type free_space ( ) const noexcept {
+        return capacity( ) - size( );
+    }
 
 private:
     static constexpr size_t element_size_ = sizeof(value_type);
@@ -1309,8 +1319,7 @@ private:
     const size_type max_elements_count_;
     const pointer   elements_;
 
-    constexpr void shift_elements_right (size_type offset, size_type count)
-    {
+    constexpr void shift_elements_right (size_type offset, size_type count) {
         iterator first = data( ) + offset;
         iterator last  = data( ) + elements_count_;
         iterator dlast = data( ) + elements_count_ + count;
@@ -1321,8 +1330,7 @@ private:
             uninitialized_move_backward(begin( ) + offset, end( ), end( ) + count);
     }
 
-    constexpr void shift_elements_left (size_type offset, size_type count)
-    {
+    constexpr void shift_elements_left (size_type offset, size_type count) {
         iterator first  = data( ) + offset + count;
         iterator last   = data( ) + elements_count_;
         iterator dfirst = data( ) + offset;
@@ -1364,14 +1372,12 @@ private:
  * @endcode
  */
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy = BoundCheckStrategy::UB>
-static_vector_adapter<T, bc_strategy> make_adapter (std::array<T, SZ>& arr, size_t& count) noexcept
-{
+static_vector_adapter<T, bc_strategy> make_adapter (std::array<T, SZ>& arr, size_t& count) noexcept {
     return static_vector_adapter<T, bc_strategy>(arr, count);
 }
 
 template<BoundCheckStrategy bc_strategy, typename T, std::size_t SZ>
-static_vector_adapter<T, bc_strategy> make_adapter (std::array<T, SZ>& arr, size_t& count) noexcept
-{
+static_vector_adapter<T, bc_strategy> make_adapter (std::array<T, SZ>& arr, size_t& count) noexcept {
     return static_vector_adapter<T, bc_strategy>(arr, count);
 }
 
@@ -1381,8 +1387,7 @@ static_vector_adapter<T, bc_strategy> make_adapter (std::array<T, SZ>& arr, size
  * @tparam SZ maximal size
  */
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy = BoundCheckStrategy::UB>
-class static_vector
-{
+class static_vector {
 public:
     using value_type      = T;
     using iterator        = value_type*;
@@ -1696,8 +1701,7 @@ private:
 };
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::shift_elements_left (size_type offset, size_type count) -> void
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::shift_elements_left (size_type offset, size_type count) -> void {
     std::byte* first  = arr.data( ) + (offset + count) * element_size;
     std::byte* last   = arr.data( ) + elementsCount * element_size;
     std::byte* dfirst = arr.data( ) + offset * element_size;
@@ -1709,8 +1713,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::shift_elements_left (size_type
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::shift_elements_right (static_vector::size_type offset, static_vector::size_type count) -> void
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::shift_elements_right (static_vector::size_type offset, static_vector::size_type count) -> void {
     std::byte* first = arr.data( ) + offset * element_size;
     std::byte* last  = arr.data( ) + elementsCount * element_size;
     std::byte* dlast = arr.data( ) + (elementsCount + count) * element_size;
@@ -1723,8 +1726,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::shift_elements_right (static_v
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
 template<class... Args>
-constexpr auto static_vector<T, SZ, bc_strategy>::emplace (const_iterator pos, Args&&... args) -> iterator
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::emplace (const_iterator pos, Args&&... args) -> iterator {
     //    valid_iterator_check(pos);
 
     const auto offset = std::distance(cbegin( ), pos);
@@ -1737,8 +1739,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::emplace (const_iterator pos, A
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::swap (static_vector& other) noexcept -> void
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::swap (static_vector& other) noexcept -> void {
     if constexpr ( std::is_trivially_copyable_v<T> ) {
         std::swap(arr, other.arr);
     } else {
@@ -1757,14 +1758,12 @@ constexpr auto static_vector<T, SZ, bc_strategy>::swap (static_vector& other) no
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::resize (static_vector::size_type count) -> void
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::resize (static_vector::size_type count) -> void {
     return resize(count, value_type { });
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::resize (static_vector::size_type count, const_reference value) -> void
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::resize (static_vector::size_type count, const_reference value) -> void {
     if ( count > max_size( ) )
         throw std::length_error {"capacity would exceed max_size()"};
     if ( count > size( ) ) {
@@ -1775,8 +1774,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::resize (static_vector::size_ty
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_iterator pos, std::initializer_list<value_type> ilist) -> static_vector::iterator
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_iterator pos, std::initializer_list<value_type> ilist) -> static_vector::iterator {
     // count_overflow_check(ilist.size( ));
     // valid_iterator_check(pos);
 
@@ -1785,8 +1783,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_i
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
 template<std::forward_iterator InputIt>
-constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_iterator pos, InputIt first, InputIt last) -> static_vector::iterator
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_iterator pos, InputIt first, InputIt last) -> static_vector::iterator {
     // count_overflow_check(std::distance(first, last));
     // valid_iterator_check(pos);
     // valid_range_check(first, last);
@@ -1803,8 +1800,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_i
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_iterator pos, static_vector::size_type count, const_reference value) -> static_vector::iterator
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_iterator pos, static_vector::size_type count, const_reference value) -> static_vector::iterator {
     // count_overflow_check(count);
     // valid_iterator_check(pos);
 
@@ -1819,8 +1815,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_i
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_iterator pos, value_type&& value) -> static_vector::iterator
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_iterator pos, value_type&& value) -> static_vector::iterator {
     // count_overflow_check(1);
     // valid_iterator_check(pos);
 
@@ -1834,8 +1829,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_i
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_iterator pos, const_reference value) -> static_vector::iterator
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_iterator pos, const_reference value) -> static_vector::iterator {
     // count_overflow_check(1);
     // valid_iterator_check(pos);
 
@@ -1849,8 +1843,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_i
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::erase (static_vector::const_iterator first, static_vector::const_iterator last) -> static_vector::iterator
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::erase (static_vector::const_iterator first, static_vector::const_iterator last) -> static_vector::iterator {
     // valid_iterator_check(first);
     // valid_iterator_check(last);
     // valid_range_check(first, last);
@@ -1868,8 +1861,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::erase (static_vector::const_it
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::erase (static_vector::const_iterator pos) -> static_vector::iterator
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::erase (static_vector::const_iterator pos) -> static_vector::iterator {
     // valid_iterator_check(pos);
 
     if ( elementsCount == 0 )
@@ -1886,8 +1878,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::erase (static_vector::const_it
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr void static_vector<T, SZ, bc_strategy>::pop_back ( ) noexcept(bc_strategy != BoundCheckStrategy::Exception)
-{
+constexpr void static_vector<T, SZ, bc_strategy>::pop_back ( ) noexcept(bc_strategy != BoundCheckStrategy::Exception) {
     // not_empty_container_check( );
 
     if constexpr ( !std::is_trivially_destructible_v<value_type> )
@@ -1897,8 +1888,7 @@ constexpr void static_vector<T, SZ, bc_strategy>::pop_back ( ) noexcept(bc_strat
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
 template<class... Args>
-constexpr auto static_vector<T, SZ, bc_strategy>::emplace_back (Args&&... args) -> static_vector::reference
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::emplace_back (Args&&... args) -> static_vector::reference {
     // count_overflow_check(1);
 
     std::construct_at<value_type>(begin( ) + elementsCount, std::forward<Args>(args)...);
@@ -1907,16 +1897,14 @@ constexpr auto static_vector<T, SZ, bc_strategy>::emplace_back (Args&&... args) 
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::push_back (value_type&& value) -> void
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::push_back (value_type&& value) -> void {
     // count_overflow_check(1);
 
     emplace_back(std::move(value));
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::push_back (const_reference value) -> void
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::push_back (const_reference value) -> void {
     // count_overflow_check(1);
 
     std::construct_at<value_type>(end( ), value);
@@ -1924,8 +1912,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::push_back (const_reference val
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::clear ( ) noexcept -> void
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::clear ( ) noexcept -> void {
     if constexpr ( !std::is_trivially_destructible_v<T> )
         std::destroy_n(begin( ), elementsCount);
 
@@ -1933,109 +1920,91 @@ constexpr auto static_vector<T, SZ, bc_strategy>::clear ( ) noexcept -> void
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::shrink_to_fit ( ) -> void
-{ /*static allocation -- cannot resize thus no need for shrinking */
+constexpr auto static_vector<T, SZ, bc_strategy>::shrink_to_fit ( ) -> void { /*static allocation -- cannot resize thus no need for shrinking */
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::capacity ( ) const noexcept -> static_vector::size_type
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::capacity ( ) const noexcept -> static_vector::size_type {
     return max_size( );
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::reserve ( ) -> void
-{ /*static allocation -- cannot resize thus no need for reservation */
+constexpr auto static_vector<T, SZ, bc_strategy>::reserve ( ) -> void { /*static allocation -- cannot resize thus no need for reservation */
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::max_size ( ) const noexcept -> static_vector::size_type
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::max_size ( ) const noexcept -> static_vector::size_type {
     return SZ;
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::size ( ) const noexcept -> static_vector::size_type
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::size ( ) const noexcept -> static_vector::size_type {
     return elementsCount;
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::empty ( ) const noexcept -> bool
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::empty ( ) const noexcept -> bool {
     return size( ) == 0;
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::crend ( ) const noexcept
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::crend ( ) const noexcept {
     return std::make_reverse_iterator(cbegin( ));
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::rend ( ) const noexcept
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::rend ( ) const noexcept {
     return std::make_reverse_iterator(begin( ));
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::rend ( ) noexcept
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::rend ( ) noexcept {
     return std::make_reverse_iterator(begin( ));
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::crbegin ( ) const noexcept
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::crbegin ( ) const noexcept {
     return std::make_reverse_iterator(cend( ));
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::rbegin ( ) const noexcept
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::rbegin ( ) const noexcept {
     return std::make_reverse_iterator(end( ));
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::rbegin ( ) noexcept
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::rbegin ( ) noexcept {
     return std::make_reverse_iterator(end( ));
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::cend ( ) const noexcept -> static_vector::const_iterator
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::cend ( ) const noexcept -> static_vector::const_iterator {
     return cbegin( ) + size( );
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::end ( ) const noexcept -> static_vector::const_iterator
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::end ( ) const noexcept -> static_vector::const_iterator {
     return begin( ) + size( );
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::end ( ) noexcept -> static_vector::iterator
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::end ( ) noexcept -> static_vector::iterator {
     return begin( ) + size( );
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::cbegin ( ) const noexcept -> static_vector::const_iterator
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::cbegin ( ) const noexcept -> static_vector::const_iterator {
     return data( );
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::begin ( ) const noexcept -> static_vector::const_iterator
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::begin ( ) const noexcept -> static_vector::const_iterator {
     return data( );
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::begin ( ) noexcept -> static_vector::iterator
-{
-    static_assert(offsetof(decltype(arr), _M_elems) == 0);
+constexpr auto static_vector<T, SZ, bc_strategy>::begin ( ) noexcept -> static_vector::iterator {
+    // static_assert(offsetof(decltype(arr), _M_elems) == 0);
 #if __cpp_lib_bit_cast >= 201806L
     return std::launder(std::bit_cast<value_type*>(&arr));
 #else
@@ -2044,8 +2013,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::begin ( ) noexcept -> static_v
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::data ( ) const noexcept -> static_vector::const_pointer
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::data ( ) const noexcept -> static_vector::const_pointer {
 #if __cpp_lib_bit_cast >= 201806L
     return std::launder(std::bit_cast<value_type*>(&arr));
 #else
@@ -2054,8 +2022,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::data ( ) const noexcept -> sta
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::data ( ) noexcept -> static_vector::pointer
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::data ( ) noexcept -> static_vector::pointer {
 #if __cpp_lib_bit_cast >= 201806L
     return std::launder(std::bit_cast<value_type*>(&arr));
 #else
@@ -2064,56 +2031,49 @@ constexpr auto static_vector<T, SZ, bc_strategy>::data ( ) noexcept -> static_ve
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::back ( ) const noexcept -> static_vector::const_reference
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::back ( ) const noexcept -> static_vector::const_reference {
     // not_empty_container_check( );
 
     return *std::prev(end( ));
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::back ( ) noexcept -> static_vector::reference
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::back ( ) noexcept -> static_vector::reference {
     // not_empty_container_check( );
 
     return *std::prev(end( ));
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::front ( ) const noexcept -> static_vector::const_reference
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::front ( ) const noexcept -> static_vector::const_reference {
     // not_empty_container_check( );
 
     return *begin( );
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::front ( ) noexcept -> static_vector::reference
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::front ( ) noexcept -> static_vector::reference {
     // not_empty_container_check( );
 
     return *begin( );
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::operator[] (size_t pos) const noexcept(bc_strategy != BoundCheckStrategy::Exception) -> static_vector::const_reference
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::operator[] (size_t pos) const noexcept(bc_strategy != BoundCheckStrategy::Exception) -> static_vector::const_reference {
     // valid_index_check(pos);
 
     return *(begin( ) + pos);
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::operator[] (size_t pos) noexcept(bc_strategy != BoundCheckStrategy::Exception) -> static_vector::reference
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::operator[] (size_t pos) noexcept(bc_strategy != BoundCheckStrategy::Exception) -> static_vector::reference {
     // valid_index_check(pos);
 
     return *(begin( ) + pos);
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::at (static_vector::size_type pos) const -> static_vector::const_reference
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::at (static_vector::size_type pos) const -> static_vector::const_reference {
     if ( pos >= size( ) )
 #if __cpp_lib_format >= 201907L
         throw std::out_of_range {std::format("static_vector::{}: pos (which is {}) >= this->size() (which is {})", __func__, pos, size( ))};
@@ -2124,8 +2084,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::at (static_vector::size_type p
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::at (static_vector::size_type pos) -> static_vector::reference
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::at (static_vector::size_type pos) -> static_vector::reference {
     if ( pos >= size( ) )
 #if __cpp_lib_format >= 201907L
         throw std::out_of_range {std::format("static_vector::{}: pos (which is {}) >= this->size() (which is {})", __func__, pos, size( ))};
@@ -2136,8 +2095,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::at (static_vector::size_type p
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::assign (std::initializer_list<T> ilist) -> void
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::assign (std::initializer_list<T> ilist) -> void {
     // count_fit_capacity_check<bc_strategy>(ilist.size( ), capacity( ));
 
     return assign(ilist.begin( ), ilist.end( ));
@@ -2145,8 +2103,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::assign (std::initializer_list<
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
 template<std::forward_iterator InputIt>
-constexpr auto static_vector<T, SZ, bc_strategy>::assign (InputIt first, InputIt last) -> void
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::assign (InputIt first, InputIt last) -> void {
     // count_fit_capacity_check<bc_strategy>(std::distance(first, last), capacity( ));
 
     clear( );
@@ -2155,8 +2112,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::assign (InputIt first, InputIt
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::assign (static_vector::size_type count, const T& value) -> void
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::assign (static_vector::size_type count, const T& value) -> void {
     // count_fit_capacity_check<bc_strategy>(count, capacity( ));
 
     clear( );
@@ -2165,8 +2121,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::assign (static_vector::size_ty
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::operator= (std::initializer_list<value_type> ilist) -> static_vector&
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::operator= (std::initializer_list<value_type> ilist) -> static_vector& {
     // count_fit_capacity_check<bc_strategy>(ilist.size( ), capacity( ));
 
     clear( );
@@ -2176,8 +2131,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::operator= (std::initializer_li
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::operator= (static_vector&& other) noexcept -> static_vector&
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::operator= (static_vector&& other) noexcept -> static_vector& {
     count_fit_capacity_check<bc_strategy>(other.size( ), capacity( ));
 
     if ( &other != this ) {
@@ -2189,8 +2143,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::operator= (static_vector&& oth
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr auto static_vector<T, SZ, bc_strategy>::operator= (const static_vector& other) -> static_vector&
-{
+constexpr auto static_vector<T, SZ, bc_strategy>::operator= (const static_vector& other) -> static_vector& {
     count_fit_capacity_check<bc_strategy>(other.size( ), capacity( ));
 
     if ( &other != this ) {
@@ -2202,108 +2155,92 @@ constexpr auto static_vector<T, SZ, bc_strategy>::operator= (const static_vector
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr static_vector<T, SZ, bc_strategy>::~static_vector( )
-{
+constexpr static_vector<T, SZ, bc_strategy>::~static_vector( ) {
     clear( );
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr static_vector<T, SZ, bc_strategy>::static_vector(static_vector&& vec) noexcept
-{
+constexpr static_vector<T, SZ, bc_strategy>::static_vector(static_vector&& vec) noexcept {
     std::uninitialized_move(vec.begin( ), vec.end( ), begin( ));
     elementsCount = vec.elementsCount;
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr static_vector<T, SZ, bc_strategy>::static_vector(const static_vector& vec)
-{
+constexpr static_vector<T, SZ, bc_strategy>::static_vector(const static_vector& vec) {
     std::uninitialized_copy(vec.cbegin( ), vec.cend( ), begin( ));
     elementsCount = vec.elementsCount;
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr static_vector<T, SZ, bc_strategy>::static_vector(size_type count, const_reference value) : elementsCount(count)
-{
+constexpr static_vector<T, SZ, bc_strategy>::static_vector(size_type count, const_reference value) : elementsCount(count) {
     count_fit_capacity_check<bc_strategy>(elementsCount, capacity( ));
 
     std::uninitialized_fill_n(begin( ), count, value);
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr static_vector<T, SZ, bc_strategy>::static_vector(size_type count) : elementsCount(count)
-{
+constexpr static_vector<T, SZ, bc_strategy>::static_vector(size_type count) : elementsCount(count) {
     count_fit_capacity_check<bc_strategy>(elementsCount, capacity( ));
 
     std::uninitialized_default_construct_n(begin( ), count);
 }
 
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
-constexpr static_vector<T, SZ, bc_strategy>::static_vector(std::initializer_list<value_type> init) : elementsCount(init.size( ))
-{
+constexpr static_vector<T, SZ, bc_strategy>::static_vector(std::initializer_list<value_type> init) : elementsCount(init.size( )) {
     count_fit_capacity_check<bc_strategy>(elementsCount, capacity( ));
 
     std::uninitialized_copy(init.begin( ), init.end( ), begin( ));
 }
 
 template<class T, size_t SZ, BoundCheckStrategy astrat, BoundCheckStrategy bstrat>
-[[nodiscard]] constexpr bool operator== (const wbr::static_vector<T, SZ, astrat>& lhs, const wbr::static_vector<T, SZ, bstrat>& rhs)
-{
+[[nodiscard]] constexpr bool operator== (const wbr::static_vector<T, SZ, astrat>& lhs, const wbr::static_vector<T, SZ, bstrat>& rhs) {
     return lhs.size( ) == rhs.size( ) && std::equal(lhs.cbegin( ), lhs.cend( ), rhs.cbegin( ));
 }
 
 #if __cpp_lib_three_way_comparison
 
 template<class T, size_t SZ>
-[[nodiscard]] constexpr std::strong_ordering operator<=> (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs)
-{
+[[nodiscard]] constexpr std::strong_ordering operator<=> (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs) {
     return std::lexicographical_compare_three_way(lhs.cbegin( ), lhs.cend( ), rhs.cbegin( ), rhs.cend( ));
 }
 
 #else
 template<class T, size_t SZ>
-[[nodiscard]] constexpr bool operator!= (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs)
-{
+[[nodiscard]] constexpr bool operator!= (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs) {
     return !(lhs == rhs);
 }
 
 template<class T, size_t SZ>
-[[nodiscard]] constexpr bool operator< (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs)
-{
+[[nodiscard]] constexpr bool operator< (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs) {
     return std ::lexicographical_compare(lhs.begin( ), lhs.end( ), rhs.begin( ), rhs.end( ));
 }
 
 template<class T, size_t SZ>
-[[nodiscard]] constexpr bool operator>= (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs)
-{
+[[nodiscard]] constexpr bool operator>= (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs) {
     return !(lhs < rhs);
 }
 
 template<class T, size_t SZ>
-[[nodiscard]] constexpr bool operator> (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs)
-{
+[[nodiscard]] constexpr bool operator> (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs) {
     return std::lexicographical_compare(rhs.begin( ), rhs.end( ), lhs.begin( ), lhs.end( ));
 }
 
 template<class T, size_t SZ>
-[[nodiscard]] constexpr bool operator<= (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs)
-{
+[[nodiscard]] constexpr bool operator<= (const wbr::static_vector<T, SZ>& lhs, const wbr::static_vector<T, SZ>& rhs) {
     return !(lhs > rhs);
 }
 #endif
 }  // namespace wbr
 
 #ifdef __cpp_lib_erase_if  // C++ >= 20 && HOSTED
-namespace std
-{
+namespace std {
 template<class T, size_t SZ>
-constexpr auto swap (wbr::static_vector<T, SZ>& a, wbr::static_vector<T, SZ>& b) noexcept(noexcept(a.swap(b))) -> void
-{
+constexpr auto swap (wbr::static_vector<T, SZ>& a, wbr::static_vector<T, SZ>& b) noexcept(noexcept(a.swap(b))) -> void {
     a.swap(b);
 }
 
 template<class T, size_t SZ, class U = T>
-constexpr auto erase (wbr::static_vector<T, SZ>& c, const U& value) -> wbr::static_vector<T, SZ>::size_type
-{
+constexpr auto erase (wbr::static_vector<T, SZ>& c, const U& value) -> wbr::static_vector<T, SZ>::size_type {
     auto it = remove(c.begin( ), c.end( ), value);
     auto r  = c.end( ) - it;
     c.erase(it, c.end( ));
@@ -2311,8 +2248,7 @@ constexpr auto erase (wbr::static_vector<T, SZ>& c, const U& value) -> wbr::stat
 }
 
 template<class T, size_t SZ, class Pred>
-constexpr auto erase_if (wbr::static_vector<T, SZ>& c, Pred pred) -> wbr::static_vector<T, SZ>::size_type
-{
+constexpr auto erase_if (wbr::static_vector<T, SZ>& c, Pred pred) -> wbr::static_vector<T, SZ>::size_type {
     auto it = std::remove_if(c.begin( ), c.end( ), pred);
     auto r  = c.end( ) - it;
     c.erase(it, c.end( ));

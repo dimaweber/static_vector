@@ -108,7 +108,7 @@ TEST (LenStringAdapterTest, ElementAccess) {
     EXPECT_EQ(adapter.front( ), 'H');
     EXPECT_EQ(adapter.back( ), 'o');
 
-    EXPECT_THROW(adapter.at(10), std::out_of_range);
+    EXPECT_THROW(std::ignore = adapter.at(10), std::out_of_range);
 }
 
 TEST (LenStringAdapterTest, Iterators) {
