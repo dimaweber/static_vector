@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(
         static_vector
-        VERSION 0.4.2
+        VERSION 0.5.0
         DESCRIPTION "stack-allocated vector with standard api")
 
 include(GNUInstallDirs)
@@ -22,12 +22,15 @@ if (CCACHE_PROGRAM)
 endif ()
 
 set(HEADERS
-        include/static_vector.hxx
-        include/static_string.hxx
         include/bound_check.hxx
-        include/tlv_vector.hxx
+        include/concepts.hxx
+        include/len_string.hxx
+        include/static_string.hxx
+        include/static_vector.hxx
+        include/system_handler.hxx
         include/text_file_reader.hxx
-        include/system_handler.hxx)
+        include/tlv_vector.hxx
+)
 
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -O0 -march=raptorlake")
@@ -54,7 +57,9 @@ else ()
     add_compile_definitions(BUILD_TESTS=0)
 endif ()
 
-add_library(${TARGET_LIB} INTERFACE include/bound_check.hxx)
+add_library(${TARGET_LIB} INTERFACE include/bound_check.hxx
+        include/len_string.hxx
+        include/concepts.hxx)
 target_include_directories(
         ${TARGET_LIB} INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>)
@@ -69,6 +74,7 @@ if (BUILD_TESTS)
             tests/static_vector.unittest.cpp
             tests/static_vector_adapter.unittest.cxx
             tests/string_manipulations.unittest.cxx
+            tests/len_string.unittest.cxx
     )
 
     include(GoogleTest)

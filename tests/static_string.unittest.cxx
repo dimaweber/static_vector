@@ -1,5 +1,7 @@
 #include "static_string.hxx"
 
+#include "len_string.hxx"
+
 using namespace wbr;
 using namespace testing;
 
@@ -955,7 +957,7 @@ TEST (StaticStringAdapterTest, FindFirstOf) {
     EXPECT_EQ(adapter.find_first_of('o', 5), 8);  // Next 'o' at position 8
 
     // Test find_first_of with string_view
-    EXPECT_EQ(adapter.find_first_of("aeiou"sv), 1);     // 'e' at position 1
+    EXPECT_EQ(adapter.find_first_of("aeiou"sv), 1);           // 'e' at position 1
     EXPECT_EQ(adapter.find_first_of("xyz"sv), adapter.npos);  // Not found
 
     // Test with starting position
@@ -1066,12 +1068,12 @@ TEST (StaticStringTest, FindFirstOfOperations) {
     static_string<50> str("The quick brown fox jumps over the lazy dog");
 
     // Find vowels
-    EXPECT_EQ(str.find_first_of("aeiou"), 2);  // 'e' at position 2
-    EXPECT_EQ(str.find_first_of("aeiou", 3), 6);  // 'u' at position 6
+    EXPECT_EQ(str.find_first_of("aeiou"), 2);     // 'e' at position 2
+    EXPECT_EQ(str.find_first_of("aeiou", 3), 5);  // 'u' at position 6
 
     // Find specific character
     EXPECT_EQ(str.find_first_of('q'), 4);
-    EXPECT_EQ(str.find_first_of('z'), 35);
+    EXPECT_EQ(str.find_first_of('z'), 37);
 
     // Not found
     EXPECT_EQ(str.find_first_of('Q'), str.npos);
@@ -1104,10 +1106,10 @@ TEST (StaticStringTest, FindLastOfOperations) {
 
     // Find last occurrence of character
     EXPECT_EQ(str.find_last_of('o'), 41);  // 'o' at position 41
-    EXPECT_EQ(str.find_last_of('e'), 32);  // 'e' at position 32
+    EXPECT_EQ(str.find_last_of('e'), 33);  // 'e' at position 33
 
     // With position limit
-    EXPECT_EQ(str.find_last_of('o', 30), 17);  // 'o' at position 17 (in "brown")
+    EXPECT_EQ(str.find_last_of('o', 30), 26);  // 'o' at position 17 (in "brown")
 
     // Not found
     EXPECT_EQ(str.find_last_of('Q'), str.npos);
@@ -1295,7 +1297,7 @@ TEST (StaticStringTest, ComparisonEdgeCases) {
     static_string<50> long_str("Hello, World!");
 
     // Length comparison
-    EXPECT_LT(short_str <=> long_str.view( ), 0);  // Shorter and lexicographically less
+    EXPECT_GT(short_str <=> long_str.view( ), 0);  // Shorter and lexicographically less
 
     // Prefix comparison
     static_string<50> prefix("Hello");
@@ -1450,7 +1452,7 @@ TEST (StaticStringAdapterTest, SwapDifferentCapacities) {
     small_str.swap(large_str);
 
     EXPECT_EQ(small_str.view( ), "Large");
-    EXPECT_EQ(small_str.capacity( ), 9);   // Capacity unchanged
+    EXPECT_EQ(small_str.capacity( ), 9);  // Capacity unchanged
     EXPECT_EQ(large_str.view( ), "Small");
     EXPECT_EQ(large_str.capacity( ), 49);  // Capacity unchanged
 }
@@ -1537,7 +1539,7 @@ TEST (StaticStringTest, SwapDifferentCapacityStaticStrings) {
 
     small.swap(large);
 
-    EXPECT_EQ(small.view( ), "Large string");
+    EXPECT_EQ(small.view( ), "Large str");
     EXPECT_EQ(large.view( ), "Small");
 
     // Verify capacities are unchanged

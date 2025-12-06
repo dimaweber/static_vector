@@ -9,18 +9,13 @@
 #include <stdexcept>
 
 #include "bound_check.hxx"
+#include "concepts.hxx"
 
 #if BUILD_TESTS
     #include <gtest/gtest.h>
 #endif
 
 namespace wbr {
-
-template<typename SV>
-concept StringViewLike = std::is_convertible_v<const SV&, std::string_view> && !std::is_convertible_v<const SV&, const char*>;
-
-template<typename I>
-concept IndexLike = std::is_integral_v<I> && !std::is_pointer_v<I>;
 
 /**
  * @class static_string_adapter
