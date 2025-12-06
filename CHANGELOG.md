@@ -1,8 +1,8 @@
 ### 0.5.0
 
 - add `len_string` class for buffer + length pair strings
-- full API for static_string implementation
-- descriptions for static_string and for len_string
+- full API for `static_string` implementation
+- descriptions for `static_string` and for `len_string`
 
 ### 0.4.2
 
