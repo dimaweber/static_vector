@@ -9,4 +9,41 @@ concept StringViewLike = std::is_convertible_v<const SV&, std::string_view> && !
 template<typename I>
 concept IndexLike = std::is_integral_v<I> && !std::is_pointer_v<I>;
 
+template<typename T>
+concept HasSubstr = requires(T t) { t.substr(0, 0); };
+
+template<typename T>
+concept HasBeginEnd = requires(T t) {
+                          t.begin( );
+                          t.end( );
+                      };
+
+/** @brief Concept for containers with begin/end */
+template<template<class> class V, class S>
+concept ContainerLike = HasBeginEnd<V<S>>;
+
+template<typename T>
+concept IsVector = requires(T vec) {
+                       vec.begin( );
+                       vec.end( );
+                       vec.push_back( );
+                       vec.at(size_t { });
+                   };
+
+namespace str {
+template<class S>
+concept StringType = requires(S s) {
+                         s.find_first_of(' ', 0);
+                         s.size( );
+                         s.data( );
+                         s.empty( );
+                     };
+template<typename InputIt>
+concept InputStrIt = requires(InputIt i) {
+                         i++;
+                         { *i } -> std::convertible_to<std::string_view>;
+                     };
+
+}  // namespace str
+
 }  // namespace wbr

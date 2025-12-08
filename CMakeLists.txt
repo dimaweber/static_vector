@@ -102,7 +102,8 @@ if (BUILD_EXAMPLES)
             ${TARGET_DM}
             examples/base_usage.cpp examples/range-based-for-loop.cpp
             examples/sv_demo.cpp examples/standard-algorithm-functions.cpp
-            examples/tlv_array_base_usage.cpp)
+            examples/tlv_array_base_usage.cpp
+            examples/coroutine.cpp)
     target_link_libraries(${TARGET_DM} PRIVATE ${TARGET_LIB})
     if (fmt_FOUND)
         add_compile_definitions(USE_FMT=1)

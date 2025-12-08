@@ -22,21 +22,11 @@
 #include <vector>
 #include <version>
 
+#include "concepts.hxx"
+
 /** @brief all string manipulation functions are located in wbr::str namespace
  */
 namespace wbr::str {
-template<class S>
-concept StringType = requires(S s) {
-                         s.find_first_of(' ', 0);
-                         s.size( );
-                         s.data( );
-                         s.empty( );
-                     };
-template<typename InputIt>
-concept InputStrIt = requires(InputIt i) {
-                         i++;
-                         { *i } -> std::convertible_to<std::string_view>;
-                     };
 
 /** @brief helper predicate to check if a string is empty
  *
@@ -576,13 +566,6 @@ std::vector<T> tokenize_modify (const std::string_view sv, TokenFilter filter, T
 template<typename S>
 concept CanBeEmpty = requires(S s) { wbr::str::empty(s); };
 
-/** @brief Concept for containers with begin/end */
-template<template<class> class V, class S>
-concept HasBeginEnd = requires(V<S> v) {
-                          std::begin(v);
-                          std::end(v);
-                      };
-
 /** @brief Remove empty elements from container
  *
  * @param vec Container to filter
@@ -595,7 +578,7 @@ concept HasBeginEnd = requires(V<S> v) {
  * @endcode
  */
 template<template<class> class V, class S>
-    requires HasBeginEnd<V, S> && CanBeEmpty<S>
+    requires ContainerLike<V, S> && CanBeEmpty<S>
 V<S> removeEmptyTokens (V<S> vec) {
     std::erase_if(vec, wbr::str::empty);
     return vec;

@@ -8,11 +8,12 @@
 #include <algorithm>
 #include <cstddef>
 #include <functional>
-#include <map>
 #include <span>
 #include <string>
 #include <string_view>
 #include <vector>
+
+#include "concepts.hxx"
 
 /** @brief Extended string manipulation functions in wbr::str namespace
  */
@@ -34,11 +35,12 @@ namespace wbr::str {
  *     // result == "*****hello"
  * @endcode
  */
-inline std::string pad_left (std::string_view str, size_t width, char fill = ' ') {
+template<StringType S = std::string>
+S pad_left (std::string_view str, size_t width, char fill = ' ') {
     if ( str.size( ) >= width )
-        return std::string {str};
+        return S {str};
 
-    std::string result;
+    S result;
     result.reserve(width);
     result.append(width - str.size( ), fill);
     result.append(str);

@@ -10,6 +10,7 @@
 
 #include "bound_check.hxx"
 #include "concepts.hxx"
+#include "string_manipulations.hxx"
 
 #if BUILD_TESTS
     #include <gtest/gtest.h>
@@ -285,29 +286,41 @@ public:
     // 4
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr static_string_adapter& append (const StringViewLike auto& t) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        const std::string_view sv = t;
-        return append<custom_bc_strategy>(sv.cbegin( ), sv.cend( ));
+        if constexpr ( HasBeginEnd<decltype(t)> ) {
+            return append<custom_bc_strategy>(t.begin( ), t.end( ));
+        } else {
+            const std::string_view sv = t;
+            return append<custom_bc_strategy>(sv.cbegin( ), sv.cend( ));
+        }
     }
 
     // 5
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr static_string_adapter& append (const StringViewLike auto& t, IndexLike auto pos, size_type count = npos) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        const std::string_view sv = t;
-        return append<custom_bc_strategy>(sv.substr(pos, count));
+        if constexpr ( HasSubstr<decltype(t)> ) {
+            return append<custom_bc_strategy>(t.substr(pos, count));
+        } else {
+            const std::string_view sv {t};
+            return append<custom_bc_strategy>(sv.substr(pos, count));
+        }
     }
 
-    // 6
+    // 6 - not required - handled by 4
+    /*
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr static_string_adapter& append (const std::string& str) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
         return append<custom_bc_strategy>(str.data( ), str.size( ));
     }
+    */
 
-    // 7
+    // 7 - not required - handled by 5
+    /*
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& append (const std::string& str, size_type pos, size_type count = npos) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    constexpr static_string_adapter& append (const StringViewLike auto& str, IndexLike auto pos, size_type count = npos) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
         const std::string_view sv {str};
         return append<custom_bc_strategy>(sv.substr(pos, count));
     }
+    */
 
     // 8
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
@@ -353,12 +366,14 @@ public:
     }
 
     /// @see https://en.cppreference.com/w/cpp/string/basic_string/assign
-    // 1
+    // 1: not required -- implemented by 6
+    /*
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr static_string_adapter& assign (const std::string& str) {
         clear( );
         return append<custom_bc_strategy>(str);
     }
+    */
 
     // 3
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
@@ -395,12 +410,14 @@ public:
         return append<custom_bc_strategy>(sv, pos, count);
     }
 
-    // 8
+    // 8: not required - implemented by 7
+    /*
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr static_string_adapter& assign (const std::string& str, IndexLike auto pos, size_type count = npos) {
         clear( );
         return append<custom_bc_strategy>(str, pos, count);
     }
+    */
 
     // 9
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
@@ -423,10 +440,12 @@ public:
         return append(c);
     }
 
-    // 1
+    // 1: not required - implemented by 6
+    /*
     constexpr static_string_adapter& operator= (const std::string& sv) noexcept(bc_strategy != BoundCheckStrategy::Exception) {
         return assign(sv);
     }
+    */
 
     // 3
     constexpr static_string_adapter& operator= (const char_type* cstr) noexcept(bc_strategy != BoundCheckStrategy::Exception) {
@@ -477,17 +496,21 @@ public:
         return insert<custom_bc_strategy>(index, std::string_view {cstr, count});
     }
 
-    // 4
+    // 4: not required - implemented by 10
+    /*
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr static_string_adapter& insert (IndexLike auto index, const std::string& str) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
         return insert<custom_bc_strategy>(index, std::string_view {str});
     }
+    */
 
-    // 5
+    // 5: not required - imp
+    /*
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr static_string_adapter& insert (IndexLike auto index, const std::string& str, size_type s_index, size_type count) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
         return insert<custom_bc_strategy>(index, std::string_view {str}, s_index, count);
     }
+    */
 
     // 6
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
@@ -527,8 +550,12 @@ public:
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr static_string_adapter& insert (IndexLike auto index, const StringViewLike auto& sv, size_type sv_index, size_type count = npos) noexcept(
         custom_bc_strategy != BoundCheckStrategy::Exception) {
-        std::string_view t {sv};
-        return insert<custom_bc_strategy>(index, t.substr(sv_index, count));
+        if constexpr ( HasSubstr<decltype(sv)> ) {
+            return insert<custom_bc_strategy>(index, sv.substr(sv_index, count));
+        } else {
+            std::string_view t {sv};
+            return insert<custom_bc_strategy>(index, t.substr(sv_index, count));
+        }
     }
 
     // 1
@@ -551,23 +578,29 @@ public:
         return begin( ) + std::distance(cbegin( ), first);
     }
 
-    // 1
+    // 1:  not required - implemented by 12
+    /*
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr static_string_adapter& replace (const IndexLike auto pos, size_type count, const std::string& str) {
         return replace<custom_bc_strategy>(pos, count, std::string_view {str});
     }
+    */
 
-    // 2
+    // 2: not required: implemented by 13
+    /*
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr static_string_adapter& replace (const_iterator first, const_iterator last, const std::string& str) {
         return replace<custom_bc_strategy>(first, last, str.cbegin( ), str.cend( ));
     }
+    */
 
-    // 3
+    // 3: not required - implemented by 14
+    /*
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr static_string_adapter& replace (IndexLike auto pos, size_type count, const std::string& str, IndexLike auto pos2, size_type count2 = npos) {
         return replace<custom_bc_strategy>(pos, count, std::string_view {str}, pos2, count2);
     }
+    */
 
     // 4
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
@@ -713,15 +746,23 @@ public:
     // 13
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr static_string_adapter& replace (const_iterator first, const_iterator last, const StringViewLike auto& sv) {
-        std::string_view t {sv};
-        return replace<custom_bc_strategy>(first, last, t.cbegin( ), t.cend( ));
+        if ( HasBeginEnd<decltype(sv)> ) {
+            return replace<custom_bc_strategy>(first, last, sv.begin( ), sv.end( ));
+        } else {
+            std::string_view t {sv};
+            return replace<custom_bc_strategy>(first, last, t.cbegin( ), t.cend( ));
+        }
     }
 
     // 14
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr static_string_adapter& replace (IndexLike auto pos, size_type count, const StringViewLike auto& sv, IndexLike auto pos2, size_type count2 = npos) {
-        std::string_view t {sv};
-        return replace<custom_bc_strategy>(pos, count, t.substr(pos2, count2));
+        if ( HasSubstr<decltype(sv)> ) {
+            return replace<custom_bc_strategy>(pos, count, sv.substr(pos2, count2));
+        } else {
+            std::string_view t {sv};
+            return replace<custom_bc_strategy>(pos, count, t.substr(pos2, count2));
+        }
     }
 
     ///@}
@@ -1034,66 +1075,86 @@ public:
     ///@{
 
     // https://en.cppreference.com/w/cpp/string/basic_string/compare.html
-    // 1
+    // 1: not required -- implemented by 7
+    /*
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr int compare (const std::string& str) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
         return compare<custom_bc_strategy>(str.cbegin( ), str.cend( ));
     }
+    */
 
-    // 2
+    // 2 : not required -- implemended by 8
+    /*
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr int compare (IndexLike auto pos1, size_type count1, const std::string& str) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
         std::string_view sv {str};
         return compare<custom_bc_strategy>(pos1, count1, sv);
     }
+    */
 
-    // 3
+    // 3: not required -- implemented by 9
+    /*
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr int compare (IndexLike auto pos1, size_type count1, const std::string& str, IndexLike auto pos2, size_type count2 = npos) const
         noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
         std::string_view sv {str};
         return compare<custom_bc_strategy>(pos1, count1, sv, pos2, count2);
     }
+    */
 
     // 4
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr int compare (const char_type* cstr) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        std::string_view sv {cstr};
+        const std::string_view sv {cstr};
         return compare<custom_bc_strategy>(sv);
     }
 
     // 5
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr int compare (IndexLike auto pos1, size_type count1, const char_type* s) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        std::string_view sv {s};
+        const std::string_view sv {s};
         return compare<custom_bc_strategy>(pos1, count1, sv);
     }
 
     // 6
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr int compare (IndexLike auto pos1, size_type count1, const char_type* s, size_type count2) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        std::string_view sv {s, count2};
+        const std::string_view sv {s, count2};
         return compare<custom_bc_strategy>(pos1, count1, sv);
     }
 
     // 7
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr int compare (const StringViewLike auto& t) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        std::string_view sv {t};
-        return compare<custom_bc_strategy>(sv.cbegin( ), sv.cend( ));
+        if ( HasBeginEnd<decltype(t)> ) {
+            return compare<custom_bc_strategy>(t.begin( ), t.end( ));
+        } else {
+            const std::string_view sv {t};
+            return compare<custom_bc_strategy>(sv.cbegin( ), sv.cend( ));
+        }
     }
 
+    // 8
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr int compare (IndexLike auto pos1, size_type count1, const StringViewLike auto& t) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        std::string_view sv {t};
-        return compare<custom_bc_strategy>(pos1, count1, sv.cbegin( ), sv.cend( ));
+        if ( HasBeginEnd<decltype(t)> ) {
+            return compare<custom_bc_strategy>(pos1, count1, t.begin( ), t.end( ));
+        } else {
+            const std::string_view sv {t};
+            return compare<custom_bc_strategy>(pos1, count1, sv.cbegin( ), sv.cend( ));
+        }
     }
 
+    // 9
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr int compare (IndexLike auto pos1, size_type count1, const StringViewLike auto& t, IndexLike auto pos2, size_type count2 = npos) const
         noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        std::string_view sv {t};
-        return compare<custom_bc_strategy>(pos1, count1, sv.substr(pos2, count2));
+        if constexpr ( HasSubstr<decltype(t)> ) {
+            return compare<custom_bc_strategy>(pos1, count1, t.substr(pos2, count2));
+        } else {
+            const std::string_view sv {t};
+            return compare<custom_bc_strategy>(pos1, count1, sv.substr(pos2, count2));
+        }
     }
 
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
@@ -1153,17 +1214,17 @@ public:
     // https://en.cppreference.com/w/cpp/string/basic_string/ends_with.html
     // 1
     constexpr bool ends_with (const StringViewLike auto& sv) const noexcept {
-        return view( ).starts_with(sv);
+        return view( ).ends_with(sv);
     }
 
     // 2
     constexpr bool ends_with (char_type ch) const noexcept {
-        return view( ).starts_with(ch);
+        return view( ).ends_with(ch);
     }
 
     // 3
     constexpr bool ends_with (const char_type* cstr) const {
-        return view( ).starts_with(cstr);
+        return view( ).ends_with(cstr);
     }
 
     // https://en.cppreference.com/w/cpp/string/basic_string/contains.html
@@ -1240,7 +1301,7 @@ public:
         return std::string {view( )};
     }
 
-    constexpr void reserve ( ) noexcept {
+    constexpr void reserve (size_t) noexcept {
         // for compatibility only, do nothing since static_string don't reallocate memory
         return;
     }
@@ -1631,6 +1692,10 @@ public:
         this->assign(cstr);
     }
 
+    static_string (const static_string& other) : static_string( ) {
+        this->assign(other);
+    }
+
     static_string& operator= (const StringViewLike auto& sv) {
         this->assign(sv);
         return *this;
@@ -1642,7 +1707,7 @@ public:
     }
 
     static_string& operator= (const static_string& str) {
-        this->assign(str.view( ));
+        this->assign(str);
         return *this;
     }
 

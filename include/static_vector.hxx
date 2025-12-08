@@ -51,14 +51,6 @@ constexpr void count_fit_capacity_check (size_t count, size_t capacity) {
             throw std::out_of_range("count exceeds capacity");
 }
 
-template<typename T>
-concept IsVector = requires(T vec) {
-                       vec.begin( );
-                       vec.end( );
-                       vec.push_back( );
-                       vec.at(size_t { });
-                   };
-
 /**
  * @class static_vector_adapter
  * @brief Adapter for `std::array` and c-array that provides `std::vector`-like interface.
