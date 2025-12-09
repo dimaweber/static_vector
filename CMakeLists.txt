@@ -70,7 +70,7 @@ endif ()
 
 if (FMT_SUPPORT)
     add_compile_definitions(FMT_SUPPORT=1)
-    find_package(fmt 11.2 REQUIRED)
+    find_package(fmt 11.2 QUIET)
     if (NOT fmt_FOUND)
         FetchContent_Declare(
                 fmt
