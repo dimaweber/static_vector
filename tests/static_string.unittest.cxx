@@ -1562,4 +1562,96 @@ TEST (StaticStringTest, SwapChaining) {
     EXPECT_EQ(str3.view( ), "B");
 }
 
+#if FMT_SUPPORT
+TEST (StaticStringTest, FormatAssign) {
+    static_string<50> str;
+
+    str.formatAssign("Hello, {}!", "World");
+    EXPECT_EQ(str.view( ), "Hello, World!");
+    EXPECT_EQ(str.size( ), 13);
+
+    str.formatAssign("Number: {}", 42);
+    EXPECT_EQ(str.view( ), "Number: 42");
+    EXPECT_EQ(str.size( ), 10);
+
+    str.formatAssign("{} + {} = {}", 2, 3, 5);
+    EXPECT_EQ(str.view( ), "2 + 3 = 5");
+    EXPECT_EQ(str.size( ), 9);
+}
+
+TEST (StaticStringTest, FormatAppend) {
+    static_string<50> str;
+    str.assign("Start");
+
+    str.formatAppend(" {}", "middle");
+    EXPECT_EQ(str.view( ), "Start middle");
+    EXPECT_EQ(str.size( ), 12);
+
+    str.formatAppend(" {}", "end");
+    EXPECT_EQ(str.view( ), "Start middle end");
+    EXPECT_EQ(str.size( ), 16);
+}
+
+TEST (StaticStringTest, FormatAppendChaining) {
+    static_string<100> str;
+
+    str.formatAssign("Value: {}", 1).formatAppend(", {}", 2).formatAppend(", {}", 3);
+
+    EXPECT_EQ(str.view( ), "Value: 1, 2, 3");
+    EXPECT_EQ(str.size( ), 14);
+}
+
+TEST (StaticStringTest, FormatWithVariousTypes) {
+    static_string<100> str;
+
+    str.formatAssign("int: {}, double: {:.2f}, string: {}, char: {}", 42, 3.14159, "test", 'X');
+    EXPECT_EQ(str.view( ), "int: 42, double: 3.14, string: test, char: X");
+}
+
+TEST (StaticStringAdapterTest, FormatAssign) {
+    char buffer[50] = {};
+    static_string_adapter<> adapter(buffer, sizeof(buffer));
+
+    adapter.formatAssign("Hello, {}!", "World");
+    EXPECT_EQ(adapter.view( ), "Hello, World!");
+    EXPECT_EQ(adapter.size( ), 13);
+
+    adapter.formatAssign("Number: {}", 42);
+    EXPECT_EQ(adapter.view( ), "Number: 42");
+    EXPECT_EQ(adapter.size( ), 10);
+}
+
+TEST (StaticStringAdapterTest, FormatAppend) {
+    char buffer[50] = {};
+    static_string_adapter<> adapter(buffer, sizeof(buffer));
+    adapter.assign("Start");
+
+    adapter.formatAppend(" {}", "middle");
+    EXPECT_EQ(adapter.view( ), "Start middle");
+    EXPECT_EQ(adapter.size( ), 12);
+
+    adapter.formatAppend(" {}", "end");
+    EXPECT_EQ(adapter.view( ), "Start middle end");
+    EXPECT_EQ(adapter.size( ), 16);
+}
+
+TEST (StaticStringAdapterTest, FormatAppendChaining) {
+    char buffer[100] = {};
+    static_string_adapter<> adapter(buffer, sizeof(buffer));
+
+    adapter.formatAssign("Value: {}", 1).formatAppend(", {}", 2).formatAppend(", {}", 3);
+
+    EXPECT_EQ(adapter.view( ), "Value: 1, 2, 3");
+    EXPECT_EQ(adapter.size( ), 14);
+}
+
+TEST (StaticStringAdapterTest, FormatWithArrayBuffer) {
+    std::array<char, 50> buffer = {};
+    static_string_adapter<> adapter(buffer);
+
+    adapter.formatAssign("Adapter with array: {}", 123);
+    EXPECT_EQ(adapter.view( ), "Adapter with array: 123");
+}
+#endif
+
 }  // namespace wbr

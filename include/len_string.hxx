@@ -528,6 +528,39 @@ public:
 
     ///@}
 
+#if FMT_SUPPORT
+    ///@name format operations
+    ///@{
+
+    /**
+     * @brief Appends formatted string using fmt library.
+     *
+     * @tparam T Parameter pack types for format arguments
+     * @param fmt Format string
+     * @param args Arguments to format
+     * @return Reference to this object for chaining
+     */
+    template<typename... T>
+    constexpr len_string_adapter& formatAppend (fmt::format_string<T...> fmt, T&&... args) {
+        return append(fmt::format(fmt, std::forward<T>(args)...));
+    }
+
+    /**
+     * @brief Assigns formatted string using fmt library (clears then appends).
+     *
+     * @tparam T Parameter pack types for format arguments
+     * @param fmt Format string
+     * @param args Arguments to format
+     * @return Reference to this object for chaining
+     */
+    template<typename... T>
+    constexpr len_string_adapter& formatAssign (fmt::format_string<T...> fmt, T&&... args) {
+        return assign(fmt::format(fmt, std::forward<T>(args)...));
+    }
+
+    ///@}
+#endif
+
 private:
     pointer         buffer_;    ///< Pointer to the character buffer
     const size_type capacity_;  ///< Maximum capacity of the buffer

@@ -1665,12 +1665,17 @@ public:
         }
     }
 
-    /*
+#if FMT_SUPPORT
     template<typename... T>
-    constexpr skl::string& formatAppend (fmt::format_string<T...> fmt, T&&... args)
+    constexpr static_string_adapter& formatAppend (fmt::format_string<T...> fmt, T&&... args) {
+        return append(fmt::format(fmt, std::forward<T>(args)...));
+    }
+
     template<typename... T>
-    constexpr skl::string& formatAssign (fmt::format_string<T...> fmt, T&&... args)
-    */
+    constexpr static_string_adapter& formatAssign (fmt::format_string<T...> fmt, T&&... args) {
+        return assign(fmt::format(fmt, std::forward<T>(args)...));
+    }
+#endif
 
 private:
     const pointer   head_ {nullptr};  ///< Pointer to the beginning of the string

@@ -338,4 +338,85 @@ TEST (LenStringAdapterTest, ModifyingExternalLength) {
     EXPECT_EQ(adapter.view( ), "Hello");
 }
 
+#if FMT_SUPPORT
+TEST (LenStringAdapterTest, FormatAssign) {
+    char    buffer[50] = {};
+    uint8_t len        = 0;
+    wbr::len_string_adapter<uint8_t> adapter(buffer, sizeof(buffer), len);
+
+    adapter.formatAssign("Hello, {}!", "World");
+    EXPECT_EQ(adapter.view( ), "Hello, World!");
+    EXPECT_EQ(adapter.size( ), 13);
+    EXPECT_EQ(len, 13);
+
+    adapter.formatAssign("Number: {}", 42);
+    EXPECT_EQ(adapter.view( ), "Number: 42");
+    EXPECT_EQ(adapter.size( ), 10);
+    EXPECT_EQ(len, 10);
+
+    adapter.formatAssign("{} + {} = {}", 2, 3, 5);
+    EXPECT_EQ(adapter.view( ), "2 + 3 = 5");
+    EXPECT_EQ(adapter.size( ), 9);
+    EXPECT_EQ(len, 9);
+}
+
+TEST (LenStringAdapterTest, FormatAppend) {
+    char    buffer[50] = {};
+    uint8_t len        = 0;
+    wbr::len_string_adapter<uint8_t> adapter(buffer, sizeof(buffer), len);
+    adapter.assign("Start");
+    EXPECT_EQ(len, 5);
+
+    adapter.formatAppend(" {}", "middle");
+    EXPECT_EQ(adapter.view( ), "Start middle");
+    EXPECT_EQ(adapter.size( ), 12);
+    EXPECT_EQ(len, 12);
+
+    adapter.formatAppend(" {}", "end");
+    EXPECT_EQ(adapter.view( ), "Start middle end");
+    EXPECT_EQ(adapter.size( ), 16);
+    EXPECT_EQ(len, 16);
+}
+
+TEST (LenStringAdapterTest, FormatAppendChaining) {
+    char     buffer[100] = {};
+    uint16_t len         = 0;
+    wbr::len_string_adapter<uint16_t> adapter(buffer, sizeof(buffer), len);
+
+    adapter.formatAssign("Value: {}", 1).formatAppend(", {}", 2).formatAppend(", {}", 3);
+
+    EXPECT_EQ(adapter.view( ), "Value: 1, 2, 3");
+    EXPECT_EQ(adapter.size( ), 14);
+    EXPECT_EQ(len, 14);
+}
+
+TEST (LenStringAdapterTest, FormatWithVariousTypes) {
+    char    buffer[100] = {};
+    uint8_t len         = 0;
+    wbr::len_string_adapter<uint8_t> adapter(buffer, sizeof(buffer), len);
+
+    adapter.formatAssign("int: {}, double: {:.2f}, string: {}, char: {}", 42, 3.14159, "test", 'X');
+    EXPECT_EQ(adapter.view( ), "int: 42, double: 3.14, string: test, char: X");
+    EXPECT_EQ(static_cast<int>(len), 44);  // Actual length of the formatted string
+}
+
+TEST (LenStringAdapterTest, FormatWithProtocolStructure) {
+    struct Message {
+        uint64_t sender_id;
+        char     text[64];
+        uint8_t  text_len;
+    } msg = {12345, {}, 0};
+
+    wbr::len_string_adapter<uint8_t> adapter(msg.text, sizeof(msg.text), msg.text_len);
+
+    adapter.formatAssign("User {}: {}", msg.sender_id, "Hello");
+    EXPECT_EQ(adapter.view( ), "User 12345: Hello");
+    EXPECT_EQ(static_cast<int>(msg.text_len), 17);
+
+    adapter.formatAppend(" at {}", "10:30");
+    EXPECT_EQ(adapter.view( ), "User 12345: Hello at 10:30");
+    EXPECT_EQ(static_cast<int>(msg.text_len), 26);  // Actual length after append
+}
+#endif
+
 }  // namespace wbr
