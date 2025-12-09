@@ -1,3 +1,7 @@
+### 0.6.2
+
+-- add fmt and std::format support for static_string
+
 ### 0.6.1
 
 - add pretty-printers for static_vector and static_string
