@@ -25,14 +25,22 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         build_type: [ Release, Debug ]
-        c_compiler: [ gcc, clang ]
         include:
-          - os: ubuntu-latest
-            c_compiler: gcc
-            cpp_compiler: g++
-          - os: ubuntu-latest
-            c_compiler: clang
-            cpp_compiler: clang++
+          # GCC versions
+          - c_compiler: gcc-12
+            cpp_compiler: g++-12
+          - c_compiler: gcc-13
+            cpp_compiler: g++-13
+          - c_compiler: gcc-14
+            cpp_compiler: g++-14
+          # Clang versions
+          - c_compiler: clang-18
+            cpp_compiler: clang++-18
+          - c_compiler: clang-19
+            cpp_compiler: clang++-19
+          - c_compiler: clang-20
+            cpp_compiler: clang++-20
+
 
     steps:
       - uses: actions/checkout@v4
@@ -44,10 +52,25 @@ jobs:
         run: |
           echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-      #- name: Install dependencies
-      #  run: |
-      #    sudo apt-get update
-      #    sudo apt-get install -y libfmt-dev libgtest-dev
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfmt-dev libgtest-dev
+
+      - name: Install compiler
+        run: |
+          sudo apt-get update
+          if [[ "${{ matrix.c_compiler }}" == gcc-* ]]; then
+            sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+            sudo apt-get update
+            sudo apt-get install -y ${{ matrix.c_compiler }} ${{ matrix.cpp_compiler }}
+          elif [[ "${{ matrix.c_compiler }}" == clang-* ]]; then
+            wget https://apt.llvm.org/llvm.sh
+            chmod +x llvm.sh
+            VERSION=$(echo "${{ matrix.c_compiler }}" | sed 's/clang-//')
+            sudo ./llvm.sh $VERSION
+            sudo apt-get install -y libc++-$VERSION-dev libc++abi-$VERSION-dev
+          fi
 
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
