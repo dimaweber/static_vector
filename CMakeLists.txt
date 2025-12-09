@@ -70,7 +70,7 @@ endif ()
 
 if (FMT_SUPPORT)
     add_compile_definitions(FMT_SUPPORT=1)
-    find_package(fmt 11.2 QUIET)
+    find_package(fmt 11.2)
     if (NOT fmt_FOUND)
         FetchContent_Declare(
                 fmt
@@ -102,7 +102,7 @@ target_include_directories(
 
 if (BUILD_TESTS)
     enable_testing()
-    find_package(GTest REQUIRED)
+    find_package(GTest)
     if (NOT GTest_FOUND)
         FetchContent_Declare(
                 googletest
