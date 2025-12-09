@@ -1,3 +1,7 @@
+### 0.6.1
+
+- add pretty-printers for static_vector and static_string
+
 ### 0.6.0
 
 - add more string manipulations functions in external header

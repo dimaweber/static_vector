@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(
         static_vector
-        VERSION 0.5.0
+        VERSION 0.6.1
         DESCRIPTION "stack-allocated vector with standard api")
 
 include(GNUInstallDirs)
