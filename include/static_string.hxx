@@ -10,6 +10,7 @@
 
 #include "bound_check.hxx"
 #include "concepts.hxx"
+#include "platform.hxx"
 
 #if FMT_SUPPORT
     #include <fmt/format.h>

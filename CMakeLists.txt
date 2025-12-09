@@ -54,6 +54,7 @@ set(HEADERS
         include/system_handler.hxx
         include/text_file_reader.hxx
         include/tlv_vector.hxx
+        include/platform.hxx
 )
 
 
