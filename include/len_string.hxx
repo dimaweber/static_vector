@@ -27,7 +27,7 @@
 
 namespace wbr {
 // Forward declaration for fmt formatter specialization
-template<typename LenType, BoundCheckStrategy bc_strategy>
+template<std::unsigned_integral LenType, BoundCheckStrategy bc_strategy>
 class len_string_adapter;
 }  // namespace wbr
 
@@ -83,7 +83,7 @@ namespace wbr {
  * // msg.len is now 13, message contains "Hello, World!"
  * @endcode
  */
-template<typename LenType = std::size_t, BoundCheckStrategy bc_strategy = BoundCheckStrategy::NoCheck>
+template<std::unsigned_integral LenType = std::size_t, BoundCheckStrategy bc_strategy = BoundCheckStrategy::NoCheck>
 class len_string_adapter {
 public:
     /// @name nested types
@@ -614,3 +614,12 @@ private:
     len_type&       length_;    ///< Reference to external length variable
 };
 }  // namespace wbr
+#if IOSTREAM_SUPPORT
+    #include <iostream>
+
+template<std::unsigned_integral SZ, BoundCheckStrategy bc>
+std::ostream& operator<< (std::ostream& str, const wbr::len_string_adapter<SZ, bc>& s) {
+    str << s.view( );
+    return str;
+}
+#endif

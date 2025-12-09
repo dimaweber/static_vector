@@ -75,6 +75,13 @@ else ()
     add_compile_definitions(STD_FORMAT_SUPPORT=0)
 endif ()
 
+option(IOSTREAM_SUPPORT "support for iostream" ON)
+if (IOSTREAM_SUPPORT)
+    add_compile_definitions(IOSTREAM_SUPPORT=1)
+else ()
+    add_compile_definitions(IOSTREAM_SUPPORT=0)
+endif ()
+
 add_library(${TARGET_LIB} INTERFACE ${HEADERS})
 target_include_directories(
         ${TARGET_LIB} INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -118,7 +125,7 @@ if (BUILD_EXAMPLES)
             examples/sv_demo.cpp examples/standard-algorithm-functions.cpp
             examples/tlv_array_base_usage.cpp
             examples/coroutine.cpp
-            examples/static_string.cpp)
+            examples/string_demo.cpp)
     target_link_libraries(${TARGET_DM} PRIVATE ${TARGET_LIB})
     if (fmt_FOUND)
         add_compile_definitions(USE_FMT=1)

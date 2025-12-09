@@ -1609,7 +1609,7 @@ TEST (StaticStringTest, FormatWithVariousTypes) {
 }
 
 TEST (StaticStringAdapterTest, FormatAssign) {
-    char buffer[50] = {};
+    char                    buffer[50] = { };
     static_string_adapter<> adapter(buffer, sizeof(buffer));
 
     adapter.formatAssign("Hello, {}!", "World");
@@ -1622,7 +1622,7 @@ TEST (StaticStringAdapterTest, FormatAssign) {
 }
 
 TEST (StaticStringAdapterTest, FormatAppend) {
-    char buffer[50] = {};
+    char                    buffer[50] = { };
     static_string_adapter<> adapter(buffer, sizeof(buffer));
     adapter.assign("Start");
 
@@ -1636,7 +1636,7 @@ TEST (StaticStringAdapterTest, FormatAppend) {
 }
 
 TEST (StaticStringAdapterTest, FormatAppendChaining) {
-    char buffer[100] = {};
+    char                    buffer[100] = { };
     static_string_adapter<> adapter(buffer, sizeof(buffer));
 
     adapter.formatAssign("Value: {}", 1).formatAppend(", {}", 2).formatAppend(", {}", 3);
@@ -1646,7 +1646,7 @@ TEST (StaticStringAdapterTest, FormatAppendChaining) {
 }
 
 TEST (StaticStringAdapterTest, FormatWithArrayBuffer) {
-    std::array<char, 50> buffer = {};
+    std::array<char, 50>    buffer = { };
     static_string_adapter<> adapter(buffer);
 
     adapter.formatAssign("Adapter with array: {}", 123);

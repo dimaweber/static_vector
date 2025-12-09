@@ -1785,6 +1785,18 @@ public:
     static_string (const static_string& other) : static_string( ) {
         this->assign(other);
     }
+#if FMT_SUPPORT
+    template<typename... Arg>
+    static_string(fmt::format_string<Arg...> fmt, Arg&&... args) : static_string( ) {
+        this->formatAssign(fmt, std::forward<Arg>(args)...);
+    }
+#endif
+#if STD_FORMAT_SUPPORT
+    template<typename... Arg>
+    static_string(std::format_string<Arg...> fmt, Arg&&... args) : static_string( ) {
+        this->formatAssign(fmt, std::forward<Arg>(args)...);
+    }
+#endif
 
     static_string& operator= (const StringViewLike auto& sv) {
         this->assign(sv);
@@ -1803,3 +1815,19 @@ public:
 };
 
 }  // namespace wbr
+
+#if IOSTREAM_SUPPORT
+    #include <iostream>
+
+template<BoundCheckStrategy bc>
+std::ostream& operator<< (std::ostream& str, const wbr::static_string_adapter<bc>& s) {
+    str << s.view( );
+    return str;
+}
+
+template<size_t SZ, BoundCheckStrategy bc>
+std::ostream& operator<< (std::ostream& str, const wbr::static_string<SZ, bc>& s) {
+    str << s.view( );
+    return str;
+}
+#endif
