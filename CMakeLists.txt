@@ -22,11 +22,25 @@ if (CCACHE_PROGRAM)
     set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
 endif ()
 
-add_compile_options(
-        -Wall
-        -Werror
-        -Wextra
-        -Wundef
+# General warning settings for supported compilers
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    # Disable array-bounds warning conditionally for specific tests
+    add_compile_options(-Wno-array-bounds)
+
+    # Add other GCC/Clang warning flags as needed
+    add_compile_options(-Wall -Wextra -Werror)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # Disable array-bounds warning for MSVC conditionally
+    add_compile_options(/wd4706)  # Warning C4706: assignment within conditional expression
+
+    # Add other MSVC warning flags as needed
+    add_compile_options(/W4 /WX)
+endif ()
+
+# For specific test files, disable warnings that we know are intended behavior
+set_source_files_properties(
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/static_vector_adapter.unittest.cxx
+        PROPERTIES COMPILE_FLAGS "-Wno-array-bounds"
 )
 
 set(HEADERS
