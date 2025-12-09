@@ -12,6 +12,35 @@
 #include "bound_check.hxx"
 #include "concepts.hxx"
 
+#if FMT_SUPPORT
+    #include <fmt/format.h>
+    #if __has_include(<fmt/ranges.h>)
+        #include <fmt/ranges.h>
+        #ifndef WBR_FMT_RANGES_INCLUDED
+            #define WBR_FMT_RANGES_INCLUDED
+        #endif
+    #endif
+#endif
+
+namespace wbr {
+// Forward declaration for fmt formatter specialization
+template<typename LenType, BoundCheckStrategy bc_strategy>
+class len_string_adapter;
+}  // namespace wbr
+
+#if FMT_SUPPORT
+
+FMT_BEGIN_NAMESPACE
+
+// Mark len_string_adapter as string-like for fmt
+template<typename LenType, BoundCheckStrategy bc>
+struct range_format_kind<wbr::len_string_adapter<LenType, bc>, char, void> {
+    static constexpr auto value = range_format::string;
+};
+
+FMT_END_NAMESPACE
+#endif
+
 namespace wbr {
 /**
  * @class len_string_adapter

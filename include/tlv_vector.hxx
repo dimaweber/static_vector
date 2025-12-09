@@ -38,8 +38,6 @@ public:
         std::byte v[1];
     };
 
-    struct sentinel_t { };
-
     template<typename REC>
         requires std::is_same_v<typename std::remove_const<REC>::type, tlv_record>
     class tlv_iterator {
@@ -73,7 +71,7 @@ public:
             return ptr_ <=> o.ptr_;
         }
 
-        [[nodiscard]] bool operator== (sentinel_t) const noexcept {
+        [[nodiscard]] bool operator== (std::default_sentinel_t) const noexcept {
             return ptr_->type( ) == 0 && ptr_->length( ) == 0;
         }
 
@@ -107,16 +105,16 @@ public:
         return cbegin( );
     }
 
-    [[nodiscard]] sentinel_t end ( ) noexcept {
-        return sentinel_t { };
+    [[nodiscard]] auto& end ( ) noexcept {
+        return std::default_sentinel;
     }
 
-    [[nodiscard]] sentinel_t end ( ) const noexcept {
-        return sentinel_t { };
+    [[nodiscard]] auto& end ( ) const noexcept {
+        return std::default_sentinel;
     }
 
-    [[nodiscard]] sentinel_t cend ( ) const noexcept {
-        return sentinel_t { };
+    [[nodiscard]] auto& cend ( ) const noexcept {
+        return std::default_sentinel;
     }
 
 private:

@@ -59,9 +59,16 @@ else ()
     add_compile_definitions(BUILD_TESTS=0)
 endif ()
 
-add_library(${TARGET_LIB} INTERFACE include/bound_check.hxx
-        include/len_string.hxx
-        include/concepts.hxx)
+
+option(FMT_SUPPORT "support for fmt lib" ON)
+if (FMT_SUPPORT)
+    add_compile_definitions(FMT_SUPPORT=1)
+    find_package(fmt REQUIRED)
+else ()
+    add_compile_definitions(FMT_SUPPORT=0)
+endif ()
+
+add_library(${TARGET_LIB} INTERFACE ${HEADERS})
 target_include_directories(
         ${TARGET_LIB} INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>)

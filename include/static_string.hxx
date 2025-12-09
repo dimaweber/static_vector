@@ -10,11 +10,46 @@
 
 #include "bound_check.hxx"
 #include "concepts.hxx"
-#include "string_manipulations.hxx"
 
+#if FMT_SUPPORT
+    #include <fmt/format.h>
+    #if __has_include(<fmt/ranges.h>)
+        #include <fmt/ranges.h>
+        #define WBR_FMT_RANGES_INCLUDED
+    #endif
+#endif
 #if BUILD_TESTS
     #include <gtest/gtest.h>
 #endif
+
+namespace wbr {
+// Forward declarations for fmt formatter specializations
+template<BoundCheckStrategy bc_strategy>
+class static_string_adapter;
+
+template<std::size_t SZ, BoundCheckStrategy bc_strategy>
+class static_string;
+}  // namespace wbr
+
+#if FMT_SUPPORT
+
+FMT_BEGIN_NAMESPACE
+
+// Mark these types as string-like for fmt - fmt will automatically provide the formatter
+template<BoundCheckStrategy bc>
+struct range_format_kind<wbr::static_string_adapter<bc>, char, void> {
+    static constexpr auto value = range_format::string;
+};
+
+template<std::size_t SZ, BoundCheckStrategy bc>
+struct range_format_kind<wbr::static_string<SZ, bc>, char, void> {
+    static constexpr auto value = range_format::string;
+};
+
+FMT_END_NAMESPACE
+#endif
+
+#include "string_manipulations.hxx"
 
 namespace wbr {
 

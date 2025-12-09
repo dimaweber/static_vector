@@ -18,26 +18,29 @@ concept HasBeginEnd = requires(T t) {
                           t.end( );
                       };
 
+template<typename T>
+concept HasSize = requires(T t) {
+                      t.size( );
+                      t.empty( );
+                  };
+
 /** @brief Concept for containers with begin/end */
 template<template<class> class V, class S>
 concept ContainerLike = HasBeginEnd<V<S>>;
 
 template<typename T>
-concept IsVector = requires(T vec) {
-                       vec.begin( );
-                       vec.end( );
-                       vec.push_back( );
-                       vec.at(size_t { });
-                   };
+concept IsVector = HasBeginEnd<T> and requires(T vec) {
+                                          vec.push_back( );
+                                          vec.at(size_t { });
+                                      };
 
 namespace str {
 template<class S>
-concept StringType = requires(S s) {
-                         s.find_first_of(' ', 0);
-                         s.size( );
-                         s.data( );
-                         s.empty( );
-                     };
+concept StringType = HasSize<S> and requires(S s) {
+                                        s.find_first_of(' ', 0);
+                                        s.data( );
+                                    };
+
 template<typename InputIt>
 concept InputStrIt = requires(InputIt i) {
                          i++;

@@ -6,8 +6,9 @@
 #pragma once
 
 #include <system_error>
-#if __has_include(<fmt/ranges.h>)
+#if __has_include(<fmt/ranges.h>) && !defined(WBR_FMT_RANGES_INCLUDED)
     #include <fmt/ranges.h>
+    #define WBR_FMT_RANGES_INCLUDED
 #endif
 
 #include <algorithm>
