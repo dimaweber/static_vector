@@ -18,6 +18,9 @@
         #define WBR_FMT_RANGES_INCLUDED
     #endif
 #endif
+#if STD_FORMAT_SUPPORT
+    #include <format>
+#endif
 #if BUILD_TESTS
     #include <gtest/gtest.h>
 #endif
@@ -47,6 +50,25 @@ struct range_format_kind<wbr::static_string<SZ, bc>, char, void> {
 };
 
 FMT_END_NAMESPACE
+#endif
+
+#if STD_FORMAT_SUPPORT
+// std::format formatters for static_string types
+template<BoundCheckStrategy bc>
+struct std::formatter<wbr::static_string_adapter<bc>, char> : std::formatter<std::string_view, char> {
+    template<typename FormatContext>
+    auto format (const wbr::static_string_adapter<bc>& str, FormatContext& ctx) const {
+        return std::formatter<std::string_view, char>::format(str.view( ), ctx);
+    }
+};
+
+template<std::size_t SZ, BoundCheckStrategy bc>
+struct std::formatter<wbr::static_string<SZ, bc>, char> : std::formatter<std::string_view, char> {
+    template<typename FormatContext>
+    auto format (const wbr::static_string<SZ, bc>& str, FormatContext& ctx) const {
+        return std::formatter<std::string_view, char>::format(str.view( ), ctx);
+    }
+};
 #endif
 
 #include "string_manipulations.hxx"
@@ -1668,12 +1690,40 @@ public:
 #if FMT_SUPPORT
     template<typename... T>
     constexpr static_string_adapter& formatAppend (fmt::format_string<T...> fmt, T&&... args) {
-        return append(fmt::format(fmt, std::forward<T>(args)...));
+        // return append(fmt::format(fmt, std::forward<T>(args)...));
+        auto res = fmt::format_to_n(tail_, free_space( ), fmt, std::forward<decltype(args)>(args)...);
+        tail_    = res.out;
+        *tail_   = 0;
+        return *this;
     }
 
     template<typename... T>
     constexpr static_string_adapter& formatAssign (fmt::format_string<T...> fmt, T&&... args) {
-        return assign(fmt::format(fmt, std::forward<T>(args)...));
+        //        return assign(fmt::format(fmt, std::forward<T>(args)...));
+        auto res = fmt::format_to_n(head_, capacity( ), fmt, std::forward<decltype(args)>(args)...);
+        tail_    = res.out;
+        *tail_   = 0;
+        return *this;
+    }
+#endif
+
+#if STD_FORMAT_SUPPORT
+    template<typename... T>
+    constexpr static_string_adapter& formatAppend (std::format_string<T...> fmt, T&&... args) {
+        // return append(std::format(fmt, std::forward<T>(args)...));
+        auto res = std::format_to_n(tail_, free_space( ), fmt, std::forward<decltype(args)>(args)...);
+        tail_    = res.out;
+        *tail_   = 0;
+        return *this;
+    }
+
+    template<typename... T>
+    constexpr static_string_adapter& formatAssign (std::format_string<T...> fmt, T&&... args) {
+        // return assign(std::format(fmt, std::forward<T>(args)...));
+        auto res = std::format_to_n(head_, capacity( ), fmt, std::forward<decltype(args)>(args)...);
+        tail_    = res.out;
+        *tail_   = 0;
+        return *this;
     }
 #endif
 

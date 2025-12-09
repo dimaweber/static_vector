@@ -21,6 +21,9 @@
         #endif
     #endif
 #endif
+#if STD_FORMAT_SUPPORT
+    #include <format>
+#endif
 
 namespace wbr {
 // Forward declaration for fmt formatter specialization
@@ -39,6 +42,17 @@ struct range_format_kind<wbr::len_string_adapter<LenType, bc>, char, void> {
 };
 
 FMT_END_NAMESPACE
+#endif
+
+#if STD_FORMAT_SUPPORT
+// std::format formatter for len_string_adapter
+template<typename LenType, BoundCheckStrategy bc>
+struct std::formatter<wbr::len_string_adapter<LenType, bc>, char> : std::formatter<std::string_view, char> {
+    template<typename FormatContext>
+    auto format (const wbr::len_string_adapter<LenType, bc>& str, FormatContext& ctx) const {
+        return std::formatter<std::string_view, char>::format(str.view( ), ctx);
+    }
+};
 #endif
 
 namespace wbr {
@@ -556,6 +570,39 @@ public:
     template<typename... T>
     constexpr len_string_adapter& formatAssign (fmt::format_string<T...> fmt, T&&... args) {
         return assign(fmt::format(fmt, std::forward<T>(args)...));
+    }
+
+    ///@}
+#endif
+
+#if STD_FORMAT_SUPPORT
+    ///@name format operations (std::format)
+    ///@{
+
+    /**
+     * @brief Appends formatted string using std::format library.
+     *
+     * @tparam T Parameter pack types for format arguments
+     * @param fmt Format string
+     * @param args Arguments to format
+     * @return Reference to this object for chaining
+     */
+    template<typename... T>
+    constexpr len_string_adapter& formatAppend (std::format_string<T...> fmt, T&&... args) {
+        return append(std::format(fmt, std::forward<T>(args)...));
+    }
+
+    /**
+     * @brief Assigns formatted string using std::format library (clears then appends).
+     *
+     * @tparam T Parameter pack types for format arguments
+     * @param fmt Format string
+     * @param args Arguments to format
+     * @return Reference to this object for chaining
+     */
+    template<typename... T>
+    constexpr len_string_adapter& formatAssign (std::format_string<T...> fmt, T&&... args) {
+        return assign(std::format(fmt, std::forward<T>(args)...));
     }
 
     ///@}

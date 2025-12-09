@@ -68,6 +68,13 @@ else ()
     add_compile_definitions(FMT_SUPPORT=0)
 endif ()
 
+option(STD_FORMAT_SUPPORT "support for std::format (C++20)" OFF)
+if (STD_FORMAT_SUPPORT)
+    add_compile_definitions(STD_FORMAT_SUPPORT=1)
+else ()
+    add_compile_definitions(STD_FORMAT_SUPPORT=0)
+endif ()
+
 add_library(${TARGET_LIB} INTERFACE ${HEADERS})
 target_include_directories(
         ${TARGET_LIB} INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
