@@ -1,9 +1,4 @@
-#if USE_FMT
-    #include <fmt/format.h>
-#else
-    #include <format>
-    #define fmt std
-#endif
+#include <fmt/format.h>
 
 #include <numeric>
 

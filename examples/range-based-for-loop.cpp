@@ -1,15 +1,8 @@
-#if USE_FMT
-    #include <fmt/format.h>
-#else
-    #include <format>
-    #include <print>
-    #define fmt std
-#endif
+#include <fmt/format.h>
 
 #include "static_vector.hxx"
 
-void range_based_for_loop ( )
-{
+void range_based_for_loop ( ) {
     fmt::println("\n ---- range-based for loop usage example: --- ");
 
     wbr::static_vector<int, 10> vec {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};

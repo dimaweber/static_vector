@@ -153,12 +153,7 @@ if (BUILD_EXAMPLES)
             examples/coroutine.cpp
             examples/string_demo.cpp)
     target_link_libraries(${TARGET_DM} PRIVATE ${TARGET_LIB})
-    if (fmt_FOUND)
-        add_compile_definitions(USE_FMT=1)
-        target_link_libraries(${TARGET_DM} PRIVATE fmt::fmt)
-    else ()
-        add_compile_definitions(USE_FMT=0)
-    endif ()
+    target_link_libraries(${TARGET_DM} PRIVATE fmt::fmt)
 endif ()
 
 if (BUILD_DOCS)
