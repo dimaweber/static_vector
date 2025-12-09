@@ -5,6 +5,7 @@ project(
         DESCRIPTION "stack-allocated vector with standard api")
 
 include(GNUInstallDirs)
+include(FetchContent)
 
 set(TARGET_LIB static_vector)
 set(TARGET_DM sv_demo)
