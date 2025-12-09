@@ -692,7 +692,7 @@ TEST (StaticStringTest, IteratorOperations) {
 
     // Modify through iterator
     for ( auto& ch: str ) {
-        ch = std::tolower(ch);
+        ch = static_cast<char>(std::tolower(static_cast<int>(ch)));
     }
 
     EXPECT_EQ(str.view( ), "abcde");

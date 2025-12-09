@@ -122,7 +122,7 @@ TEST (StaticVector, At) {
     EXPECT_NO_THROW(EXPECT_EQ(st_vec.at(3), "81"));
     EXPECT_THROW(st_vec.at(4), std::out_of_range);
     EXPECT_THROW(st_vec.at(5), std::out_of_range);
-    EXPECT_THROW(st_vec.at(-1), std::out_of_range);
+    EXPECT_THROW(st_vec.at(static_cast<decltype(st_vec)::size_type>(-1)), std::out_of_range);
 
     EXPECT_NO_THROW(st_vec.at(0) += "44");
     EXPECT_EQ(st_vec.at(0), "344");
@@ -248,9 +248,9 @@ TEST (StaticVector, OperatorSqBraces) {
     EXPECT_NO_THROW(EXPECT_EQ(st_vec[1], "2"));
     EXPECT_NO_THROW(EXPECT_EQ(st_vec[2], "3"));
     EXPECT_NO_THROW(EXPECT_EQ(st_vec[3], "5"));
-    EXPECT_NO_THROW((void)st_vec[4]);
-    EXPECT_NO_THROW((void)st_vec[5]);
-    EXPECT_NO_THROW((void)st_vec[-1]);
+    EXPECT_NO_THROW(std::ignore = st_vec[4]);
+    EXPECT_NO_THROW(std::ignore = st_vec[5]);
+    EXPECT_NO_THROW(std::ignore = st_vec[static_cast<decltype(st_vec)::size_type>(-1)]);
 
     st_vec[0] = "-20";
     EXPECT_EQ(st_vec[0], "-20");
