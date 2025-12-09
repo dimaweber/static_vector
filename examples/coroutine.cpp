@@ -5,6 +5,11 @@
 #include <iostream>
 #include <type_traits>
 
+// C++23 standard generator support
+#if __has_include(<generator>)
+    #include <generator>
+#endif
+
 #include "string_manipulations.hxx"
 
 // Generic generator template
@@ -425,6 +430,90 @@ generator<std::string, std::string_view, std::string_view> tokenizeEscapedGeneri
     co_yield currentToken;
 }
 
+// ============================================================================
+// C++23 std::generator examples (if available)
+// ============================================================================
+
+#if defined(__cpp_lib_generator) && (__cpp_lib_generator >= 201907L)
+
+// Simple number generator using std::generator
+std::generator<int> generateNumbersStd (int start, int end) {
+    for ( int i = start; i <= end; ++i ) {
+        co_yield i;
+    }
+}
+
+// String tokenizer using std::generator
+// Note: std::generator<std::string_view> would be unsafe because views would dangle
+// We must use std::generator<std::string> to own the data
+std::generator<std::string> tokenizeEscapedStd (std::string_view input, std::string_view dividerChars = " ", char escapeChar = '\\') {
+    auto is_quote   = [] (char c) { return c == '\'' || c == '"'; };
+    auto is_divider = [dividerChars] (char c) { return dividerChars.find(c) != std::string_view::npos; };
+    auto is_escape  = [escapeChar] (char c) { return c == escapeChar; };
+
+    if ( is_divider(escapeChar) )
+        co_return;
+
+    enum class E_ParserState {
+        regular,
+        regularEscape,
+        quote,
+        quoteEscape,
+    };
+    E_ParserState curState {E_ParserState::regular};
+    char          quoteChar {'\0'};
+    std::string   currentToken;
+
+    for ( const char curChar: input ) {
+        switch ( curState ) {
+            case E_ParserState::regular:
+                if ( is_divider(curChar) ) {
+                    co_yield currentToken;
+                    currentToken.clear( );
+                } else if ( is_escape(curChar) ) {
+                    curState = E_ParserState::regularEscape;
+                } else if ( is_quote(curChar) ) {
+                    curState  = E_ParserState::quote;
+                    quoteChar = curChar;
+                } else
+                    currentToken.append(1, curChar);
+                break;
+
+            case E_ParserState::quote:
+                if ( is_escape(curChar) ) {
+                    curState = E_ParserState::quoteEscape;
+                } else if ( curChar == quoteChar ) {
+                    curState = E_ParserState::regular;
+                } else
+                    currentToken.append(1, curChar);
+                break;
+
+            case E_ParserState::regularEscape:
+                if ( is_divider(curChar) || is_escape(curChar) || is_quote(curChar) ) {
+                    currentToken.append(1, curChar);
+                    curState = E_ParserState::regular;
+                    break;
+                }
+                co_return;
+
+            case E_ParserState::quoteEscape:
+                if ( is_divider(curChar) || is_escape(curChar) || is_quote(curChar) ) {
+                    currentToken.append(1, curChar);
+                    curState = E_ParserState::quote;
+                    break;
+                }
+                co_return;
+        }
+    }
+
+    if ( curState != E_ParserState::regular )
+        co_return;
+
+    co_yield currentToken;
+}
+
+#endif  // HAS_STD_GENERATOR
+
 void tokenizer_coroutine_usage ( ) {
     fmt::print("\n=== Original token_generator ===\n");
     const auto gen = tokenizeEscapedCoroutine("The song \"Hotel California\" is famous one");
@@ -435,4 +524,18 @@ void tokenizer_coroutine_usage ( ) {
     const auto gen2 = tokenizeEscapedGeneric("Another example: 'Hello world' with escapes");
     for ( const wbr::StringViewLike auto token: gen2 )
         fmt::print("token: '{}'\n", token);
+
+#if defined(__cpp_lib_generator) && (__cpp_lib_generator >= 201907L)
+    fmt::print("\n=== C++23 std::generator<int> ===\n");
+    for ( int i: generateNumbersStd(100, 103) ) {
+        fmt::print("std::generator: {}\n", i);
+    }
+
+    fmt::print("\n=== C++23 std::generator<std::string> tokenizer ===\n");
+    for ( const std::string& token: tokenizeEscapedStd("C++23 'standard library' rocks!") ) {
+        fmt::print("token: '{}'\n", token);
+    }
+#else
+    fmt::print("\n[std::generator not available - requires C++23 with library support]\n");
+#endif
 }

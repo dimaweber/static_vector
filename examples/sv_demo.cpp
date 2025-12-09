@@ -6,6 +6,7 @@ void standard_algorithm_functions( );
 void tlv_base_usage( );
 void coroutine_usage( );
 void tokenizer_coroutine_usage( );
+void static_string_usage( );
 
 int main ( ) {
     base_usage( );
@@ -14,5 +15,6 @@ int main ( ) {
     tlv_base_usage( );
     coroutine_usage( );
     tokenizer_coroutine_usage( );
+    static_string_usage( );
     return EXIT_SUCCESS;
 }

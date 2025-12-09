@@ -1710,8 +1710,6 @@ public:
         this->assign(str);
         return *this;
     }
-
-private:
 };
 
 }  // namespace wbr
