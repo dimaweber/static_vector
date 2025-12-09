@@ -2,7 +2,6 @@
     #include <fmt/format.h>
 #else
     #include <format>
-    #include <print>
     #define fmt std
 #endif
 
@@ -10,8 +9,7 @@
 
 #include "static_vector.hxx"
 
-void base_usage ( )
-{
+void base_usage ( ) {
     fmt::println("\n ---- base usage example: --- ");
     wbr::static_vector<int, 20> vec(10);
     std::iota(vec.begin( ), vec.end( ), 0);

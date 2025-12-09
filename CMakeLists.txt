@@ -75,7 +75,6 @@ if (BUILD_EXAMPLES)
     set(FMT_SUPPORT ON)
 endif ()
 
-
 if (FMT_SUPPORT)
     add_compile_definitions(FMT_SUPPORT=1)
     find_package(fmt 11.2)
