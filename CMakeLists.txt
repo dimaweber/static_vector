@@ -22,6 +22,13 @@ if (CCACHE_PROGRAM)
     set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
 endif ()
 
+add_compile_options(
+        -Wall
+        -Werror
+        -Wextra
+        -Wundef
+)
+
 set(HEADERS
         include/bound_check.hxx
         include/concepts.hxx

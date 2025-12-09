@@ -8,7 +8,7 @@
 #include <iterator>
 #include <memory>
 #include <stdexcept>
-#if __cpp_lib_format >= 201907L
+#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L
     #include <format>
 #endif
 #include "bound_check.hxx"
@@ -281,7 +281,7 @@ public:
         }
         if constexpr ( custom_bc_strategy == Exception ) {
             if ( n > cap )
-#if __cpp_lib_format >= 201907L
+#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L
                 throw std::out_of_range {std::format("count {} exceeds capacity {}", n, cap)};
 #else
                 throw std::out_of_range {"count  exceeds capacity"};
@@ -375,7 +375,7 @@ public:
      */
     [[nodiscard]] constexpr const_reference at (size_type pos) const {
         if ( pos >= size( ) )
-#if __cpp_lib_format >= 201907L
+#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L
             throw std::out_of_range {std::format("static_vector::{}: pos (which is {}) >= this->size() (which is {})", __func__, pos, size( ))};
 #else
             throw std::out_of_range {"static_vector::range_check: pos >= this->size()"};
@@ -409,7 +409,7 @@ public:
      */
     [[nodiscard]] constexpr auto at (size_type pos) -> reference {
         if ( pos >= size( ) )
-#if __cpp_lib_format >= 201907L
+#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L
             throw std::out_of_range {std::format("static_vector::{}: pos (which is {}) >= this->size() (which is {})", __func__, pos, size( ))};
 #else
             throw std::out_of_range {"static_vector::range_check: pos >= this->size()"};
@@ -966,7 +966,7 @@ public:
     constexpr void pop_back ( ) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
         if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception )
             if ( empty( ) )
-                throw std::out_of_range("empty container");
+                throw std::underflow_error("empty container");
         if constexpr ( custom_bc_strategy == BoundCheckStrategy::Assert )
             assert(!empty( ));
         if constexpr ( custom_bc_strategy == BoundCheckStrategy::LimitToBound )
@@ -1163,7 +1163,7 @@ public:
                 pos = begin( );
         }
 
-        const auto offset = std::distance(cbegin( ), pos);
+        const auto offset = static_cast<size_type>(std::distance(cbegin( ), pos));
         if ( offset != elements_count_ )
             shift_elements_right(offset, 1);
 
@@ -1240,8 +1240,7 @@ public:
             count = std::min(count, free_space( ));
         }
 
-        const auto offset = std::distance(cbegin( ), pos);
-
+        const auto offset = static_cast<size_type>(std::distance(cbegin( ), pos));
         if ( offset != elements_count_ )
             shift_elements_right(offset, count);
         std::uninitialized_fill_n(begin( ) + offset, count, value);
@@ -1721,7 +1720,7 @@ template<class... Args>
 constexpr auto static_vector<T, SZ, bc_strategy>::emplace (const_iterator pos, Args&&... args) -> iterator {
     //    valid_iterator_check(pos);
 
-    const auto offset = std::distance(cbegin( ), pos);
+    const auto offset = static_cast<size_type>(std::distance(cbegin( ), pos));
 
     if ( offset != elementsCount )
         shift_elements_right(offset, 1);
@@ -1780,7 +1779,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_i
     // valid_iterator_check(pos);
     // valid_range_check(first, last);
 
-    const auto offset = std::distance(cbegin( ), pos);
+    const auto offset = static_cast<size_type>(std::distance(cbegin( ), pos));
     const auto length = std::distance(first, last);
 
     if ( offset != elementsCount )
@@ -1796,7 +1795,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_i
     // count_overflow_check(count);
     // valid_iterator_check(pos);
 
-    const auto offset = std::distance(cbegin( ), pos);
+    const auto offset = static_cast<size_type>(std::distance(cbegin( ), pos));
 
     if ( offset != elementsCount )
         shift_elements_right(offset, count);
@@ -1811,7 +1810,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_i
     // count_overflow_check(1);
     // valid_iterator_check(pos);
 
-    const auto offset = std::distance(cbegin( ), pos);
+    const auto offset = static_cast<size_t>(std::distance(cbegin( ), pos));
     if ( offset != elementsCount )
         shift_elements_right(offset, 1);
 
@@ -1825,7 +1824,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::insert (static_vector::const_i
     // count_overflow_check(1);
     // valid_iterator_check(pos);
 
-    const auto offset = std::distance(cbegin( ), pos);
+    const auto offset = static_cast<size_type>(std::distance(cbegin( ), pos));
     if ( offset != elementsCount )
         shift_elements_right(offset, 1);
 
@@ -2067,7 +2066,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::operator[] (size_t pos) noexce
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
 constexpr auto static_vector<T, SZ, bc_strategy>::at (static_vector::size_type pos) const -> static_vector::const_reference {
     if ( pos >= size( ) )
-#if __cpp_lib_format >= 201907L
+#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L
         throw std::out_of_range {std::format("static_vector::{}: pos (which is {}) >= this->size() (which is {})", __func__, pos, size( ))};
 #else
         throw std::out_of_range {"static_vector::range_check: pos >= this->size()"};
@@ -2078,7 +2077,7 @@ constexpr auto static_vector<T, SZ, bc_strategy>::at (static_vector::size_type p
 template<typename T, std::size_t SZ, BoundCheckStrategy bc_strategy>
 constexpr auto static_vector<T, SZ, bc_strategy>::at (static_vector::size_type pos) -> static_vector::reference {
     if ( pos >= size( ) )
-#if __cpp_lib_format >= 201907L
+#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L
         throw std::out_of_range {std::format("static_vector::{}: pos (which is {}) >= this->size() (which is {})", __func__, pos, size( ))};
 #else
         throw std::out_of_range {"static_vector::range_check: pos >= this->size()"};

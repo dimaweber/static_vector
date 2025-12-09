@@ -93,7 +93,7 @@ public:
     using const_pointer = const char_type*;  ///< Pointer to a const char_type (immutable)
     using size_type     = std::size_t;       ///< Type for representing sizes and indices
     using iterator      = char_type*;
-#if __cpp_lib_ranges_as_const > 202207L
+#if defined(__cpp_lib_ranges_as_const) and __cpp_lib_ranges_as_const > 202207L
     using const_iterator = std::const_iterator<iterator>;
 #else
     using const_iterator = const char_type*;
@@ -480,6 +480,12 @@ public:
     template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
     constexpr static_string_adapter& assign (std::input_iterator auto first, std::input_iterator auto last) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
         clear( );
+#if defined(__GNUC__) && __GNUC__ <= 13
+        // workaround for assigning empty string_view -- in this case first and last are nullptr and
+        // compilation fail because built-in mem functions require non-null pointers
+        if ( first == last )
+            return *this;
+#endif
         return append<custom_bc_strategy>(first, last);
     }
 
@@ -1771,7 +1777,7 @@ class static_string : public static_string_adapter<bc_strategy> {
     std::array<typename parent::char_type, SZ> data_;
 
 public:
-    static_string ( ) : parent {data_.data( ), SZ, 0} {
+    static_string ( ) : parent {initialize_data( ), SZ, 0} {
     }
 
     static_string (const StringViewLike auto& sv) : static_string( ) {
@@ -1811,6 +1817,12 @@ public:
     static_string& operator= (const static_string& str) {
         this->assign(str);
         return *this;
+    }
+
+private:
+    PointerLike auto initialize_data ( ) {
+        std::fill(data_.begin( ), data_.end( ), '\0');
+        return data_.data( );
     }
 };
 

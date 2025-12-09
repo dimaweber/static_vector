@@ -94,7 +94,7 @@ public:
     using size_type     = std::size_t;
     using len_type      = LenType;
     using iterator      = char_type*;
-#if __cpp_lib_ranges_as_const > 202207L
+#if defined(__cpp_lib_ranget_as_const) && __cpp_lib_ranges_as_const > 202207L
     using const_iterator = std::const_iterator<iterator>;
 #else
     using const_iterator = const char_type*;

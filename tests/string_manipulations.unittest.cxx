@@ -241,7 +241,7 @@ TEST_P (NumConversionTest, ConversionDouble) {
     auto                       ret = wbr::str::num<double>(rec.in);
     EXPECT_EQ(ret, rec._double);
 
-#if SK_STRING_NUM_DOUBLE_HAS_ERROR_CHECK
+#if WBR_STR_NUM_DOUBLE_HAS_ERROR_CHECK
     std::errc ec;
     ret = wbr::str::num<double>(rec.in, ec);
     EXPECT_EQ(ec == std::errc { }, rec._double_ok);

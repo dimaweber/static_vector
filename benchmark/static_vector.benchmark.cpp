@@ -373,7 +373,7 @@ void vector_create (benchmark::State& state) {
     for ( auto _: state ) {
         Vector vec(count);
         benchmark::DoNotOptimize(vec);
-        assert(vec.size( ) == count);
+        assert(count > 0 && vec.size( ) == static_cast<Vector::size_type>(count));
     }
 }
 

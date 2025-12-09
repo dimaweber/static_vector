@@ -34,6 +34,13 @@ concept IsVector = HasBeginEnd<T> and requires(T vec) {
                                           vec.at(size_t { });
                                       };
 
+template<typename Ptr>
+concept PointerLike = std::is_pointer_v<Ptr> || requires(Ptr p) {
+                                                    { *p };
+                                                    { static_cast<bool>(p) };
+                                                    { p->operator->( ) } -> std::convertible_to<Ptr>;
+                                                };
+
 namespace str {
 template<class S>
 concept StringType = HasSize<S> and requires(S s) {

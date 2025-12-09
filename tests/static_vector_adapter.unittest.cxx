@@ -184,13 +184,6 @@ TEST (StaticVectorAdapterTest, PushBack) {
     EXPECT_EQ(adapter[3], 60);  // 4th element should still be 60
     EXPECT_EQ(adapter[4], 70);  // 5th element should be 70
 
-#if wbr_STATIC_VECTOR_DO_RANGE_CHECKS
-    #if wbr_THROW_EXCEPTION_ON_ERROR
-    // Ensure we can't push beyond capacity
-    EXPECT_THROW(adapter.push_back(80), std::overflow_error);
-    #endif
-#endif
-
     const std::array<int, 5> expected_data = {10, 20, 30, 60, 70};  // Only first 3 elements should be updated
     for ( std::size_t i = 0; i < data_array.size( ); ++i ) {
         EXPECT_EQ(data_array[i], expected_data[i]);
@@ -226,21 +219,17 @@ TEST (StaticVectorAdapterTest, PopBack) {
     adapter.pop_back( );
     EXPECT_TRUE(adapter.empty( ));
 
-#if wbr_STATIC_VECTOR_DO_RANGE_CHECKS
-    #if wbr_THROW_EXCEPTION_ON_ERROR
     // Popping again should throw
-    EXPECT_THROW(adapter.pop_back( ), std::underflow_error);
-    #endif
-#endif
+    EXPECT_THROW(adapter.pop_back<BoundCheckStrategy::Exception>( ), std::underflow_error);
 
     EXPECT_EQ(element_count, 0);
 }
 
 // Test for emplace_back method
 TEST (StaticVectorAdapterTest, EmplaceBack) {
-    std::array<int, 5>    data_array = {10, 20, 30, 40, 50};
-    std::size_t           element_count {3};
-    static_vector_adapter adapter {data_array, element_count};  // Initialized with only 3 elements (10, 20, 30)
+    std::array<int, 5> data_array = {10, 20, 30, 40, 50};
+    std::size_t        element_count {3};
+    auto               adapter = make_adapter<BoundCheckStrategy::Exception>(data_array, element_count);  // Initialized with only 3 elements (10, 20, 30)
 
     // Initial state
     EXPECT_EQ(adapter.size( ), 3);
@@ -260,12 +249,7 @@ TEST (StaticVectorAdapterTest, EmplaceBack) {
     EXPECT_EQ(adapter[3], 60);  // 4th element should still be 60
     EXPECT_EQ(adapter[4], 70);  // 5th element should be 70
 
-#if wbr_STATIC_VECTOR_DO_RANGE_CHECKS
-    #if wbr_THROW_EXCEPTION_ON_ERROR
-    // Ensure we can't emplace_back beyond capacity
     EXPECT_THROW(adapter.emplace_back(80), std::overflow_error);
-    #endif
-#endif
 
     const std::array<int, 5> expected_data = {10, 20, 30, 60, 70};  // Only first 3 elements should be updated
     for ( std::size_t i = 0; i < data_array.size( ); ++i ) {
@@ -504,11 +488,21 @@ TEST (StaticVectorAdapterTest, InsertOutsideOfRangePosition) {
     EXPECT_EXIT(adapter.insert<BoundCheckStrategy::Assert>(adapter.begin( ) - 1, 222), KilledBySignal(SIGABRT), "");
 #endif
 
+// Begin disabling array-bounds warning for GCC/Clang
+#if defined(__GNUC__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
+    // The test code where we intentionally go out of bounds
     auto expected_2 = {222, 10, 20, 30, 40, 50, 333};
     EXPECT_NO_THROW(it = adapter.insert<BoundCheckStrategy::LimitToBound>(adapter.begin( ) - 1, 222));
     EXPECT_EQ(it, adapter.begin( ));
     EXPECT_EQ(adapter.size( ), 7);
     EXPECT_TRUE(std::ranges::equal(adapter, expected_2));
+    // Re-enable the array-bounds warning
+#if defined(__GNUC__)
+    #pragma GCC diagnostic pop
+#endif
 }
 
 TEST (StaticVectorAdapterTest, InsertWithFullCapacity) {

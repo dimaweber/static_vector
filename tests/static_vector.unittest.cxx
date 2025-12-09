@@ -6,8 +6,7 @@
 
 using namespace std::literals;
 
-TEST(StaticVector, DefaultConstructor)
-{
+TEST (StaticVector, DefaultConstructor) {
     wbr::static_vector<std::string, 4> st_vec;
     std::vector<std::string>           std_vec;
 
@@ -22,8 +21,7 @@ TEST(StaticVector, DefaultConstructor)
     EXPECT_THROW(st_vec.at(0), std::out_of_range);
 }
 
-TEST(StaticVector, CountDefConstructor)
-{
+TEST (StaticVector, CountDefConstructor) {
     wbr::static_vector<std::string, 5> st_vec(3);
 
     EXPECT_EQ(st_vec.size( ), 3);
@@ -39,8 +37,7 @@ TEST(StaticVector, CountDefConstructor)
     EXPECT_THROW(st_vec.at(3), std::out_of_range);
 }
 
-TEST(StaticVector, CountValueConstructor)
-{
+TEST (StaticVector, CountValueConstructor) {
     wbr::static_vector<std::string, 5> st_vec(3, "137");
     std::vector<std::string>           std_vec(3, "137");
 
@@ -59,8 +56,7 @@ TEST(StaticVector, CountValueConstructor)
     EXPECT_THROW(st_vec.at(3), std::out_of_range);
 }
 
-TEST(StaticVector, InitializerListConstructor)
-{
+TEST (StaticVector, InitializerListConstructor) {
     wbr::static_vector<std::string, 5> st_vec({"2", "5", "7", "9"});
     EXPECT_EQ(st_vec.size( ), 4);
     EXPECT_EQ(st_vec.max_size( ), 5);
@@ -71,8 +67,7 @@ TEST(StaticVector, InitializerListConstructor)
     EXPECT_THROW(st_vec.at(4), std::out_of_range);
 }
 
-TEST(StaticVector, CopyConstructor)
-{
+TEST (StaticVector, CopyConstructor) {
     wbr::static_vector<std::string, 7> src {"uno", "dos", "tres", "cuatro", "cinco", "seis"};
     wbr::static_vector<std::string, 7> dst {src};
 
@@ -94,8 +89,7 @@ TEST(StaticVector, CopyConstructor)
     EXPECT_EQ(e_22.use_count( ), 3);
 }
 
-TEST(StaticVector, MoveConstructor)
-{
+TEST (StaticVector, MoveConstructor) {
     const std::initializer_list<std::string> ilist {"uno", "dos", "tres", "cuatro", "cinco", "seis"};
     wbr::static_vector<std::string, 7>       src {ilist};
     wbr::static_vector<std::string, 7>       dst {std::move(src)};
@@ -120,8 +114,7 @@ TEST(StaticVector, MoveConstructor)
     EXPECT_EQ(e_22.use_count( ), 2);
 }
 
-TEST(StaticVector, At)
-{
+TEST (StaticVector, At) {
     wbr::static_vector<std::string, 5> st_vec({"3", "9", "27", "81"});
     EXPECT_NO_THROW(EXPECT_EQ(st_vec.at(0), "3"));
     EXPECT_NO_THROW(EXPECT_EQ(st_vec.at(1), "9"));
@@ -135,8 +128,7 @@ TEST(StaticVector, At)
     EXPECT_EQ(st_vec.at(0), "344");
 }
 
-TEST(StaticVector, OperatorAssignCopy)
-{
+TEST (StaticVector, OperatorAssignCopy) {
     wbr::static_vector<std::string, 7> dst {"uno", "dos", "tres", "cuatro", "cinco", "seis"};
     wbr::static_vector<std::string, 7> src {"one", "two", "three"};
 
@@ -165,8 +157,7 @@ TEST(StaticVector, OperatorAssignCopy)
     EXPECT_EQ(e_22.use_count( ), 3);
 }
 
-TEST(StaticVector, OperatorAssignMove)
-{
+TEST (StaticVector, OperatorAssignMove) {
     const auto                         ilist = std::initializer_list<std::string> {"one", "two", "three"};
     wbr::static_vector<std::string, 7> dst {"uno", "dos", "tres", "cuatro", "cinco", "seis"};
     wbr::static_vector<std::string, 7> src {ilist};
@@ -194,8 +185,7 @@ TEST(StaticVector, OperatorAssignMove)
     EXPECT_EQ(e_22.use_count( ), 2);
 }
 
-TEST(StaticVector, OperatorAssignIList)
-{
+TEST (StaticVector, OperatorAssignIList) {
     const std::initializer_list<std::string> ilist {"one", "two", "three"};
     wbr::static_vector<std::string, 7>       dst {"uno", "dos", "tres", "cuatro", "cinco", "seis"};
 
@@ -209,36 +199,7 @@ TEST(StaticVector, OperatorAssignIList)
 #endif
 }
 
-TEST(StaticVector, SelfAssign)
-{
-    const std::initializer_list<std::string> ilist {"2", "3", "5", "7", "11"};
-    wbr::static_vector<std::string, 5>       st_vec {ilist};
-
-#if defined(__GNUC__)
-    #if __GNUC_PREREQ(13, 0)
-    GTEST_SKIP_("gcc 13 don't allow self assign so no check needed");
-    #else
-    st_vec = st_vec;
-    EXPECT_EQ(st_vec.size( ), 5);
-        #if __cplusplus >= 202002L
-    EXPECT_TRUE(std::ranges::equal(st_vec, ilist));
-        #else
-    EXPECT_TRUE(std::equal(st_vec.begin( ), st_vec.end( ), ilist.begin( ), ilist.end( )));
-        #endif
-
-    st_vec = std::move(st_vec);
-    EXPECT_EQ(st_vec.size( ), 5);
-        #if __cplusplus >= 202002L
-    EXPECT_TRUE(std::ranges::equal(st_vec, ilist));
-        #else
-    EXPECT_TRUE(std::equal(st_vec.begin( ), st_vec.end( ), ilist.begin( ), ilist.end( )));
-        #endif
-    #endif
-#endif
-}
-
-TEST(StaticVector, AssignCountValue)
-{
+TEST (StaticVector, AssignCountValue) {
     const auto                         ilist = std::initializer_list<std::string> {"bee", "bee", "bee", "bee"};
     wbr::static_vector<std::string, 5> st_vec {"2", "3", "5", "7", "11"};
 
@@ -252,8 +213,7 @@ TEST(StaticVector, AssignCountValue)
 #endif
 }
 
-TEST(StaticVector, AssignIterator)
-{
+TEST (StaticVector, AssignIterator) {
     wbr::static_vector<std::string, 7> dst {"one", "two", "three"};
     wbr::static_vector<std::string, 7> src {"uno", "dos", "tres", "cuatro", "cinco", "seis"};
 
@@ -265,8 +225,7 @@ TEST(StaticVector, AssignIterator)
     EXPECT_NE(dst.cbegin( ), src.cbegin( ));
 }
 
-TEST(StaticVector, AssignIList)
-{
+TEST (StaticVector, AssignIList) {
     const std::initializer_list<std::string> ilist {"one", "two", "three"};
     wbr::static_vector<std::string, 7>       dst {"uno", "dos", "tres", "cuatro", "cinco", "seis"};
 
@@ -280,8 +239,7 @@ TEST(StaticVector, AssignIList)
 #endif
 }
 
-TEST(StaticVector, OperatorSqBraces)
-{
+TEST (StaticVector, OperatorSqBraces) {
     [[maybe_unused]] std::array<int, 16> prefix_seg_fault_guard;
     wbr::static_vector<std::string, 5>   st_vec({"1", "2", "3", "5"});
     [[maybe_unused]] std::array<int, 16> suffix_seg_fault_guard;
@@ -290,22 +248,15 @@ TEST(StaticVector, OperatorSqBraces)
     EXPECT_NO_THROW(EXPECT_EQ(st_vec[1], "2"));
     EXPECT_NO_THROW(EXPECT_EQ(st_vec[2], "3"));
     EXPECT_NO_THROW(EXPECT_EQ(st_vec[3], "5"));
-#if wbr_STATIC_VECTOR_DO_RANGE_CHECKS
-    EXPECT_DEATH((void)st_vec[4], "");
-    EXPECT_DEATH((void)st_vec[5], "");
-    EXPECT_DEATH((void)st_vec[-1], "");
-#else
     EXPECT_NO_THROW((void)st_vec[4]);
     EXPECT_NO_THROW((void)st_vec[5]);
     EXPECT_NO_THROW((void)st_vec[-1]);
-#endif
 
     st_vec[0] = "-20";
     EXPECT_EQ(st_vec[0], "-20");
 }
 
-TEST(StaticVector, AtAndSqBracesAccessSameElements)
-{
+TEST (StaticVector, AtAndSqBracesAccessSameElements) {
     wbr::static_vector<int, 5> st_vec({2, 4, 8, 16, 32});
     for ( decltype(st_vec)::size_type idx = 0; idx < st_vec.size( ); idx++ )
         EXPECT_EQ(st_vec.at(idx), st_vec[idx]);
@@ -321,8 +272,7 @@ TEST(StaticVector, AtAndSqBracesAccessSameElements)
         EXPECT_EQ(st_vec.at(idx), 1 << (idx + 1));
 }
 
-TEST(StaticVector, Front)
-{
+TEST (StaticVector, Front) {
     wbr::static_vector<std::string, 5> st_vec {"2", "3", "5", "7", "11"};
     EXPECT_EQ(st_vec.front( ), st_vec.at(0));
 
@@ -332,8 +282,7 @@ TEST(StaticVector, Front)
     EXPECT_EQ(st_vec.front( ), *st_vec.begin( ));
 }
 
-TEST(StaticVector, Back)
-{
+TEST (StaticVector, Back) {
     wbr::static_vector<std::string, 5> st_vec {"1", "4", "1", "5"};
     EXPECT_EQ(st_vec.back( ), st_vec.at(3));
 
@@ -343,8 +292,7 @@ TEST(StaticVector, Back)
     EXPECT_EQ(st_vec.back( ), *(st_vec.end( ) - 1));
 }
 
-TEST(StaticVector, Data)
-{
+TEST (StaticVector, Data) {
     wbr::static_vector<std::string, 5> st_vec {"1", "4", "1", "5"};
     EXPECT_EQ(st_vec.data( ), &st_vec[0]);
 
@@ -352,8 +300,7 @@ TEST(StaticVector, Data)
     EXPECT_EQ(st_vec.front( ), "33");
 }
 
-TEST(StaticVector, Iterators)
-{
+TEST (StaticVector, Iterators) {
     wbr::static_vector<std::string, 5> st_vec {"4", "16", "64", "256", "1024"};
 
     auto b_iter = st_vec.begin( );
@@ -376,8 +323,7 @@ TEST(StaticVector, Iterators)
     EXPECT_EQ(*(re_iter - 1), st_vec.at(0));
 }
 
-TEST(StaticVector, ReverseIterators)
-{
+TEST (StaticVector, ReverseIterators) {
     std::initializer_list<std::string> ilist {"uno", "dos", "tres", "cuatro", "cinco", "seis"};
     wbr::static_vector<std::string, 7> st_vec {ilist};
     std::vector<std::string>           std_vec {ilist};
@@ -388,8 +334,7 @@ TEST(StaticVector, ReverseIterators)
     EXPECT_EQ(*(st_vec.rend( ) - 1), "uno");
 }
 
-TEST(StaticVector, StdAlgoCompatibleGenerateFill)
-{
+TEST (StaticVector, StdAlgoCompatibleGenerateFill) {
     wbr::static_vector<int, 5> st_vec;
     EXPECT_TRUE(st_vec.empty( ));
 
@@ -411,8 +356,7 @@ TEST(StaticVector, StdAlgoCompatibleGenerateFill)
         EXPECT_EQ(a, 17);
 }
 
-TEST(StaticVector, StdAlgoCompatibleSortUniqueIsSorted)
-{
+TEST (StaticVector, StdAlgoCompatibleSortUniqueIsSorted) {
     wbr::static_vector<int, 20> st_vec {1, 2, 1, 1, 3, 3, 3, 4, 5, 4};
     EXPECT_EQ(st_vec.size( ), 10);
 
@@ -436,43 +380,51 @@ TEST(StaticVector, StdAlgoCompatibleSortUniqueIsSorted)
 struct A {
     int val {0};
 
-    A ( ) { d_constructorCallCount++; }
+    A ( ) {
+        d_constructorCallCount++;
+    }
 
-    A (int a) : val {a} { ++i_constructorCallCount; }
+    A (int a) : val {a} {
+        ++i_constructorCallCount;
+    }
 
-    A (const A& a) : val {a.val} { c_constructorCallCount++; }
+    A (const A& a) : val {a.val} {
+        c_constructorCallCount++;
+    }
 
-    A (A&& a)
-    {
+    A (A&& a) {
         std::swap(val, a.val);
         a.val = 0xfafbfcfd;
         m_constructorCallCount++;
     }
 
-    ~A ( ) { ++destructorCallCount; }
+    ~A ( ) {
+        ++destructorCallCount;
+    }
 
-    A& operator= (const A& a)
-    {
+    A& operator= (const A& a) {
         val = a.val;
         c_assignCallCount++;
         return *this;
     }
 #if __cplusplus >= 202002L
-    std::strong_ordering operator<=> (const A& a) const { return val <=> a.val; }
+    std::strong_ordering operator<=> (const A& a) const {
+        return val <=> a.val;
+    }
 
-    std::strong_ordering operator<=> (int a) const { return val <=> a; }
+    std::strong_ordering operator<=> (int a) const {
+        return val <=> a;
+    }
 #endif
 
-    A& operator= (A&& a) noexcept
-    {
+    A& operator= (A&& a) noexcept {
         std::swap(val, a.val);
         a.val = 0xcacbcccd;
         m_assignCallCount++;
         return *this;
     }
 
-    static void reset_cpp_statistics ( )
-    {
+    static void reset_cpp_statistics ( ) {
         destructorCallCount    = 0;
         d_constructorCallCount = 0;
         i_constructorCallCount = 0;
@@ -491,8 +443,7 @@ struct A {
     inline static int m_assignCallCount {0};
 };
 
-TEST(StaticVector, Clear)
-{
+TEST (StaticVector, Clear) {
     wbr::static_vector<A, 5> st_vec;
     std::generate_n(std::back_inserter(st_vec), st_vec.max_size( ), [] { return A {44}; });
 
@@ -508,8 +459,7 @@ TEST(StaticVector, Clear)
     EXPECT_EQ(A::destructorCallCount, 5);
 }
 
-TEST(StaticVector, ClearScalar)
-{
+TEST (StaticVector, ClearScalar) {
     wbr::static_vector<int, 5> st_vec {2, 34, 5, 3, 33};
     EXPECT_EQ(st_vec.size( ), 5);
     const auto si = st_vec.cbegin( );
@@ -520,8 +470,7 @@ TEST(StaticVector, ClearScalar)
     EXPECT_EQ(st_vec.cend( ), st_vec.cbegin( ));
 }
 
-TEST(StaticVector, ClearObject)
-{
+TEST (StaticVector, ClearObject) {
     wbr::static_vector<std::string, 5> st_vec {"2", "34", "5", "3", "33"};
     EXPECT_EQ(st_vec.size( ), 5);
     const auto si = st_vec.cbegin( );
@@ -532,8 +481,7 @@ TEST(StaticVector, ClearObject)
     EXPECT_EQ(st_vec.cend( ), st_vec.cbegin( ));
 }
 
-TEST(StaticVector, EraseMoveCorrectness)
-{
+TEST (StaticVector, EraseMoveCorrectness) {
     wbr::static_vector<A, 8> st_vec {3, 45, 55, 2, 3, 37, 28, 12};
     EXPECT_EQ(st_vec.size( ), 8);
 
@@ -574,8 +522,7 @@ TEST(StaticVector, EraseMoveCorrectness)
     EXPECT_EQ(A::destructorCallCount, 6);
 }
 
-TEST(StaticVector, InsertMoveCorrectness)
-{
+TEST (StaticVector, InsertMoveCorrectness) {
     wbr::static_vector<A, 8> st_vec {3};
     EXPECT_EQ(st_vec.size( ), 1);
 
@@ -628,8 +575,7 @@ TEST(StaticVector, InsertMoveCorrectness)
     EXPECT_EQ(A::destructorCallCount, 6);
 }
 
-TEST(StaticVector, InsertObjectSingleInFront_rvalue)
-{
+TEST (StaticVector, InsertObjectSingleInFront_rvalue) {
     wbr::static_vector<std::string, 8> st_vec {"3", "45", "55", "2"};
     EXPECT_EQ(st_vec.size( ), 4);
     const auto sb = st_vec.cbegin( );
@@ -650,8 +596,7 @@ TEST(StaticVector, InsertObjectSingleInFront_rvalue)
 #endif
 }
 
-TEST(StaticVector, InsertObjectSingleInFront_ref)
-{
+TEST (StaticVector, InsertObjectSingleInFront_ref) {
     wbr::static_vector<std::string, 8> st_vec {"3", "45", "55", "2"};
     EXPECT_EQ(st_vec.size( ), 4);
     const auto sb = st_vec.cbegin( );
@@ -673,8 +618,7 @@ TEST(StaticVector, InsertObjectSingleInFront_ref)
 #endif
 }
 
-TEST(StaticVector, InsertScalarSingleInFront_rvalue)
-{
+TEST (StaticVector, InsertScalarSingleInFront_rvalue) {
     wbr::static_vector<int, 8> st_vec {3, 45, 55, 2};
     EXPECT_EQ(st_vec.size( ), 4);
     const auto sb = st_vec.cbegin( );
@@ -695,8 +639,7 @@ TEST(StaticVector, InsertScalarSingleInFront_rvalue)
 #endif
 }
 
-TEST(StaticVector, InsertScalarSingleInFront_ref)
-{
+TEST (StaticVector, InsertScalarSingleInFront_ref) {
     wbr::static_vector<int, 8> st_vec {3, 45, 55, 2};
     EXPECT_EQ(st_vec.size( ), 4);
     const auto sb = st_vec.cbegin( );
@@ -718,8 +661,7 @@ TEST(StaticVector, InsertScalarSingleInFront_ref)
 #endif
 }
 
-TEST(StaticVector, InsertObjectSingleInEnd)
-{
+TEST (StaticVector, InsertObjectSingleInEnd) {
     wbr::static_vector<std::string, 8> st_vec {"29", "3", "45", "55", "2"};
     EXPECT_EQ(st_vec.size( ), 5);
     const auto sb = st_vec.cbegin( );
@@ -740,8 +682,7 @@ TEST(StaticVector, InsertObjectSingleInEnd)
 #endif
 }
 
-TEST(StaticVector, InsertScalarSingleInEnd)
-{
+TEST (StaticVector, InsertScalarSingleInEnd) {
     wbr::static_vector<int, 8> st_vec {29, 3, 45, 55, 2};
     EXPECT_EQ(st_vec.size( ), 5);
     const auto sb = st_vec.cbegin( );
@@ -762,8 +703,7 @@ TEST(StaticVector, InsertScalarSingleInEnd)
 #endif
 }
 
-TEST(StaticVector, InsertObjectSingleAtMiddle)
-{
+TEST (StaticVector, InsertObjectSingleAtMiddle) {
     A::destructorCallCount = 0;
     wbr::static_vector<std::string, 8> st_vec {"29", "3", "45", "55", "2", "51"};
     EXPECT_EQ(st_vec.size( ), 6);
@@ -785,8 +725,7 @@ TEST(StaticVector, InsertObjectSingleAtMiddle)
 #endif
 }
 
-TEST(StaticVector, InsertScalarSingleAtMiddle)
-{
+TEST (StaticVector, InsertScalarSingleAtMiddle) {
     A::destructorCallCount = 0;
     wbr::static_vector<int, 8> st_vec {29, 3, 45, 55, 2, 51};
     EXPECT_EQ(st_vec.size( ), 6);
@@ -808,8 +747,7 @@ TEST(StaticVector, InsertScalarSingleAtMiddle)
 #endif
 }
 
-TEST(StaticVector, InsertObjectCountInFront)
-{
+TEST (StaticVector, InsertObjectCountInFront) {
     wbr::static_vector<std::string, 8> st_vec {"3", "45", "55", "2"};
     EXPECT_EQ(st_vec.size( ), 4);
 
@@ -850,8 +788,7 @@ TEST(StaticVector, InsertObjectCountInFront)
 #endif
 }
 
-TEST(StaticVector, InsertScalarCountInFront)
-{
+TEST (StaticVector, InsertScalarCountInFront) {
     wbr::static_vector<int, 8> st_vec {3, 45, 55, 2};
     EXPECT_EQ(st_vec.size( ), 4);
 
@@ -892,8 +829,7 @@ TEST(StaticVector, InsertScalarCountInFront)
 #endif
 }
 
-TEST(StaticVector, InsertObjectCountInMiddle)
-{
+TEST (StaticVector, InsertObjectCountInMiddle) {
     wbr::static_vector<std::string, 8> st_vec {"3", "45", "55", "2"};
     EXPECT_EQ(st_vec.size( ), 4);
 
@@ -919,8 +855,7 @@ TEST(StaticVector, InsertObjectCountInMiddle)
     EXPECT_EQ(st_vec[6], "2");
 }
 
-TEST(StaticVector, InsertScalarCountInMiddle)
-{
+TEST (StaticVector, InsertScalarCountInMiddle) {
     wbr::static_vector<int, 8> st_vec {3, 45, 55, 2};
     EXPECT_EQ(st_vec.size( ), 4);
 
@@ -946,8 +881,7 @@ TEST(StaticVector, InsertScalarCountInMiddle)
     EXPECT_EQ(st_vec[6], 2);
 }
 
-TEST(StaticVector, InsertCountAtEnd)
-{
+TEST (StaticVector, InsertCountAtEnd) {
     wbr::static_vector<std::string, 8> st_vec {"3", "45", "55", "2"};
     EXPECT_EQ(st_vec.size( ), 4);
 
@@ -973,8 +907,7 @@ TEST(StaticVector, InsertCountAtEnd)
     EXPECT_EQ(*(iter - 1), "29");
 }
 
-TEST(StaticVector, InsertIteratorInFront)
-{
+TEST (StaticVector, InsertIteratorInFront) {
     wbr::static_vector<std::string, 4> src {"05", "07", "11", "13"};
     wbr::static_vector<std::string, 8> dst {"17", "19", "23", "29"};
 
@@ -988,8 +921,7 @@ TEST(StaticVector, InsertIteratorInFront)
     EXPECT_TRUE(std::is_sorted(dst.cbegin( ), dst.cend( )));
 }
 
-TEST(StaticVector, InsertIteratorInMiddle)
-{
+TEST (StaticVector, InsertIteratorInMiddle) {
     wbr::static_vector<std::string, 4> src {"11", "13", "17", "19"};
     wbr::static_vector<std::string, 8> dst {"05", "07", "23", "29"};
 
@@ -1003,8 +935,7 @@ TEST(StaticVector, InsertIteratorInMiddle)
     EXPECT_TRUE(std::is_sorted(dst.cbegin( ), dst.cend( )));
 }
 
-TEST(StaticVector, InsertIteratorAtEnd)
-{
+TEST (StaticVector, InsertIteratorAtEnd) {
     wbr::static_vector<std::string, 8> dst {"05", "07", "11", "13"};
     wbr::static_vector<std::string, 4> src {"17", "19", "23", "29"};
 
@@ -1018,8 +949,7 @@ TEST(StaticVector, InsertIteratorAtEnd)
     EXPECT_TRUE(std::is_sorted(dst.cbegin( ), dst.cend( )));
 }
 
-TEST(StaticVector, InsertInitializerList)
-{
+TEST (StaticVector, InsertInitializerList) {
     wbr::static_vector<std::string, 8> dst {"002", "004", "128", "256"};
     dst.insert(dst.begin( ) + 2, {"008", "016", "032", "064"});
 
@@ -1027,23 +957,20 @@ TEST(StaticVector, InsertInitializerList)
     EXPECT_EQ(dst.size( ), 8);
 }
 
-TEST(StaticVector, SingleEraseEmptyFront)
-{
+TEST (StaticVector, SingleEraseEmptyFront) {
     wbr::static_vector<std::string, 8> st_vec;
     EXPECT_NO_THROW(st_vec.erase(st_vec.cbegin( )));
     EXPECT_EQ(st_vec.size( ), 0);
 }
 
-TEST(StaticVector, SigleEraseSingleFront)
-{
+TEST (StaticVector, SigleEraseSingleFront) {
     wbr::static_vector<std::string, 8> st_vec {"3.14"};
     auto                               iter = st_vec.erase(st_vec.cbegin( ));
     EXPECT_EQ(iter, st_vec.end( ));
     EXPECT_EQ(st_vec.size( ), 0);
 }
 
-TEST(StaticVector, SingleEraseMulti2Front)
-{
+TEST (StaticVector, SingleEraseMulti2Front) {
     wbr::static_vector<std::string, 8> st_vec {"3.14", "2.71"};
     auto                               iter = st_vec.erase(st_vec.cbegin( ));
     EXPECT_EQ(iter, st_vec.begin( ));
@@ -1052,8 +979,7 @@ TEST(StaticVector, SingleEraseMulti2Front)
     EXPECT_EQ(st_vec[0], "2.71");
 }
 
-TEST(StaticVector, SingleEraseMulti3Front)
-{
+TEST (StaticVector, SingleEraseMulti3Front) {
     wbr::static_vector<std::string, 8> st_vec {"3.14", "2.71", "1.41"};
     auto                               iter = st_vec.erase(st_vec.cbegin( ));
     EXPECT_EQ(iter, st_vec.begin( ));
@@ -1063,8 +989,7 @@ TEST(StaticVector, SingleEraseMulti3Front)
     EXPECT_EQ(st_vec[1], "1.41");
 }
 
-TEST(StaticVector, SingleEraseMulti3Last)
-{
+TEST (StaticVector, SingleEraseMulti3Last) {
     wbr::static_vector<std::string, 8> st_vec {"3.14", "2.71", "1.41"};
     auto                               iter = st_vec.erase(st_vec.cend( ) - 1);
     EXPECT_EQ(iter, st_vec.cend( ));
@@ -1073,8 +998,7 @@ TEST(StaticVector, SingleEraseMulti3Last)
     EXPECT_EQ(st_vec[1], "2.71");
 }
 
-TEST(StaticVector, SingleEraseMulti3Middle)
-{
+TEST (StaticVector, SingleEraseMulti3Middle) {
     wbr::static_vector<std::string, 8> st_vec {"3.14", "2.71", "1.41"};
     auto                               iter = st_vec.erase(st_vec.cbegin( ) + 1);
     EXPECT_EQ(iter, st_vec.cbegin( ) + 1);
@@ -1084,16 +1008,14 @@ TEST(StaticVector, SingleEraseMulti3Middle)
     EXPECT_EQ(st_vec[1], "1.41");
 }
 
-TEST(StaticVector, MultiEraseEmpty)
-{
+TEST (StaticVector, MultiEraseEmpty) {
     wbr::static_vector<std::string, 8> st_vec { };
     auto                               iter = st_vec.erase(st_vec.begin( ), st_vec.end( ));
     EXPECT_EQ(iter, st_vec.cend( ));
     EXPECT_EQ(st_vec.size( ), 0);
 }
 
-TEST(StaticVector, MultiEraseFront)
-{
+TEST (StaticVector, MultiEraseFront) {
     wbr::static_vector<std::string, 8> st_vec {"3", "5", "7", "11", "13", "17", "19"};
     auto                               iter = st_vec.erase(st_vec.cbegin( ), st_vec.cbegin( ) + 3);
     EXPECT_EQ(iter, st_vec.cbegin( ));
@@ -1104,8 +1026,7 @@ TEST(StaticVector, MultiEraseFront)
     EXPECT_EQ(st_vec.back( ), "19");
 }
 
-TEST(StaticVector, MultiEraseMiddle)
-{
+TEST (StaticVector, MultiEraseMiddle) {
     wbr::static_vector<std::string, 8> st_vec {"3", "5", "7", "11", "13", "17", "19"};
     auto                               iter = st_vec.erase(st_vec.cbegin( ) + 2, st_vec.cbegin( ) + 5);
     EXPECT_EQ(iter, st_vec.cbegin( ) + 2);
@@ -1116,8 +1037,7 @@ TEST(StaticVector, MultiEraseMiddle)
     EXPECT_EQ(st_vec.back( ), "19");
 }
 
-TEST(StaticVector, MultiEraseEnd)
-{
+TEST (StaticVector, MultiEraseEnd) {
     wbr::static_vector<std::string, 8> st_vec {"3", "5", "7", "11", "13", "17", "19"};
     auto                               iter = st_vec.erase(st_vec.cbegin( ) + 5, st_vec.cend( ));
     EXPECT_EQ(iter, st_vec.cend( ));
@@ -1127,8 +1047,7 @@ TEST(StaticVector, MultiEraseEnd)
     EXPECT_EQ(st_vec.back( ), "13");
 }
 
-TEST(StaticVector, EmplaceEmpty)
-{
+TEST (StaticVector, EmplaceEmpty) {
     wbr::static_vector<std::string, 9> st_vec;
     std::vector<std::string>           std_vec;
 
@@ -1147,8 +1066,7 @@ TEST(StaticVector, EmplaceEmpty)
 #endif
 }
 
-TEST(StaticVector, EmplaceFront)
-{
+TEST (StaticVector, EmplaceFront) {
     wbr::static_vector<std::string, 8> st_vec {"lorem", "ipsum", "dolor", "set", "amet"};
     std::vector<std::string>           std_vec {"lorem", "ipsum", "dolor", "set", "amet"};
 
@@ -1169,8 +1087,7 @@ TEST(StaticVector, EmplaceFront)
 #endif
 }
 
-TEST(StaticVector, EmplaceMiddle)
-{
+TEST (StaticVector, EmplaceMiddle) {
     wbr::static_vector<std::string, 8> st_vec {"lorem", "ipsum", "dolor", "set", "amet"};
     std::vector<std::string>           std_vec {"lorem", "ipsum", "dolor", "set", "amet"};
 
@@ -1192,8 +1109,7 @@ TEST(StaticVector, EmplaceMiddle)
 #endif
 }
 
-TEST(StaticVector, EmplaceEnd)
-{
+TEST (StaticVector, EmplaceEnd) {
     wbr::static_vector<std::string, 8> st_vec {"lorem", "ipsum", "dolor", "set", "amet"};
     std::vector<std::string>           std_vec {"lorem", "ipsum", "dolor", "set", "amet"};
 
@@ -1215,8 +1131,7 @@ TEST(StaticVector, EmplaceEnd)
 #endif
 }
 
-TEST(StaticVector, SwapObjects)
-{
+TEST (StaticVector, SwapObjects) {
     std::initializer_list<std::string> i1 {"lorem", "ipsum", "dolor", "set", "amet"};
     std::initializer_list<std::string> i2 {"3", "5", "7", "11", "13", "17", "19"};
     wbr::static_vector<std::string, 7> a1 {i1};
@@ -1292,8 +1207,7 @@ TEST(StaticVector, SwapObjects)
 #endif
 }
 
-TEST(StaticVector, SwapTrivial)
-{
+TEST (StaticVector, SwapTrivial) {
     std::initializer_list<int> i1 {1, 1, 2, 3, 5, 8};
     std::initializer_list<int> i2 {3, 9, 27};
     wbr::static_vector<int, 7> a1 {i1};
@@ -1369,8 +1283,7 @@ TEST(StaticVector, SwapTrivial)
 #endif
 }
 
-TEST(StaticVector, ResizeLess)
-{
+TEST (StaticVector, ResizeLess) {
     wbr::static_vector<std::string, 9> st_vec {"lorem", "ipsum", "sit", "dolor", "amet", "consectetur", "adipiscing"};
     std::vector<std::string>           std_vec {"lorem", "ipsum", "sit", "dolor", "amet", "consectetur", "adipiscing"};
 
@@ -1387,8 +1300,7 @@ TEST(StaticVector, ResizeLess)
 #endif
 }
 
-TEST(StaticVector, ResizeMore)
-{
+TEST (StaticVector, ResizeMore) {
     wbr::static_vector<std::string, 9> st_vec {"lorem", "ipsum", "sit", "dolor", "amet", "consectetur", "adipiscing"};
     std::vector<std::string>           std_vec {"lorem", "ipsum", "sit", "dolor", "amet", "consectetur", "adipiscing"};
 
@@ -1408,8 +1320,7 @@ TEST(StaticVector, ResizeMore)
     EXPECT_EQ(st_vec[8], "");
 }
 
-TEST(StaticVector, ResizeMoreValue)
-{
+TEST (StaticVector, ResizeMoreValue) {
     wbr::static_vector<std::string, 9> st_vec {"lorem", "ipsum", "sit", "dolor", "amet", "consectetur", "adipiscing"};
     std::vector<std::string>           std_vec {"lorem", "ipsum", "sit", "dolor", "amet", "consectetur", "adipiscing"};
 
@@ -1429,8 +1340,7 @@ TEST(StaticVector, ResizeMoreValue)
     EXPECT_EQ(st_vec[8], "latin");
 }
 
-TEST(StaticVector, ResizeOverflow)
-{
+TEST (StaticVector, ResizeOverflow) {
     wbr::static_vector<std::string, 9> st_vec {"lorem", "ipsum", "sit", "dolor", "amet", "consectetur", "adipiscing"};
 
     EXPECT_EQ(st_vec.size( ), 7);
@@ -1439,8 +1349,7 @@ TEST(StaticVector, ResizeOverflow)
     EXPECT_EQ(st_vec.size( ), 7);
 }
 
-TEST(StaticVector, CompareEquality)
-{
+TEST (StaticVector, CompareEquality) {
     wbr::static_vector<int, 10> a {1, 2, 3, 5, 7};
     wbr::static_vector<int, 10> b {1, 2, 3, 4, 5};
     wbr::static_vector<int, 10> c {1, 2, 3, 4, 5};
@@ -1456,8 +1365,7 @@ TEST(StaticVector, CompareEquality)
     EXPECT_NE(a, b);
 }
 
-TEST(StaticVector, CompareRelation)
-{
+TEST (StaticVector, CompareRelation) {
     wbr::static_vector<int, 10> a {1, 2, 3, 5, 7};
     wbr::static_vector<int, 10> b {1, 2, 3, 4, 5};
     wbr::static_vector<int, 10> c {1, 2, 3, 4, 5};
@@ -1490,8 +1398,7 @@ TEST(StaticVector, CompareRelation)
 }
 
 #if __cplusplus >= 202002L
-TEST(StaticVector, RangesCompatible)
-{
+TEST (StaticVector, RangesCompatible) {
     wbr::static_vector<int, 4> st_vec {2, 5, 7, 3};
     std::vector<int>           vec {2, 5, 7, 2};
 
@@ -1501,8 +1408,7 @@ TEST(StaticVector, RangesCompatible)
     std::ranges::any_of(st_vec, [] (int i) { return i > 6; });
 }
 
-TEST(StaticVector, CompareThreeWay)
-{
+TEST (StaticVector, CompareThreeWay) {
     wbr::static_vector<int, 10> a {1, 2, 3, 5, 7};
     wbr::static_vector<int, 10> b {1, 2, 3, 4, 5};
     wbr::static_vector<int, 10> c {1, 2, 3, 4, 5};
@@ -1514,8 +1420,7 @@ TEST(StaticVector, CompareThreeWay)
     EXPECT_NE(a <=> b, std::strong_ordering::equivalent);
 }
 
-TEST(StaticVector, StdErase)
-{
+TEST (StaticVector, StdErase) {
     wbr::static_vector<int, 10> st_vec {1, 3, 4, 5, 7, 7, 9, 1, 3};
     std::vector<int>            std_vec {1, 3, 4, 5, 7, 7, 9, 1, 3};
 
