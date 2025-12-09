@@ -45,6 +45,9 @@ option(BUILD_BENCHMARK "static_vector benchmark" ON)
 option(BUILD_TESTS "static_vector test" ON)
 option(BUILD_EXAMPLES "static_vector examples" ON)
 option(BUILD_DOCS "static_vector documentation" ON)
+option(FMT_SUPPORT "support for fmt lib" ON)
+option(STD_FORMAT_SUPPORT "support for std::format (C++20)" OFF)
+option(IOSTREAM_SUPPORT "support for iostream" ON)
 
 if (NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(BUILD_TESTS OFF)
@@ -55,27 +58,37 @@ endif ()
 
 if (BUILD_TESTS)
     add_compile_definitions(BUILD_TESTS=1)
+    set(FMT_SUPPORT ON)
 else ()
     add_compile_definitions(BUILD_TESTS=0)
 endif ()
 
+if (BUILD_EXAMPLES)
+    set(FMT_SUPPORT ON)
+endif ()
 
-option(FMT_SUPPORT "support for fmt lib" ON)
+
 if (FMT_SUPPORT)
     add_compile_definitions(FMT_SUPPORT=1)
-    find_package(fmt REQUIRED)
+    find_package(fmt 11.2 REQUIRED)
+    if (NOT fmt_FOUND)
+        FetchContent_Declare(
+                fmt
+                GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+                GIT_TAG 11.2.0
+        )
+        FetchContent_MakeAvailable(fmt)
+    endif ()
 else ()
     add_compile_definitions(FMT_SUPPORT=0)
 endif ()
 
-option(STD_FORMAT_SUPPORT "support for std::format (C++20)" OFF)
 if (STD_FORMAT_SUPPORT)
     add_compile_definitions(STD_FORMAT_SUPPORT=1)
 else ()
     add_compile_definitions(STD_FORMAT_SUPPORT=0)
 endif ()
 
-option(IOSTREAM_SUPPORT "support for iostream" ON)
 if (IOSTREAM_SUPPORT)
     add_compile_definitions(IOSTREAM_SUPPORT=1)
 else ()
@@ -88,9 +101,16 @@ target_include_directories(
         $<INSTALL_INTERFACE:include>)
 
 if (BUILD_TESTS)
-    find_package(fmt 11)
     enable_testing()
     find_package(GTest REQUIRED)
+    if (NOT GTest_FOUND)
+        FetchContent_Declare(
+                googletest
+                GIT_REPOSITORY https://github.com/google/googletest.git
+                GIT_TAG v1.14.0
+        )
+        FetchContent_MakeAvailable(googletest)
+    endif ()
     add_executable(
             ${TARGET_UT}
             tests/static_string.unittest.cxx
@@ -118,7 +138,6 @@ if (BUILD_BENCHMARK)
 endif ()
 
 if (BUILD_EXAMPLES)
-    find_package(fmt 11)
     add_executable(
             ${TARGET_DM}
             examples/base_usage.cpp examples/range-based-for-loop.cpp
