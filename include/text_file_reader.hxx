@@ -26,13 +26,13 @@ std::istream& operator>> (std::istream& stream, text_line_t<OPT>& line) {
                 continue;
         }
         if ( OPT & SkipComment ) {
-            if ( wbr::str::starts_with(wbr::str::trimWhitespaces(line, &wbr::str::isspace), "#") )
+            if ( wbr::str::starts_with(wbr::str::trim(line, &wbr::str::isspace), "#") )
                 continue;
         }
         break;
     }
     if ( OPT & TrimWhitespace )
-        line.assign(wbr::str::trimWhitespaces(line, &wbr::str::isspace));
+        line.assign(wbr::str::trim(line, &wbr::str::isspace));
     return stream;
 }
 
@@ -82,7 +82,7 @@ public:
     }
 
     static wbr::str::StringType auto trim_transform (const wbr::str::StringType auto& s) {
-        return decltype(s) {wbr::str::trimWhitespaces(s, &wbr::str::isspace)};
+        return decltype(s) {wbr::str::trim(s, &wbr::str::isspace)};
     }
 };
 

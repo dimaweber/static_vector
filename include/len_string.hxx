@@ -104,8 +104,6 @@ public:
     using reference              = char_type&;
     using const_reference        = const char_type&;
 
-    static_assert(std::is_integral_v<LenType>, "LenType must be an integral type");
-    static_assert(std::is_unsigned_v<LenType>, "LenType should be unsigned");
     static_assert(std::contiguous_iterator<iterator>);
     ///@}
 
