@@ -141,6 +141,7 @@ if (BUILD_TESTS)
             tests/string_manipulations.unittest.cxx
             tests/string_manipulations_ext.unittest.cxx
             tests/len_string.unittest.cxx
+            tests/text_file_reader.unittest.cxx
     )
 
     include(GoogleTest)
