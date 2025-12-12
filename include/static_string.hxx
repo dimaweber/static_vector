@@ -118,7 +118,7 @@ public:
      * @param array Pointer to the character array
      * @param array_size The maximum number of characters that can be stored in the array (including null terminator)
      */
-    static_string_adapter (char_type* array, std::size_t array_size) : head_ {array}, tail_ {head_}, max_length_ {array_size - 1} {
+    constexpr static_string_adapter (char_type* array, std::size_t array_size) : head_ {array}, tail_ {head_}, max_length_ {array_size - 1} {
         using enum BoundCheckStrategy;
         if constexpr ( bc_strategy == Assert ) {
             assert(array != nullptr);
@@ -144,7 +144,7 @@ public:
      * @param array_size The maximum number of characters that can be stored in the array (including null terminator)
      * @param string_length Initial length of the string
      */
-    static_string_adapter (char_type* array, std::size_t array_size, std::size_t string_length) : head_ {array}, tail_ {head_ + string_length}, max_length_ {array_size - 1} {
+    constexpr static_string_adapter (char_type* array, std::size_t array_size, std::size_t string_length) : head_ {array}, tail_ {head_ + string_length}, max_length_ {array_size - 1} {
         using enum BoundCheckStrategy;
         if constexpr ( bc_strategy == Assert ) {
             assert(array_size > 0);
@@ -169,7 +169,7 @@ public:
      * @param array Reference to the std::array
      */
     template<std::size_t SZ>
-    static_string_adapter(std::array<char_type, SZ>& array) : static_string_adapter(array.data( ), array.size( )) {
+    constexpr static_string_adapter(std::array<char_type, SZ>& array) : static_string_adapter(array.data( ), array.size( )) {
     }
 
     /**
@@ -179,7 +179,7 @@ public:
      * @param array Reference to the C-style array
      */
     template<std::size_t SZ>
-    static_string_adapter(char_type (&array)[SZ]) : static_string_adapter(array, SZ) {
+    constexpr static_string_adapter(char_type (&array)[SZ]) : static_string_adapter(array, SZ) {
     }
 
     /// @}
@@ -1778,18 +1778,18 @@ class static_string : public static_string_adapter<bc_strategy> {
     std::array<typename parent::char_type, SZ> data_;
 
 public:
-    static_string ( ) : parent {initialize_data( ), SZ, 0} {
+    constexpr static_string ( ) : parent {initialize_data( ), SZ, 0} {
     }
 
-    static_string (const StringViewLike auto& sv) : static_string( ) {
+    constexpr static_string (const StringViewLike auto& sv) : static_string( ) {
         this->assign(sv);
     }
 
-    static_string (const char* cstr) : static_string( ) {
+    constexpr static_string (const char* cstr) : static_string( ) {
         this->assign(cstr);
     }
 
-    static_string (const static_string& other) : static_string( ) {
+    constexpr static_string (const static_string& other) : static_string( ) {
         this->assign(other);
     }
 #if FMT_SUPPORT
