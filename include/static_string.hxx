@@ -1651,49 +1651,47 @@ public:
      *
      * @see std::string::swap
      */
-    void swap (static_string_adapter<bc_strategy>& other) {
+    void swap (static_string_adapter<bc_strategy>& other) noexcept {
         // Handle self-swap
-        if ( this == &other ) {
+        if ( this == &other )
             return;
+
+        std::unsigned_integral auto this_size  = size( );
+        std::unsigned_integral auto other_size = other.size( );
+
+        if constexpr ( bc_strategy == BoundCheckStrategy::Assert ) {
+            assert(this_size <= other.max_length_);
+            assert(other_size <= max_length_);
+        }
+        if constexpr ( bc_strategy == BoundCheckStrategy::Exception ) {
+            if ( this_size > other.max_length_ )
+                throw std::length_error("this size exceeds other capacity in swap");
+            if ( other_size > max_length_ )
+                throw std::length_error("other size exceeds this capacity in swap");
+        }
+        if constexpr ( bc_strategy == BoundCheckStrategy::LimitToBound ) {
+            this_size  = std::min(this_size, other.max_length_);
+            other_size = std::min(other_size, max_length_);
         }
 
-        auto this_size  = size( );
-        auto other_size = other.size( );
+        const std::unsigned_integral auto min_size = std::min(this_size, other_size);
 
-        // Determine if we need to use the large string path
-        const bool use_large_path = this_size > 256 || other_size > 256;
-
-        if ( !use_large_path ) {
-            // Use stack allocation for small strings (both < 256)
-            char temp_buffer[256];
-            std::copy_n(begin( ), this_size, temp_buffer);
-            temp_buffer[this_size] = '\0';
-
-            // Copy other's content to this
-            auto copy_size = std::min(other_size, capacity( ));
-            std::copy_n(other.begin( ), copy_size, begin( ));
-            tail_  = head_ + copy_size;
-            *tail_ = '\0';
-
-            // Copy temp to other
-            copy_size = std::min(this_size, other.capacity( ));
-            std::copy_n(temp_buffer, copy_size, other.begin( ));
-            other.tail_  = other.head_ + copy_size;
-            *other.tail_ = '\0';
-        } else {
-            // For large strings, we need to save one string's content first
-            // Create temporary copies as std::string to avoid view invalidation
-            std::string this_copy(view( ));
-            std::string other_copy(other.view( ));
-
-            // Now swap: assign from the copies
-            clear( );
-            assign(other_copy);
-            other.clear( );
-            other.assign(this_copy);
+        for ( size_type i = 0; i < min_size; ++i ) {
+            std::swap(*(head_ + i), *(other.head_ + i));
         }
+        if ( this_size > min_size ) {
+            for ( auto i = min_size; i < std::min(this_size, other.max_length_); ++i )
+                *(other.head_ + i) = *(head_ + i);
+        } else if ( other_size > min_size ) {
+            for ( auto i = min_size; i < std::min(other_size, max_length_); ++i )
+                *(head_ + i) = *(other.head_ + i);
+        }
+
+        tail_        = head_ + std::min(other_size, max_length_);
+        *tail_       = '\0';
+        other.tail_  = other.head_ + std::min(this_size, other.max_length_);
+        *other.tail_ = '\0';
     }
-
 #if FMT_SUPPORT
     template<typename... T>
     constexpr static_string_adapter& formatAppend (fmt::format_string<T...> fmt, T&&... args) {
@@ -1828,7 +1826,6 @@ private:
 };
 
 }  // namespace wbr
-
 #if IOSTREAM_SUPPORT
     #include <iostream>
 
