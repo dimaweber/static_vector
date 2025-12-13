@@ -13,17 +13,17 @@
 #include "platform.hxx"
 
 #if FMT_SUPPORT
-    #include <fmt/format.h>
-    #if __has_include(<fmt/ranges.h>)
-        #include <fmt/ranges.h>
-        #define WBR_FMT_RANGES_INCLUDED
-    #endif
+  #include <fmt/format.h>
+  #if __has_include(<fmt/ranges.h>)
+    #include <fmt/ranges.h>
+    #define WBR_FMT_RANGES_INCLUDED
+  #endif
 #endif
 #if STD_FORMAT_SUPPORT
-    #include <format>
+  #include <format>
 #endif
 #if BUILD_TESTS
-    #include <gtest/gtest.h>
+  #include <gtest/gtest.h>
 #endif
 
 namespace wbr {
@@ -42,12 +42,12 @@ FMT_BEGIN_NAMESPACE
 // Mark these types as string-like for fmt - fmt will automatically provide the formatter
 template<wbr::BoundCheckStrategy bc>
 struct range_format_kind<wbr::static_string_adapter<bc>, char, void> {
-    static constexpr auto value = range_format::string;
+  static constexpr auto value = range_format::string;
 };
 
 template<std::size_t SZ, wbr::BoundCheckStrategy bc>
 struct range_format_kind<wbr::static_string<SZ, bc>, char, void> {
-    static constexpr auto value = range_format::string;
+  static constexpr auto value = range_format::string;
 };
 
 FMT_END_NAMESPACE
@@ -57,18 +57,18 @@ FMT_END_NAMESPACE
 // std::format formatters for static_string types
 template<wbr::BoundCheckStrategy bc>
 struct std::formatter<wbr::static_string_adapter<bc>, char> : std::formatter<std::string_view, char> {
-    template<typename FormatContext>
-    auto format (const wbr::static_string_adapter<bc>& str, FormatContext& ctx) const {
-        return std::formatter<std::string_view, char>::format(str.view( ), ctx);
-    }
+  template<typename FormatContext>
+  auto format (const wbr::static_string_adapter<bc>& str, FormatContext& ctx) const {
+    return std::formatter<std::string_view, char>::format(str.view( ), ctx);
+  }
 };
 
 template<std::size_t SZ, wbr::BoundCheckStrategy bc>
 struct std::formatter<wbr::static_string<SZ, bc>, char> : std::formatter<std::string_view, char> {
-    template<typename FormatContext>
-    auto format (const wbr::static_string<SZ, bc>& str, FormatContext& ctx) const {
-        return std::formatter<std::string_view, char>::format(str.view( ), ctx);
-    }
+  template<typename FormatContext>
+  auto format (const wbr::static_string<SZ, bc>& str, FormatContext& ctx) const {
+    return std::formatter<std::string_view, char>::format(str.view( ), ctx);
+  }
 };
 #endif
 
@@ -87,1757 +87,1755 @@ namespace wbr {
 template<BoundCheckStrategy bc_strategy = BoundCheckStrategy::NoCheck>
 class static_string_adapter {
 public:
-    /// @name nested types
-    ///@{
-    using char_type     = char;              ///< The type of characters used in this string (char)
-    using pointer       = char_type*;        ///< Pointer to a char_type (mutable)
-    using const_pointer = const char_type*;  ///< Pointer to a const char_type (immutable)
-    using size_type     = std::size_t;       ///< Type for representing sizes and indices
-    using iterator      = char_type*;
+  /// @name nested types
+  ///@{
+  using char_type     = char;              ///< The type of characters used in this string (char)
+  using pointer       = char_type*;        ///< Pointer to a char_type (mutable)
+  using const_pointer = const char_type*;  ///< Pointer to a const char_type (immutable)
+  using size_type     = std::size_t;       ///< Type for representing sizes and indices
+  using iterator      = char_type*;
 #if defined(__cpp_lib_ranges_as_const) and __cpp_lib_ranges_as_const > 202207L
-    using const_iterator = std::const_iterator<iterator>;
+  using const_iterator = std::const_iterator<iterator>;
 #else
-    using const_iterator = const char_type*;
+  using const_iterator = const char_type*;
 #endif
-    using reverse_iterator       = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-    using reference              = char_type&;
-    using const_reference        = const char_type&;
+  using reverse_iterator       = std::reverse_iterator<iterator>;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+  using reference              = char_type&;
+  using const_reference        = const char_type&;
 
-    static_assert(std::contiguous_iterator<iterator>);
-    static_assert(IndexLike<size_type>);
-    ///@}
+  static_assert(std::contiguous_iterator<iterator>);
+  static_assert(IndexLike<size_type>);
+  ///@}
 
-    static constexpr size_type npos = static_cast<size_type>(-1);
+  static constexpr size_type npos = static_cast<size_type>(-1);
 
-    /// @name constructor
-    /// @{
-    /**
-     * @brief Constructs an empty string adapter with the given array capacity.
-     *
-     * @param array Pointer to the character array
-     * @param array_size The maximum number of characters that can be stored in the array (including null terminator)
-     */
-    constexpr static_string_adapter (char_type* array, std::size_t array_size) : head_ {array}, tail_ {head_}, max_length_ {array_size - 1} {
-        using enum BoundCheckStrategy;
-        if constexpr ( bc_strategy == Assert ) {
-            assert(array != nullptr);
-            assert(array_size > 0);
-        }
-        if constexpr ( bc_strategy == Exception ) {
-            if ( array == nullptr )
-                throw std::runtime_error {"null pointer"};
-            if ( array_size == 0 )
-                throw std::length_error {"zero-length array"};
-        }
-        if constexpr ( bc_strategy == LimitToBound )
-            if ( array_size == 0 )
-                return;  // will remain empty forever
-
-        *tail_ = '\0';
+  /// @name constructor
+  /// @{
+  /**
+   * @brief Constructs an empty string adapter with the given array capacity.
+   *
+   * @param array Pointer to the character array
+   * @param array_size The maximum number of characters that can be stored in the array (including null terminator)
+   */
+  constexpr static_string_adapter (char_type* array, std::size_t array_size) : head_ {array}, tail_ {head_}, max_length_ {array_size - 1} {
+    using enum BoundCheckStrategy;
+    if constexpr ( bc_strategy == Assert ) {
+      assert(array != nullptr);
+      assert(array_size > 0);
     }
-
-    /**
-     * @brief Constructs a string adapter with a specified initial string length.
-     *
-     * @param array Pointer to the character array
-     * @param array_size The maximum number of characters that can be stored in the array (including null terminator)
-     * @param string_length Initial length of the string
-     */
-    constexpr static_string_adapter (char_type* array, std::size_t array_size, std::size_t string_length) : head_ {array}, tail_ {head_ + string_length}, max_length_ {array_size - 1} {
-        using enum BoundCheckStrategy;
-        if constexpr ( bc_strategy == Assert ) {
-            assert(array_size > 0);
-            assert(string_length <= max_length_);
-        }
-        if constexpr ( bc_strategy == Exception ) {
-            if ( array == nullptr )
-                throw std::runtime_error {"null pointer"};
-            if ( array_size == 0 )
-                throw std::length_error {"zero-length array"};
-        }
-        if constexpr ( bc_strategy == LimitToBound )
-            return;  // will remain empty forever;
-
-        *tail_ = '\0';
+    if constexpr ( bc_strategy == Exception ) {
+      if ( array == nullptr )
+        throw std::runtime_error {"null pointer"};
+      if ( array_size == 0 )
+        throw std::length_error {"zero-length array"};
     }
+    if constexpr ( bc_strategy == LimitToBound )
+      if ( array_size == 0 )
+        return;  // will remain empty forever
 
-    /**
-     * @brief Constructs an empty string adapter from a std::array.
-     *
-     * @tparam SZ Size of the array
-     * @param array Reference to the std::array
-     */
-    template<std::size_t SZ>
-    constexpr static_string_adapter(std::array<char_type, SZ>& array) : static_string_adapter(array.data( ), array.size( )) {
+    *tail_ = '\0';
+  }
+
+  /**
+   * @brief Constructs a string adapter with a specified initial string length.
+   *
+   * @param array Pointer to the character array
+   * @param array_size The maximum number of characters that can be stored in the array (including null terminator)
+   * @param string_length Initial length of the string
+   */
+  constexpr static_string_adapter (char_type* array, std::size_t array_size, std::size_t string_length) : head_ {array}, tail_ {head_ + string_length}, max_length_ {array_size - 1} {
+    using enum BoundCheckStrategy;
+    if constexpr ( bc_strategy == Assert ) {
+      assert(array_size > 0);
+      assert(string_length <= max_length_);
     }
-
-    /**
-     * @brief Constructs an empty string adapter from a raw C-style array.
-     *
-     * @tparam SZ Size of the array
-     * @param array Reference to the C-style array
-     */
-    template<std::size_t SZ>
-    constexpr static_string_adapter(char_type (&array)[SZ]) : static_string_adapter(array, SZ) {
+    if constexpr ( bc_strategy == Exception ) {
+      if ( array == nullptr )
+        throw std::runtime_error {"null pointer"};
+      if ( array_size == 0 )
+        throw std::length_error {"zero-length array"};
     }
+    if constexpr ( bc_strategy == LimitToBound )
+      return;  // will remain empty forever;
 
-    /// @}
+    *tail_ = '\0';
+  }
 
-    ///@name capacity
-    ///@{
-    /**
-     * @brief Returns the length of the string.
-     *
-     * This method returns the current number of characters in the string,
-     * not counting the null terminator.
-     *
-     * @throws  Does not throw exceptions.
-     *
-     * @return The length of the string as a size_type.
-     */
-    [[nodiscard]] constexpr size_type length ( ) const noexcept {
-        return std::distance(head_, tail_);
+  /**
+   * @brief Constructs an empty string adapter from a std::array.
+   *
+   * @tparam SZ Size of the array
+   * @param array Reference to the std::array
+   */
+  template<std::size_t SZ>
+  constexpr static_string_adapter(std::array<char_type, SZ>& array) : static_string_adapter(array.data( ), array.size( )) {
+  }
+
+  /**
+   * @brief Constructs an empty string adapter from a raw C-style array.
+   *
+   * @tparam SZ Size of the array
+   * @param array Reference to the C-style array
+   */
+  template<std::size_t SZ>
+  constexpr static_string_adapter(char_type (&array)[SZ]) : static_string_adapter(array, SZ) {
+  }
+
+  /// @}
+
+  ///@name capacity
+  ///@{
+  /**
+   * @brief Returns the length of the string.
+   *
+   * This method returns the current number of characters in the string,
+   * not counting the null terminator.
+   *
+   * @throws  Does not throw exceptions.
+   *
+   * @return The length of the string as a size_type.
+   */
+  [[nodiscard]] constexpr size_type length ( ) const noexcept {
+    return std::distance(head_, tail_);
+  }
+
+  /**
+   * @brief Returns the length of the string.
+   *
+   * This method returns the current number of characters in the string,
+   * not counting the null terminator. It is an alias for the length() method.
+   * @throws  Does not throw exceptions.
+   * @return The size of the string as a size_type.
+   */
+  [[nodiscard]] constexpr size_type size ( ) const noexcept {
+    return length( );
+  }
+
+  /**
+   * @brief Returns the maximum size of the string.
+   *
+   * This method returns the maximum number of characters that can be stored
+   * in the string, not counting the null terminator.
+   * @throws  Does not throw exceptions.
+   * @return The maximum size of the string as a size_type.
+   */
+  [[nodiscard]] constexpr size_type max_size ( ) const noexcept {
+    return max_length_;
+  }
+
+  [[nodiscard]] constexpr size_type capacity ( ) const noexcept {
+    return max_size( );
+  }
+
+  [[nodiscard]] constexpr bool empty ( ) const noexcept {
+    return head_ == tail_;
+  }
+
+  [[nodiscard]] constexpr size_type free_space ( ) const noexcept {
+    return max_size( ) - size( );
+  }
+
+  ///@}
+
+  /// @name element access
+  /// @{
+  /**
+   * @brief Accesses the character at the specified position without bounds checking.
+   *
+   * This method provides access to the character at the given index. It does not modify
+   * any internal state of the object. Never perform bound check and never throw exception.
+   * Undefined behavior if `pos` is greater than length of the string.
+   *
+   * @throws Does not throws exceptions.
+   *
+   * @param pos The index of the character to access.
+   * @return A constant reference to the character at position `pos`.
+   */
+  [[nodiscard]] const_reference operator[] (IndexLike auto pos) const noexcept {
+    return *(head_ + pos);
+  }
+
+  /**
+   * @brief Accesses the character at the specified position without bounds checking.
+   *
+   * This method provides access to the character at the given index. It does not modify
+   * any internal state of the object. Never perform bounds and never throw exception. Undefined behavior
+   * if `pos` is greater then length of the string.
+   *
+   * @param pos The index of the character to access.
+   * @return A reference to the character at position `pos`.
+   */
+  [[nodiscard]] reference operator[] (IndexLike auto pos) noexcept {
+    return *(head_ + pos);
+  }
+
+  [[nodiscard]] constexpr const_pointer c_str ( ) const noexcept {
+    return head_;
+  }
+
+  [[nodiscard]] constexpr operator std::string_view ( ) const noexcept {
+    return view( );
+  }
+
+  [[nodiscard]] constexpr std::string_view view ( ) const noexcept {
+    return std::string_view {head_, length( )};
+  }
+
+  [[nodiscard]] constexpr pointer data ( ) noexcept {
+    return head_;
+  }
+
+  [[nodiscard]] constexpr const_pointer data ( ) const noexcept {
+    return head_;
+  }
+
+  [[nodiscard]] constexpr reference front ( ) {
+    return *begin( );
+  }
+
+  [[nodiscard]] constexpr const_reference front ( ) const {
+    return *cbegin( );
+  }
+
+  [[nodiscard]] constexpr reference back ( ) {
+    return *(std::prev(end( )));
+  }
+
+  [[nodiscard]] constexpr const_reference back ( ) const {
+    return *(std::prev(cend( )));
+  }
+
+  /// @}
+
+  /// @name modifiers
+  ///@{
+  void clear ( ) noexcept {
+    tail_  = head_;
+    *tail_ = '\0';
+  }
+
+  // https://en.cppreference.com/w/cpp/string/basic_string/append.html
+  // 1
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& append (size_type count, char ch) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    insert<custom_bc_strategy>(cend( ), count, ch);
+    return *this;
+  }
+
+  // 1a
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& append (char c) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    return append<custom_bc_strategy>(1, c);
+  }
+
+  // 2
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& append (const char_type* s, size_type count) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    return append<custom_bc_strategy>(std::string_view {s, count});
+  }
+
+  // 3
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& append (const char_type* s) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    return append<custom_bc_strategy>(s, ::strlen(s));
+  }
+
+  // 4
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& append (const StringViewLike auto& t) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    if constexpr ( HasBeginEnd<decltype(t)> ) {
+      return append<custom_bc_strategy>(t.begin( ), t.end( ));
+    } else {
+      const std::string_view sv = t;
+      return append<custom_bc_strategy>(sv.cbegin( ), sv.cend( ));
     }
+  }
 
-    /**
-     * @brief Returns the length of the string.
-     *
-     * This method returns the current number of characters in the string,
-     * not counting the null terminator. It is an alias for the length() method.
-     * @throws  Does not throw exceptions.
-     * @return The size of the string as a size_type.
-     */
-    [[nodiscard]] constexpr size_type size ( ) const noexcept {
-        return length( );
+  // 5
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& append (const StringViewLike auto& t, IndexLike auto pos, size_type count = npos) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    if constexpr ( HasSubstr<decltype(t)> ) {
+      return append<custom_bc_strategy>(t.substr(pos, count));
+    } else {
+      const std::string_view sv {t};
+      return append<custom_bc_strategy>(sv.substr(pos, count));
     }
+  }
 
-    /**
-     * @brief Returns the maximum size of the string.
-     *
-     * This method returns the maximum number of characters that can be stored
-     * in the string, not counting the null terminator.
-     * @throws  Does not throw exceptions.
-     * @return The maximum size of the string as a size_type.
-     */
-    [[nodiscard]] constexpr size_type max_size ( ) const noexcept {
-        return max_length_;
-    }
+  // 6 - not required - handled by 4
+  /*
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& append (const std::string& str) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+      return append<custom_bc_strategy>(str.data( ), str.size( ));
+  }
+  */
 
-    [[nodiscard]] constexpr size_type capacity ( ) const noexcept {
-        return max_size( );
-    }
+  // 7 - not required - handled by 5
+  /*
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& append (const StringViewLike auto& str, IndexLike auto pos, size_type count = npos) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+      const std::string_view sv {str};
+      return append<custom_bc_strategy>(sv.substr(pos, count));
+  }
+  */
 
-    [[nodiscard]] constexpr bool empty ( ) const noexcept {
-        return head_ == tail_;
-    }
+  // 8
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& append (std::input_iterator auto first, std::input_iterator auto last) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    insert<custom_bc_strategy>(end( ), first, last);
+    return *this;
+  }
 
-    [[nodiscard]] constexpr size_type free_space ( ) const noexcept {
-        return max_size( ) - size( );
-    }
+  // 9
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& append (std::initializer_list<char> ilist) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    return append<custom_bc_strategy>(ilist.begin( ), ilist.end( ));
+  }
 
-    ///@}
+  constexpr static_string_adapter& operator+= (const std::string& str) noexcept(noexcept(append(str))) {
+    return append(str);
+  }
 
-    /// @name element access
-    /// @{
-    /**
-     * @brief Accesses the character at the specified position without bounds checking.
-     *
-     * This method provides access to the character at the given index. It does not modify
-     * any internal state of the object. Never perform bound check and never throw exception.
-     * Undefined behavior if `pos` is greater then length of the string.
-     *
-     * @throws Does not throws exceptions.
-     *
-     * @param pos The index of the character to access.
-     * @return A constant reference to the character at position `pos`.
-     */
-    [[nodiscard]] const_reference operator[] (IndexLike auto pos) const noexcept {
-        return *(head_ + pos);
-    }
+  constexpr static_string_adapter& operator+= (const StringViewLike auto& sv) noexcept(noexcept(append(sv))) {
+    return append(sv);
+  }
 
-    /**
-     * @brief Accesses the character at the specified position without bounds checking.
-     *
-     * This method provides access to the character at the given index. It does not modify
-     * any internal state of the object. Never perform bounds and never throw exception. Undefined behavior
-     * if `pos` is greater then length of the string.
-     *
-     * @param pos The index of the character to access.
-     * @return A reference to the character at position `pos`.
-     */
-    [[nodiscard]] reference operator[] (IndexLike auto pos) noexcept {
-        return *(head_ + pos);
-    }
+  constexpr static_string_adapter& operator+= (const char* cstr) noexcept(noexcept(append(cstr))) {
+    return append(cstr);
+  }
 
-    [[nodiscard]] constexpr const_pointer c_str ( ) const noexcept {
-        return head_;
-    }
+  constexpr static_string_adapter& operator+= (char ch) noexcept(noexcept(append(ch))) {
+    return append(ch);
+  }
 
-    [[nodiscard]] constexpr operator std::string_view ( ) const noexcept {
-        return view( );
-    }
+  constexpr static_string_adapter& operator+= (std::initializer_list<char> ilist) noexcept(noexcept(append(ilist))) {
+    return append(ilist);
+  }
 
-    [[nodiscard]] constexpr std::string_view view ( ) const noexcept {
-        return std::string_view {head_, length( )};
-    }
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr void push_back (char ch) noexcept(noexcept(append(ch))) {
+    append(ch);
+  }
 
-    [[nodiscard]] constexpr pointer data ( ) noexcept {
-        return head_;
-    }
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr void pop_back ( ) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    erase(std::prev(end( )));
+  }
 
-    [[nodiscard]] constexpr const_pointer data ( ) const noexcept {
-        return head_;
-    }
+  /// @see https://en.cppreference.com/w/cpp/string/basic_string/assign
+  // 1: not required -- implemented by 6
+  /*
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& assign (const std::string& str) {
+      clear( );
+      return append<custom_bc_strategy>(str);
+  }
+  */
 
-    [[nodiscard]] constexpr reference front ( ) {
-        return *begin( );
-    }
+  // 3
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& assign (size_type count, char ch) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    clear( );
+    return append<custom_bc_strategy>(count, ch);
+  }
 
-    [[nodiscard]] constexpr const_reference front ( ) const {
-        return *cbegin( );
-    }
+  // 4
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& assign (const char_type* cstr, size_type count) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    clear( );
+    return append<custom_bc_strategy>(cstr, count);
+  }
 
-    [[nodiscard]] constexpr reference back ( ) {
-        return *(std::prev(end( )));
-    }
+  // 5
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& assign (const char_type* cstr) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    clear( );
+    return append<custom_bc_strategy>(cstr);
+  }
 
-    [[nodiscard]] constexpr const_reference back ( ) const {
-        return *(std::prev(cend( )));
-    }
+  // 6
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& assign (const StringViewLike auto& sv) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    clear( );
+    return append<custom_bc_strategy>(sv);
+  }
 
-    /// @}
+  // 7
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& assign (const StringViewLike auto& sv, IndexLike auto pos, size_type count = npos) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    clear( );
+    return append<custom_bc_strategy>(sv, pos, count);
+  }
 
-    /// @name modifiers
-    ///@{
-    void clear ( ) noexcept {
-        tail_  = head_;
-        *tail_ = '\0';
-    }
+  // 8: not required - implemented by 7
+  /*
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& assign (const std::string& str, IndexLike auto pos, size_type count = npos) {
+      clear( );
+      return append<custom_bc_strategy>(str, pos, count);
+  }
+  */
 
-    // https://en.cppreference.com/w/cpp/string/basic_string/append.html
-    // 1
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& append (size_type count, char ch) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        insert<custom_bc_strategy>(cend( ), count, ch);
-        return *this;
-    }
-
-    // 1a
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& append (char c) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        return append<custom_bc_strategy>(1, c);
-    }
-
-    // 2
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& append (const char_type* s, size_type count) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        return append<custom_bc_strategy>(std::string_view {s, count});
-    }
-
-    // 3
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& append (const char_type* s) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        return append<custom_bc_strategy>(s, ::strlen(s));
-    }
-
-    // 4
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& append (const StringViewLike auto& t) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        if constexpr ( HasBeginEnd<decltype(t)> ) {
-            return append<custom_bc_strategy>(t.begin( ), t.end( ));
-        } else {
-            const std::string_view sv = t;
-            return append<custom_bc_strategy>(sv.cbegin( ), sv.cend( ));
-        }
-    }
-
-    // 5
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& append (const StringViewLike auto& t, IndexLike auto pos, size_type count = npos) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        if constexpr ( HasSubstr<decltype(t)> ) {
-            return append<custom_bc_strategy>(t.substr(pos, count));
-        } else {
-            const std::string_view sv {t};
-            return append<custom_bc_strategy>(sv.substr(pos, count));
-        }
-    }
-
-    // 6 - not required - handled by 4
-    /*
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& append (const std::string& str) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        return append<custom_bc_strategy>(str.data( ), str.size( ));
-    }
-    */
-
-    // 7 - not required - handled by 5
-    /*
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& append (const StringViewLike auto& str, IndexLike auto pos, size_type count = npos) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        const std::string_view sv {str};
-        return append<custom_bc_strategy>(sv.substr(pos, count));
-    }
-    */
-
-    // 8
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& append (std::input_iterator auto first, std::input_iterator auto last) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        insert<custom_bc_strategy>(end( ), first, last);
-        return *this;
-    }
-
-    // 9
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& append (std::initializer_list<char> ilist) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        return append<custom_bc_strategy>(ilist.begin( ), ilist.end( ));
-    }
-
-    constexpr static_string_adapter& operator+= (const std::string& str) noexcept(noexcept(append(str))) {
-        return append(str);
-    }
-
-    constexpr static_string_adapter& operator+= (const StringViewLike auto& sv) noexcept(noexcept(append(sv))) {
-        return append(sv);
-    }
-
-    constexpr static_string_adapter& operator+= (const char* cstr) noexcept(noexcept(append(cstr))) {
-        return append(cstr);
-    }
-
-    constexpr static_string_adapter& operator+= (char ch) noexcept(noexcept(append(ch))) {
-        return append(ch);
-    }
-
-    constexpr static_string_adapter& operator+= (std::initializer_list<char> ilist) noexcept(noexcept(append(ilist))) {
-        return append(ilist);
-    }
-
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr void push_back (char ch) noexcept(noexcept(append(ch))) {
-        append(ch);
-    }
-
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr void pop_back ( ) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        erase(std::prev(end( )));
-    }
-
-    /// @see https://en.cppreference.com/w/cpp/string/basic_string/assign
-    // 1: not required -- implemented by 6
-    /*
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& assign (const std::string& str) {
-        clear( );
-        return append<custom_bc_strategy>(str);
-    }
-    */
-
-    // 3
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& assign (size_type count, char ch) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        clear( );
-        return append<custom_bc_strategy>(count, ch);
-    }
-
-    // 4
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& assign (const char_type* cstr, size_type count) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        clear( );
-        return append<custom_bc_strategy>(cstr, count);
-    }
-
-    // 5
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& assign (const char_type* cstr) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        clear( );
-        return append<custom_bc_strategy>(cstr);
-    }
-
-    // 6
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& assign (const StringViewLike auto& sv) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        clear( );
-        return append<custom_bc_strategy>(sv);
-    }
-
-    // 7
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& assign (const StringViewLike auto& sv, IndexLike auto pos, size_type count = npos) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        clear( );
-        return append<custom_bc_strategy>(sv, pos, count);
-    }
-
-    // 8: not required - implemented by 7
-    /*
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& assign (const std::string& str, IndexLike auto pos, size_type count = npos) {
-        clear( );
-        return append<custom_bc_strategy>(str, pos, count);
-    }
-    */
-
-    // 9
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& assign (std::input_iterator auto first, std::input_iterator auto last) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        clear( );
+  // 9
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& assign (std::input_iterator auto first, std::input_iterator auto last) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    clear( );
 #if defined(__GNUC__) && __GNUC__ <= 13
-        // workaround for assigning empty string_view -- in this case first and last are nullptr and
-        // compilation fail because built-in mem functions require non-null pointers
-        if ( first == last )
-            return *this;
+    // workaround for assigning empty string_view -- in this case first and last are nullptr and
+    // compilation fail because built-in mem functions require non-null pointers
+    if ( first == last )
+      return *this;
 #endif
-        return append<custom_bc_strategy>(first, last);
-    }
-
-    // 10
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& assign (std::initializer_list<char> ilist) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        clear( );
-        return append<custom_bc_strategy>(ilist);
-    }
-
-    // 11
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& assign (char_type c) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        clear( );
-        return append(c);
-    }
-
-    // 1: not required - implemented by 6
-    /*
-    constexpr static_string_adapter& operator= (const std::string& sv) noexcept(bc_strategy != BoundCheckStrategy::Exception) {
-        return assign(sv);
-    }
-    */
-
-    // 3
-    constexpr static_string_adapter& operator= (const char_type* cstr) noexcept(bc_strategy != BoundCheckStrategy::Exception) {
-        return assign(cstr);
-    }
-
-    // 4
-    constexpr static_string_adapter& operator= (char_type ch) noexcept(bc_strategy != BoundCheckStrategy::Exception) {
-        return assign(ch);
-    }
-
-    // 5
-    constexpr static_string_adapter& operator= (std::initializer_list<char_type> ilist) noexcept(bc_strategy != BoundCheckStrategy::Exception) {
-        return assign(ilist);
-    }
-
-    // 6
-    constexpr static_string_adapter& operator= (const StringViewLike auto& sv) noexcept(bc_strategy != BoundCheckStrategy::Exception) {
-        return assign(sv);
-    }
-
-    // 7
-    static_string_adapter& operator= (std::nullptr_t) = delete;
-
-    // 1
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& insert (IndexLike auto index, size_type count, char ch) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        insert<custom_bc_strategy>(std::next(begin( ), index), count, ch);
-        return *this;
-    }
-
-    // 1a
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& insert (IndexLike auto index, char ch) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        insert<custom_bc_strategy>(std::next(begin( ), index), ch);
-        return *this;
-    }
-
-    // 2
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& insert (IndexLike auto index, const char_type* cstr) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        return insert<custom_bc_strategy>(index, std::string_view {cstr});
-    }
-
-    // 3
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& insert (IndexLike auto index, const char_type* cstr, size_type count) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        return insert<custom_bc_strategy>(index, std::string_view {cstr, count});
-    }
-
-    // 4: not required - implemented by 10
-    /*
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& insert (IndexLike auto index, const std::string& str) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        return insert<custom_bc_strategy>(index, std::string_view {str});
-    }
-    */
-
-    // 5: not required - imp
-    /*
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& insert (IndexLike auto index, const std::string& str, size_type s_index, size_type count) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        return insert<custom_bc_strategy>(index, std::string_view {str}, s_index, count);
-    }
-    */
-
-    // 6
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr iterator insert (const_iterator pos, char ch) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        return insert<custom_bc_strategy>(pos, 1, ch);
-    }
-
-    // 7
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr iterator insert (const_iterator pos, size_type count, char ch) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        replace<custom_bc_strategy>(pos, pos, count, ch);
-        return begin( ) + std::distance(cbegin( ), pos);
-    }
-
-    // 8
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr iterator insert (const_iterator pos, std::input_iterator auto first, std::input_iterator auto last) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        replace<custom_bc_strategy>(pos, pos, first, last);
-        return begin( ) + std::distance(cbegin( ), pos);
-    }
-
-    // 9
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr iterator insert (const_iterator pos, std::initializer_list<char> ilist) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        return insert<custom_bc_strategy>(pos, ilist.begin( ), ilist.end( ));
-    }
-
-    // 10
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& insert (IndexLike auto index, const StringViewLike auto& sv) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        std::string_view t {sv};
-        insert<custom_bc_strategy>(std::next(begin( ), index), t.cbegin( ), t.cend( ));
-        return *this;
-    }
-
-    // 11
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& insert (IndexLike auto index, const StringViewLike auto& sv, size_type sv_index, size_type count = npos) noexcept(
-        custom_bc_strategy != BoundCheckStrategy::Exception) {
-        if constexpr ( HasSubstr<decltype(sv)> ) {
-            return insert<custom_bc_strategy>(index, sv.substr(sv_index, count));
-        } else {
-            std::string_view t {sv};
-            return insert<custom_bc_strategy>(index, t.substr(sv_index, count));
-        }
-    }
-
-    // 1
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& erase (IndexLike auto index = 0, size_type count = npos) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        return replace<custom_bc_strategy>(index, count == npos ? length( ) - index : count, "");
-    }
-
-    // 2
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr iterator erase (const_iterator position) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        replace<custom_bc_strategy>(position, std::next(position), "");
-        return begin( ) + std::distance(cbegin( ), position);
-    }
-
-    // 3
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr iterator erase (const_iterator first, const_iterator last) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        replace<custom_bc_strategy>(first, last, "");
-        return begin( ) + std::distance(cbegin( ), first);
-    }
-
-    // 1:  not required - implemented by 12
-    /*
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& replace (const IndexLike auto pos, size_type count, const std::string& str) {
-        return replace<custom_bc_strategy>(pos, count, std::string_view {str});
-    }
-    */
-
-    // 2: not required: implemented by 13
-    /*
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& replace (const_iterator first, const_iterator last, const std::string& str) {
-        return replace<custom_bc_strategy>(first, last, str.cbegin( ), str.cend( ));
-    }
-    */
-
-    // 3: not required - implemented by 14
-    /*
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& replace (IndexLike auto pos, size_type count, const std::string& str, IndexLike auto pos2, size_type count2 = npos) {
-        return replace<custom_bc_strategy>(pos, count, std::string_view {str}, pos2, count2);
-    }
-    */
-
-    // 4
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& replace (IndexLike auto pos, size_type count, const char_type* cstr, size_type count2) {
-        return replace<custom_bc_strategy>(pos, count, std::string_view {cstr, count2});
-    }
-
-    // 5
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& replace (const_iterator first, const_iterator last, const char_type* cstr, size_type count2) {
-        return replace<custom_bc_strategy>(first, last, std::string_view {cstr, count2});
-    }
-
-    // 6
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& replace (IndexLike auto pos, size_type count, const char_type* cstr) {
-        return replace<custom_bc_strategy>(pos, count, cstr, ::strlen(cstr));
-    }
-
-    // 7
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& replace (const_iterator first, const_iterator last, const char_type* cstr) {
-        return replace<custom_bc_strategy>(first, last, std::string_view {cstr});
-    }
-
-    // 8
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& replace (IndexLike auto pos, size_type count, size_type count2, char_type ch) {
-        return replace<custom_bc_strategy>(cbegin( ) + pos, cbegin( ) + pos + count, count2, ch);
-    }
-
-    // 9
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& replace (const_iterator first, const_iterator last, size_type count2, char_type ch) {
-        auto count = std::distance(first, last);
-        auto d     = count2 - count;
-        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Assert ) {
-            assert(first >= cbegin( ));
-            assert(last <= cend( ));
-            assert(first <= last);
-            assert(size( ) + d <= capacity( ));
-        }
-        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception ) {
-            if ( first < cbegin( ) )
-                throw std::out_of_range("first < cbegin");
-            if ( last > cend( ) )
-                throw std::out_of_range("last > end");
-            if ( first > last )
-                throw std::range_error("first > last");
-            if ( size( ) + d > capacity( ) )
-                throw std::overflow_error("size+d > capacity");
-        }
-        if constexpr ( custom_bc_strategy == BoundCheckStrategy::LimitToBound ) {
-            if ( first > last ) {
-                std::swap(first, last);
-                count = -count;
-            }
-            if ( first > cend( ) && last > cend( ) ) {
-                first = cend( );
-                last  = cend( );
-            } else if ( first < cbegin( ) && last < cbegin( ) ) {
-                first = cbegin( );
-                last  = cbegin( );
-            }
-            first  = std::max(first, cbegin( ));
-            last   = std::min(last, cend( ));
-            count2 = std::min(count2, free_space( ) - count);
-            d      = count2 - count;
-        }
-
-        shift(last, d);
-        auto f = begin( ) + std::distance(cbegin( ), first);
-        std::fill_n(f, count2, ch);
-        tail_ += d;
-        *tail_ = '\0';
-        return *this;
-    }
-
-    // 10
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& replace (const_iterator first, const_iterator last, std::input_iterator auto first2, std::input_iterator auto last2) {
-        auto count  = std::distance(first, last);
-        auto count2 = std::distance(first2, last2);
-        auto d      = count2 - count;
-        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Assert ) {
-            assert(first >= cbegin( ));
-            assert(last <= cend( ));
-            assert(first <= last);
-            assert(size( ) + d <= capacity( ));
-        }
-        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception ) {
-            if ( first < cbegin( ) )
-                throw std::out_of_range("first < cbegin");
-            if ( last > cend( ) )
-                throw std::out_of_range("last > end");
-            if ( first > last )
-                throw std::range_error("first > last");
-            if ( size( ) + d > capacity( ) )
-                throw std::overflow_error("size+d > capacity");
-        }
-        if constexpr ( custom_bc_strategy == BoundCheckStrategy::LimitToBound ) {
-            if ( first2 > last2 ) {
-                std::swap(first2, last2);
-                count2 = -count2;
-            }
-            if ( first > last ) {
-                std::swap(first, last);
-                count = -count;
-            }
-            if ( first > cend( ) && last > cend( ) ) {
-                first = cend( );
-                last  = cend( );
-            } else if ( first < cbegin( ) && last < cbegin( ) ) {
-                first = cbegin( );
-                last  = cbegin( );
-            }
-            first  = std::max(first, cbegin( ));
-            last   = std::min(last, cend( ));
-            count2 = std::min(static_cast<size_type>(count2), free_space( ) - count);
-            d      = count2 - count;
-        }
-
-        shift(last, d);
-        auto f = begin( ) + std::distance(cbegin( ), first);
-        std::copy_n(first2, count2, f);
-        tail_ += d;
-        *tail_ = '\0';
-        return *this;
-    }
-
-    // 11
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& replace (const_iterator first, const_iterator last, std::initializer_list<char_type> ilist) {
-        return replace<custom_bc_strategy>(first, last, ilist.begin( ), ilist.end( ));
-    }
-
-    // 12
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& replace (size_type pos, size_type count, const StringViewLike auto& sv) {
-        return replace<custom_bc_strategy>(cbegin( ) + pos, cbegin( ) + pos + count, sv);
-    }
-
-    // 13
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& replace (const_iterator first, const_iterator last, const StringViewLike auto& sv) {
-        if ( HasBeginEnd<decltype(sv)> ) {
-            return replace<custom_bc_strategy>(first, last, sv.begin( ), sv.end( ));
-        } else {
-            std::string_view t {sv};
-            return replace<custom_bc_strategy>(first, last, t.cbegin( ), t.cend( ));
-        }
-    }
-
-    // 14
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr static_string_adapter& replace (IndexLike auto pos, size_type count, const StringViewLike auto& sv, IndexLike auto pos2, size_type count2 = npos) {
-        if ( HasSubstr<decltype(sv)> ) {
-            return replace<custom_bc_strategy>(pos, count, sv.substr(pos2, count2));
-        } else {
-            std::string_view t {sv};
-            return replace<custom_bc_strategy>(pos, count, t.substr(pos2, count2));
-        }
-    }
-
-    ///@}
-
-    ///@name iterators
-    ///@{
-    /**
-     * @brief Returns an iterator pointing to the beginning of the string.
-     *
-     * This function returns a mutable iterator that points to the first character in the string.
-     *
-     * @return Iterator pointing to the start of the string.
-     *
-     * @see std::string::begin()
-     *
-     * @throw None. This method is noexcept.
-     *
-     * @par Example usage:
-     * @code
-     * char data_array[15] {"Hello, World!"};
-     * wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
-     * auto it = adapter.begin();
-     * if (it != nullptr) {
-     *     char first_char = *it; // first_char is 'H'
-     * }
-     * @endcode
-     */
-    [[nodiscard]] constexpr iterator begin ( ) noexcept {
-        return head_;
-    }
-
-    /**
-     * @brief Returns a const_iterator pointing to the beginning of the string.
-     *
-     * This function returns a constant iterator that points to the first character in the string.
-     *
-     * @return Const_iterator pointing to the start of the string.
-     *
-     * @see std::string::cbegin()
-     *
-     * @throw None. This method is noexcept.
-     *
-     * @par Example usage:
-     * @code
-     * char data_array[15] {"Hello, World!"};
-     * const wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
-     * auto it = adapter.cbegin();
-     * if (it != nullptr) {
-     *     char first_char = *it; // first_char is 'H'
-     * }
-     * @endcode
-     */
-    [[nodiscard]] constexpr const_iterator cbegin ( ) const noexcept {
-        return head_;
-    }
-
-    /**
-     * @brief Returns an iterator pointing to the beginning of the string (const version).
-     *
-     * This function returns a constant iterator that points to the first character in the string.
-     *
-     * @return Const_iterator pointing to the start of the string.
-     *
-     * @see std::string::begin() const
-     *
-     * @throw None. This method is noexcept.
-     *
-     * @par Example usage:
-     * @code
-     * char data_array[15] {"Hello, World!"};
-     * const wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
-     * auto it = adapter.begin();
-     * if (it != nullptr) {
-     *     char first_char = *it; // first_char is 'H'
-     * }
-     * @endcode
-     */
-    [[nodiscard]] constexpr const_iterator begin ( ) const noexcept {
-        return cbegin( );
-    }
-
-    /**
-     * @brief Returns an iterator pointing to the end of the string.
-     *
-     * This function returns a mutable iterator that points one past the last character in the string.
-     *
-     * @return Iterator pointing to one past the end of the string.
-     *
-     * @see std::string::end()
-     *
-     * @throw None. This method is noexcept.
-     *
-     * @par Example usage:
-     * @code
-     * char data_array[15] {"Hello, World!"};
-     * wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
-     * auto it = adapter.end();
-     * if (it != nullptr) {
-     *     char past_last_char = *(it - 1); // past_last_char is '!'
-     * }
-     * @endcode
-     */
-    [[nodiscard]] constexpr iterator end ( ) noexcept {
-        return tail_;
-    }
-
-    /**
-     * @brief Returns a const_iterator pointing to the end of the string.
-     *
-     * This function returns a constant iterator that points one past the last character in the string.
-     *
-     * @return Const_iterator pointing to one past the end of the string.
-     *
-     * @see std::string::cend()
-     *
-     * @throw None. This method is noexcept.
-     *
-     * @par Example usage:
-     * @code
-     * char data_array[15] {"Hello, World!"};
-     * const wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
-     * auto it = adapter.cend();
-     * if (it != nullptr) {
-     *     char past_last_char = *(it - 1); // past_last_char is '!'
-     * }
-     * @endcode
-     */
-    [[nodiscard]] constexpr const_iterator cend ( ) const noexcept {
-        return tail_;
-    }
-
-    /**
-     * @brief Returns an iterator pointing to the end of the string (const version).
-     *
-     * This function returns a constant iterator that points one past the last character in the string.
-     *
-     * @return Const_iterator pointing to one past the end of the string.
-     *
-     * @see std::string::end() const
-     *
-     * @throw None. This method is noexcept.
-     *
-     * @par Example usage:
-     * @code
-     * char data_array[15] {"Hello, World!"};
-     * const wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
-     * auto it = adapter.end();
-     * if (it != nullptr) {
-     *     char past_last_char = *(it - 1); // past_last_char is '!'
-     * }
-     * @endcode
-     */
-    [[nodiscard]] constexpr const_iterator end ( ) const noexcept {
-        return cend( );
-    }
-
-    /**
-     * @brief Returns a reverse_iterator pointing to the beginning of the reversed string.
-     *
-     * This function returns a mutable reverse iterator that points to the last character in the string.
-     *
-     * @return Reverse_iterator pointing to the start of the reversed string.
-     *
-     * @see std::string::rbegin()
-     *
-     * @throw None. This method is noexcept.
-     *
-     * @par Example usage:
-     * @code
-     * char data_array[15] {"Hello, World!"};
-     * wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
-     * auto rit = adapter.rbegin();
-     * if (rit != nullptr) {
-     *     char last_char = *rit; // last_char is '!'
-     * }
-     * @endcode
-     */
-    [[nodiscard]] constexpr reverse_iterator rbegin ( ) noexcept {
-        return std::make_reverse_iterator(end( ));
-    }
-
-    /**
-     * @brief Returns a const_reverse_iterator pointing to the beginning of the reversed string.
-     *
-     * This function returns a constant reverse iterator that points to the last character in the string.
-     *
-     * @return Const_reverse_iterator pointing to the start of the reversed string.
-     *
-     * @see std::string::crbegin()
-     *
-     * @throw None. This method is noexcept.
-     *
-     * @par Example usage:
-     * @code
-     * char data_array[15] {"Hello, World!"};
-     * const wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
-     * auto rit = adapter.crbegin();
-     * if (rit != nullptr) {
-     *     char last_char = *rit; // last_char is '!'
-     * }
-     * @endcode
-     */
-    [[nodiscard]] constexpr const_reverse_iterator crbegin ( ) const noexcept {
-        return std::make_reverse_iterator(cend( ));
-    }
-
-    /**
-     * @brief Returns a reverse_iterator pointing to the beginning of the reversed string (const version).
-     *
-     * This function returns a constant reverse iterator that points to the last character in the string.
-     *
-     * @return Const_reverse_iterator pointing to the start of the reversed string.
-     *
-     * @see std::string::rbegin() const
-     *
-     * @throw None. This method is noexcept.
-     *
-     * @par Example usage:
-     * @code
-     * char data_array[15] {"Hello, World!"};
-     * const wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
-     * auto rit = adapter.rbegin();
-     * if (rit != nullptr) {
-     *     char last_char = *rit; // last_char is '!'
-     * }
-     * @endcode
-     */
-    [[nodiscard]] constexpr const_reverse_iterator rbegin ( ) const noexcept {
-        return crbegin( );
-    }
-
-    /**
-     * @brief Returns a reverse_iterator pointing to the end of the reversed string.
-     *
-     * This function returns a mutable reverse iterator that points one before the first character in the string.
-     *
-     * @return Reverse_iterator pointing to one before the beginning of the reversed string.
-     *
-     * @see std::string::rend()
-     *
-     * @throw None. This method is noexcept.
-     *
-     * @par Example usage:
-     * @code
-     * char data_array[15] {"Hello, World!"};
-     * wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
-     * auto rit = adapter.rend();
-     * if (rit != nullptr) {
-     *     char first_char = *(rit - 1); // first_char is 'H'
-     * }
-     * @endcode
-     */
-    [[nodiscard]] constexpr reverse_iterator rend ( ) noexcept {
-        return std::make_reverse_iterator(begin( ));
-    }
-
-    /**
-     * @brief Returns a const_reverse_iterator pointing to the end of the reversed string.
-     *
-     * This function returns a constant reverse iterator that points one before the first character in the string.
-     *
-     * @return Const_reverse_iterator pointing to one before the beginning of the reversed string.
-     *
-     * @see std::string::crend()
-     *
-     * @throw None. This method is noexcept.
-     *
-     * @par Example usage:
-     * @code
-     * char data_array[15] {"Hello, World!"};
-     * const wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
-     * auto rit = adapter.crend();
-     * if (rit != nullptr) {
-     *     char first_char = *(rit - 1); // first_char is 'H'
-     * }
-     * @endcode
-     */
-    [[nodiscard]] constexpr const_reverse_iterator crend ( ) const noexcept {
-        return std::make_reverse_iterator(cbegin( ));
-    }
-
-    /**
-     * @brief Returns a reverse_iterator pointing to the end of the reversed string (const version).
-     *
-     * This function returns a constant reverse iterator that points one before the first character in the string.
-     *
-     * @return Const_reverse_iterator pointing to one before the beginning of the reversed string.
-     *
-     * @see std::string::rend() const
-     *
-     * @throw None. This method is noexcept.
-     *
-     * @par Example usage:
-     * @code
-     * char data_array[15] {"Hello, World!"};
-     * const wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
-     * auto rit = adapter.rend();
-     * if (rit != nullptr) {
-     *     char first_char = *(rit - 1); // first_char is 'H'
-     * }
-     * @endcode
-     */
-    [[nodiscard]] constexpr const_reverse_iterator rend ( ) const noexcept {
-        return crend( );
-    }
-
-    ///@}
-
-    ///@name operations
-    ///@{
-
-    // https://en.cppreference.com/w/cpp/string/basic_string/compare.html
-    // 1: not required -- implemented by 7
-    /*
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr int compare (const std::string& str) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        return compare<custom_bc_strategy>(str.cbegin( ), str.cend( ));
-    }
-    */
-
-    // 2 : not required -- implemended by 8
-    /*
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr int compare (IndexLike auto pos1, size_type count1, const std::string& str) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        std::string_view sv {str};
-        return compare<custom_bc_strategy>(pos1, count1, sv);
-    }
-    */
-
-    // 3: not required -- implemented by 9
-    /*
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr int compare (IndexLike auto pos1, size_type count1, const std::string& str, IndexLike auto pos2, size_type count2 = npos) const
-        noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        std::string_view sv {str};
-        return compare<custom_bc_strategy>(pos1, count1, sv, pos2, count2);
-    }
-    */
-
-    // 4
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr int compare (const char_type* cstr) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        const std::string_view sv {cstr};
-        return compare<custom_bc_strategy>(sv);
-    }
-
-    // 5
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr int compare (IndexLike auto pos1, size_type count1, const char_type* s) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        const std::string_view sv {s};
-        return compare<custom_bc_strategy>(pos1, count1, sv);
-    }
-
-    // 6
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr int compare (IndexLike auto pos1, size_type count1, const char_type* s, size_type count2) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        const std::string_view sv {s, count2};
-        return compare<custom_bc_strategy>(pos1, count1, sv);
-    }
-
-    // 7
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr int compare (const StringViewLike auto& t) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        if ( HasBeginEnd<decltype(t)> ) {
-            return compare<custom_bc_strategy>(t.begin( ), t.end( ));
-        } else {
-            const std::string_view sv {t};
-            return compare<custom_bc_strategy>(sv.cbegin( ), sv.cend( ));
-        }
-    }
-
-    // 8
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr int compare (IndexLike auto pos1, size_type count1, const StringViewLike auto& t) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        if ( HasBeginEnd<decltype(t)> ) {
-            return compare<custom_bc_strategy>(pos1, count1, t.begin( ), t.end( ));
-        } else {
-            const std::string_view sv {t};
-            return compare<custom_bc_strategy>(pos1, count1, sv.cbegin( ), sv.cend( ));
-        }
-    }
-
-    // 9
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr int compare (IndexLike auto pos1, size_type count1, const StringViewLike auto& t, IndexLike auto pos2, size_type count2 = npos) const
-        noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        if constexpr ( HasSubstr<decltype(t)> ) {
-            return compare<custom_bc_strategy>(pos1, count1, t.substr(pos2, count2));
-        } else {
-            const std::string_view sv {t};
-            return compare<custom_bc_strategy>(pos1, count1, sv.substr(pos2, count2));
-        }
-    }
+    return append<custom_bc_strategy>(first, last);
+  }
+
+  // 10
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& assign (std::initializer_list<char> ilist) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    clear( );
+    return append<custom_bc_strategy>(ilist);
+  }
+
+  // 11
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& assign (char_type c) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    clear( );
+    return append(c);
+  }
+
+  // 1: not required - implemented by 6
+  /*
+  constexpr static_string_adapter& operator= (const std::string& sv) noexcept(bc_strategy != BoundCheckStrategy::Exception) {
+      return assign(sv);
+  }
+  */
+
+  // 3
+  constexpr static_string_adapter& operator= (const char_type* cstr) noexcept(bc_strategy != BoundCheckStrategy::Exception) {
+    return assign(cstr);
+  }
+
+  // 4
+  constexpr static_string_adapter& operator= (char_type ch) noexcept(bc_strategy != BoundCheckStrategy::Exception) {
+    return assign(ch);
+  }
+
+  // 5
+  constexpr static_string_adapter& operator= (std::initializer_list<char_type> ilist) noexcept(bc_strategy != BoundCheckStrategy::Exception) {
+    return assign(ilist);
+  }
+
+  // 6
+  constexpr static_string_adapter& operator= (const StringViewLike auto& sv) noexcept(bc_strategy != BoundCheckStrategy::Exception) {
+    return assign(sv);
+  }
+
+  // 7
+  static_string_adapter& operator= (std::nullptr_t) = delete;
+
+  // 1
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& insert (IndexLike auto index, size_type count, char ch) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    insert<custom_bc_strategy>(std::next(begin( ), index), count, ch);
+    return *this;
+  }
+
+  // 1a
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& insert (IndexLike auto index, char ch) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    insert<custom_bc_strategy>(std::next(begin( ), index), ch);
+    return *this;
+  }
+
+  // 2
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& insert (IndexLike auto index, const char_type* cstr) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    return insert<custom_bc_strategy>(index, std::string_view {cstr});
+  }
+
+  // 3
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& insert (IndexLike auto index, const char_type* cstr, size_type count) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    return insert<custom_bc_strategy>(index, std::string_view {cstr, count});
+  }
+
+  // 4: not required - implemented by 10
+  /*
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& insert (IndexLike auto index, const std::string& str) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+      return insert<custom_bc_strategy>(index, std::string_view {str});
+  }
+  */
+
+  // 5: not required - imp
+  /*
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& insert (IndexLike auto index, const std::string& str, size_type s_index, size_type count) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+      return insert<custom_bc_strategy>(index, std::string_view {str}, s_index, count);
+  }
+  */
+
+  // 6
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr iterator insert (const_iterator pos, char ch) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    return insert<custom_bc_strategy>(pos, 1, ch);
+  }
+
+  // 7
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr iterator insert (const_iterator pos, size_type count, char ch) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    replace<custom_bc_strategy>(pos, pos, count, ch);
+    return begin( ) + std::distance(cbegin( ), pos);
+  }
+
+  // 8
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr iterator insert (const_iterator pos, std::input_iterator auto first, std::input_iterator auto last) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    replace<custom_bc_strategy>(pos, pos, first, last);
+    return begin( ) + std::distance(cbegin( ), pos);
+  }
+
+  // 9
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr iterator insert (const_iterator pos, std::initializer_list<char> ilist) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    return insert<custom_bc_strategy>(pos, ilist.begin( ), ilist.end( ));
+  }
+
+  // 10
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& insert (IndexLike auto index, const StringViewLike auto& sv) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    std::string_view t {sv};
+    insert<custom_bc_strategy>(std::next(begin( ), index), t.cbegin( ), t.cend( ));
+    return *this;
+  }
+
+  // 11
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& insert (IndexLike auto index, const StringViewLike auto& sv, size_type sv_index, size_type count = npos) noexcept(
+      custom_bc_strategy != BoundCheckStrategy::Exception) {
+    if constexpr ( HasSubstr<decltype(sv)> ) {
+      return insert<custom_bc_strategy>(index, sv.substr(sv_index, count));
+    } else {
+      std::string_view t {sv};
+      return insert<custom_bc_strategy>(index, t.substr(sv_index, count));
+    }
+  }
+
+  // 1
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& erase (IndexLike auto index = 0, size_type count = npos) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    return replace<custom_bc_strategy>(index, count == npos ? length( ) - index : count, "");
+  }
+
+  // 2
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr iterator erase (const_iterator position) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    replace<custom_bc_strategy>(position, std::next(position), "");
+    return begin( ) + std::distance(cbegin( ), position);
+  }
+
+  // 3
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr iterator erase (const_iterator first, const_iterator last) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    replace<custom_bc_strategy>(first, last, "");
+    return begin( ) + std::distance(cbegin( ), first);
+  }
+
+  // 1:  not required - implemented by 12
+  /*
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& replace (const IndexLike auto pos, size_type count, const std::string& str) {
+      return replace<custom_bc_strategy>(pos, count, std::string_view {str});
+  }
+  */
+
+  // 2: not required: implemented by 13
+  /*
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& replace (const_iterator first, const_iterator last, const std::string& str) {
+      return replace<custom_bc_strategy>(first, last, str.cbegin( ), str.cend( ));
+  }
+  */
+
+  // 3: not required - implemented by 14
+  /*
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& replace (IndexLike auto pos, size_type count, const std::string& str, IndexLike auto pos2, size_type count2 = npos) {
+      return replace<custom_bc_strategy>(pos, count, std::string_view {str}, pos2, count2);
+  }
+  */
+
+  // 4
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& replace (IndexLike auto pos, size_type count, const char_type* cstr, size_type count2) {
+    return replace<custom_bc_strategy>(pos, count, std::string_view {cstr, count2});
+  }
+
+  // 5
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& replace (const_iterator first, const_iterator last, const char_type* cstr, size_type count2) {
+    return replace<custom_bc_strategy>(first, last, std::string_view {cstr, count2});
+  }
+
+  // 6
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& replace (IndexLike auto pos, size_type count, const char_type* cstr) {
+    return replace<custom_bc_strategy>(pos, count, cstr, ::strlen(cstr));
+  }
+
+  // 7
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& replace (const_iterator first, const_iterator last, const char_type* cstr) {
+    return replace<custom_bc_strategy>(first, last, std::string_view {cstr});
+  }
+
+  // 8
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& replace (IndexLike auto pos, size_type count, size_type count2, char_type ch) {
+    return replace<custom_bc_strategy>(cbegin( ) + pos, cbegin( ) + pos + count, count2, ch);
+  }
+
+  // 9
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& replace (const_iterator first, const_iterator last, size_type count2, char_type ch) {
+    auto count = std::distance(first, last);
+    auto d     = count2 - count;
+    if constexpr ( custom_bc_strategy == BoundCheckStrategy::Assert ) {
+      assert(first >= cbegin( ));
+      assert(last <= cend( ));
+      assert(first <= last);
+      assert(size( ) + d <= capacity( ));
+    }
+    if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception ) {
+      if ( first < cbegin( ) )
+        throw std::out_of_range("first < cbegin");
+      if ( last > cend( ) )
+        throw std::out_of_range("last > end");
+      if ( first > last )
+        throw std::range_error("first > last");
+      if ( size( ) + d > capacity( ) )
+        throw std::overflow_error("size+d > capacity");
+    }
+    if constexpr ( custom_bc_strategy == BoundCheckStrategy::LimitToBound ) {
+      if ( first > last ) {
+        std::swap(first, last);
+        count = -count;
+      }
+      if ( first > cend( ) && last > cend( ) ) {
+        first = cend( );
+        last  = cend( );
+      } else if ( first < cbegin( ) && last < cbegin( ) ) {
+        first = cbegin( );
+        last  = cbegin( );
+      }
+      first  = std::max(first, cbegin( ));
+      last   = std::min(last, cend( ));
+      count2 = std::min(count2, free_space( ) - count);
+      d      = count2 - count;
+    }
+
+    shift(last, d);
+    auto f = begin( ) + std::distance(cbegin( ), first);
+    std::fill_n(f, count2, ch);
+    tail_ += d;
+    *tail_ = '\0';
+    return *this;
+  }
+
+  // 10
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& replace (const_iterator first, const_iterator last, std::input_iterator auto first2, std::input_iterator auto last2) {
+    auto count  = std::distance(first, last);
+    auto count2 = std::distance(first2, last2);
+    auto d      = count2 - count;
+    if constexpr ( custom_bc_strategy == BoundCheckStrategy::Assert ) {
+      assert(first >= cbegin( ));
+      assert(last <= cend( ));
+      assert(first <= last);
+      assert(size( ) + d <= capacity( ));
+    }
+    if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception ) {
+      if ( first < cbegin( ) )
+        throw std::out_of_range("first < cbegin");
+      if ( last > cend( ) )
+        throw std::out_of_range("last > end");
+      if ( first > last )
+        throw std::range_error("first > last");
+      if ( size( ) + d > capacity( ) )
+        throw std::overflow_error("size+d > capacity");
+    }
+    if constexpr ( custom_bc_strategy == BoundCheckStrategy::LimitToBound ) {
+      if ( first2 > last2 ) {
+        std::swap(first2, last2);
+        count2 = -count2;
+      }
+      if ( first > last ) {
+        std::swap(first, last);
+        count = -count;
+      }
+      if ( first > cend( ) && last > cend( ) ) {
+        first = cend( );
+        last  = cend( );
+      } else if ( first < cbegin( ) && last < cbegin( ) ) {
+        first = cbegin( );
+        last  = cbegin( );
+      }
+      first  = std::max(first, cbegin( ));
+      last   = std::min(last, cend( ));
+      count2 = std::min(static_cast<size_type>(count2), free_space( ) - count);
+      d      = count2 - count;
+    }
+
+    shift(last, d);
+    auto f = begin( ) + std::distance(cbegin( ), first);
+    std::copy_n(first2, count2, f);
+    tail_ += d;
+    *tail_ = '\0';
+    return *this;
+  }
+
+  // 11
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& replace (const_iterator first, const_iterator last, std::initializer_list<char_type> ilist) {
+    return replace<custom_bc_strategy>(first, last, ilist.begin( ), ilist.end( ));
+  }
+
+  // 12
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& replace (size_type pos, size_type count, const StringViewLike auto& sv) {
+    return replace<custom_bc_strategy>(cbegin( ) + pos, cbegin( ) + pos + count, sv);
+  }
+
+  // 13
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& replace (const_iterator first, const_iterator last, const StringViewLike auto& sv) {
+    if ( HasBeginEnd<decltype(sv)> ) {
+      return replace<custom_bc_strategy>(first, last, sv.begin( ), sv.end( ));
+    } else {
+      std::string_view t {sv};
+      return replace<custom_bc_strategy>(first, last, t.cbegin( ), t.cend( ));
+    }
+  }
+
+  // 14
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr static_string_adapter& replace (IndexLike auto pos, size_type count, const StringViewLike auto& sv, IndexLike auto pos2, size_type count2 = npos) {
+    if ( HasSubstr<decltype(sv)> ) {
+      return replace<custom_bc_strategy>(pos, count, sv.substr(pos2, count2));
+    } else {
+      std::string_view t {sv};
+      return replace<custom_bc_strategy>(pos, count, t.substr(pos2, count2));
+    }
+  }
+
+  ///@}
+
+  ///@name iterators
+  ///@{
+  /**
+   * @brief Returns an iterator pointing to the beginning of the string.
+   *
+   * This function returns a mutable iterator that points to the first character in the string.
+   *
+   * @return Iterator pointing to the start of the string.
+   *
+   * @see std::string::begin()
+   *
+   * @throw None. This method is noexcept.
+   *
+   * @par Example usage:
+   * @code
+   * char data_array[15] {"Hello, World!"};
+   * wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
+   * auto it = adapter.begin();
+   * if (it != nullptr) {
+   *     char first_char = *it; // first_char is 'H'
+   * }
+   * @endcode
+   */
+  [[nodiscard]] constexpr iterator begin ( ) noexcept {
+    return head_;
+  }
+
+  /**
+   * @brief Returns a const_iterator pointing to the beginning of the string.
+   *
+   * This function returns a constant iterator that points to the first character in the string.
+   *
+   * @return Const_iterator pointing to the start of the string.
+   *
+   * @see std::string::cbegin()
+   *
+   * @throw None. This method is noexcept.
+   *
+   * @par Example usage:
+   * @code
+   * char data_array[15] {"Hello, World!"};
+   * const wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
+   * auto it = adapter.cbegin();
+   * if (it != nullptr) {
+   *     char first_char = *it; // first_char is 'H'
+   * }
+   * @endcode
+   */
+  [[nodiscard]] constexpr const_iterator cbegin ( ) const noexcept {
+    return head_;
+  }
+
+  /**
+   * @brief Returns an iterator pointing to the beginning of the string (const version).
+   *
+   * This function returns a constant iterator that points to the first character in the string.
+   *
+   * @return Const_iterator pointing to the start of the string.
+   *
+   * @see std::string::begin() const
+   *
+   * @throw None. This method is noexcept.
+   *
+   * @par Example usage:
+   * @code
+   * char data_array[15] {"Hello, World!"};
+   * const wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
+   * auto it = adapter.begin();
+   * if (it != nullptr) {
+   *     char first_char = *it; // first_char is 'H'
+   * }
+   * @endcode
+   */
+  [[nodiscard]] constexpr const_iterator begin ( ) const noexcept {
+    return cbegin( );
+  }
+
+  /**
+   * @brief Returns an iterator pointing to the end of the string.
+   *
+   * This function returns a mutable iterator that points one past the last character in the string.
+   *
+   * @return Iterator pointing to one past the end of the string.
+   *
+   * @see std::string::end()
+   *
+   * @throw None. This method is noexcept.
+   *
+   * @par Example usage:
+   * @code
+   * char data_array[15] {"Hello, World!"};
+   * wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
+   * auto it = adapter.end();
+   * if (it != nullptr) {
+   *     char past_last_char = *(it - 1); // past_last_char is '!'
+   * }
+   * @endcode
+   */
+  [[nodiscard]] constexpr iterator end ( ) noexcept {
+    return tail_;
+  }
+
+  /**
+   * @brief Returns a const_iterator pointing to the end of the string.
+   *
+   * This function returns a constant iterator that points one past the last character in the string.
+   *
+   * @return Const_iterator pointing to one past the end of the string.
+   *
+   * @see std::string::cend()
+   *
+   * @throw None. This method is noexcept.
+   *
+   * @par Example usage:
+   * @code
+   * char data_array[15] {"Hello, World!"};
+   * const wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
+   * auto it = adapter.cend();
+   * if (it != nullptr) {
+   *     char past_last_char = *(it - 1); // past_last_char is '!'
+   * }
+   * @endcode
+   */
+  [[nodiscard]] constexpr const_iterator cend ( ) const noexcept {
+    return tail_;
+  }
+
+  /**
+   * @brief Returns an iterator pointing to the end of the string (const version).
+   *
+   * This function returns a constant iterator that points one past the last character in the string.
+   *
+   * @return Const_iterator pointing to one past the end of the string.
+   *
+   * @see std::string::end() const
+   *
+   * @throw None. This method is noexcept.
+   *
+   * @par Example usage:
+   * @code
+   * char data_array[15] {"Hello, World!"};
+   * const wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
+   * auto it = adapter.end();
+   * if (it != nullptr) {
+   *     char past_last_char = *(it - 1); // past_last_char is '!'
+   * }
+   * @endcode
+   */
+  [[nodiscard]] constexpr const_iterator end ( ) const noexcept {
+    return cend( );
+  }
+
+  /**
+   * @brief Returns a reverse_iterator pointing to the beginning of the reversed string.
+   *
+   * This function returns a mutable reverse iterator that points to the last character in the string.
+   *
+   * @return Reverse_iterator pointing to the start of the reversed string.
+   *
+   * @see std::string::rbegin()
+   *
+   * @throw None. This method is noexcept.
+   *
+   * @par Example usage:
+   * @code
+   * char data_array[15] {"Hello, World!"};
+   * wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
+   * auto rit = adapter.rbegin();
+   * if (rit != nullptr) {
+   *     char last_char = *rit; // last_char is '!'
+   * }
+   * @endcode
+   */
+  [[nodiscard]] constexpr reverse_iterator rbegin ( ) noexcept {
+    return std::make_reverse_iterator(end( ));
+  }
+
+  /**
+   * @brief Returns a const_reverse_iterator pointing to the beginning of the reversed string.
+   *
+   * This function returns a constant reverse iterator that points to the last character in the string.
+   *
+   * @return Const_reverse_iterator pointing to the start of the reversed string.
+   *
+   * @see std::string::crbegin()
+   *
+   * @throw None. This method is noexcept.
+   *
+   * @par Example usage:
+   * @code
+   * char data_array[15] {"Hello, World!"};
+   * const wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
+   * auto rit = adapter.crbegin();
+   * if (rit != nullptr) {
+   *     char last_char = *rit; // last_char is '!'
+   * }
+   * @endcode
+   */
+  [[nodiscard]] constexpr const_reverse_iterator crbegin ( ) const noexcept {
+    return std::make_reverse_iterator(cend( ));
+  }
+
+  /**
+   * @brief Returns a reverse_iterator pointing to the beginning of the reversed string (const version).
+   *
+   * This function returns a constant reverse iterator that points to the last character in the string.
+   *
+   * @return Const_reverse_iterator pointing to the start of the reversed string.
+   *
+   * @see std::string::rbegin() const
+   *
+   * @throw None. This method is noexcept.
+   *
+   * @par Example usage:
+   * @code
+   * char data_array[15] {"Hello, World!"};
+   * const wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
+   * auto rit = adapter.rbegin();
+   * if (rit != nullptr) {
+   *     char last_char = *rit; // last_char is '!'
+   * }
+   * @endcode
+   */
+  [[nodiscard]] constexpr const_reverse_iterator rbegin ( ) const noexcept {
+    return crbegin( );
+  }
+
+  /**
+   * @brief Returns a reverse_iterator pointing to the end of the reversed string.
+   *
+   * This function returns a mutable reverse iterator that points one before the first character in the string.
+   *
+   * @return Reverse_iterator pointing to one before the beginning of the reversed string.
+   *
+   * @see std::string::rend()
+   *
+   * @throw None. This method is noexcept.
+   *
+   * @par Example usage:
+   * @code
+   * char data_array[15] {"Hello, World!"};
+   * wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
+   * auto rit = adapter.rend();
+   * if (rit != nullptr) {
+   *     char first_char = *(rit - 1); // first_char is 'H'
+   * }
+   * @endcode
+   */
+  [[nodiscard]] constexpr reverse_iterator rend ( ) noexcept {
+    return std::make_reverse_iterator(begin( ));
+  }
+
+  /**
+   * @brief Returns a const_reverse_iterator pointing to the end of the reversed string.
+   *
+   * This function returns a constant reverse iterator that points one before the first character in the string.
+   *
+   * @return Const_reverse_iterator pointing to one before the beginning of the reversed string.
+   *
+   * @see std::string::crend()
+   *
+   * @throw None. This method is noexcept.
+   *
+   * @par Example usage:
+   * @code
+   * char data_array[15] {"Hello, World!"};
+   * const wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
+   * auto rit = adapter.crend();
+   * if (rit != nullptr) {
+   *     char first_char = *(rit - 1); // first_char is 'H'
+   * }
+   * @endcode
+   */
+  [[nodiscard]] constexpr const_reverse_iterator crend ( ) const noexcept {
+    return std::make_reverse_iterator(cbegin( ));
+  }
+
+  /**
+   * @brief Returns a reverse_iterator pointing to the end of the reversed string (const version).
+   *
+   * This function returns a constant reverse iterator that points one before the first character in the string.
+   *
+   * @return Const_reverse_iterator pointing to one before the beginning of the reversed string.
+   *
+   * @see std::string::rend() const
+   *
+   * @throw None. This method is noexcept.
+   *
+   * @par Example usage:
+   * @code
+   * char data_array[15] {"Hello, World!"};
+   * const wbr::static_string_adapter adapter{data_array, ::strlen(data_array)};
+   * auto rit = adapter.rend();
+   * if (rit != nullptr) {
+   *     char first_char = *(rit - 1); // first_char is 'H'
+   * }
+   * @endcode
+   */
+  [[nodiscard]] constexpr const_reverse_iterator rend ( ) const noexcept {
+    return crend( );
+  }
+
+  ///@}
+
+  ///@name operations
+  ///@{
+
+  // https://en.cppreference.com/w/cpp/string/basic_string/compare.html
+  // 1: not required -- implemented by 7
+  /*
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr int compare (const std::string& str) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+      return compare<custom_bc_strategy>(str.cbegin( ), str.cend( ));
+  }
+  */
+
+  // 2 : not required -- implemended by 8
+  /*
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr int compare (IndexLike auto pos1, size_type count1, const std::string& str) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+      std::string_view sv {str};
+      return compare<custom_bc_strategy>(pos1, count1, sv);
+  }
+  */
+
+  // 3: not required -- implemented by 9
+  /*
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr int compare (IndexLike auto pos1, size_type count1, const std::string& str, IndexLike auto pos2, size_type count2 = npos) const
+      noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+      std::string_view sv {str};
+      return compare<custom_bc_strategy>(pos1, count1, sv, pos2, count2);
+  }
+  */
+
+  // 4
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr int compare (const char_type* cstr) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    const std::string_view sv {cstr};
+    return compare<custom_bc_strategy>(sv);
+  }
+
+  // 5
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr int compare (IndexLike auto pos1, size_type count1, const char_type* s) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    const std::string_view sv {s};
+    return compare<custom_bc_strategy>(pos1, count1, sv);
+  }
+
+  // 6
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr int compare (IndexLike auto pos1, size_type count1, const char_type* s, size_type count2) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    const std::string_view sv {s, count2};
+    return compare<custom_bc_strategy>(pos1, count1, sv);
+  }
+
+  // 7
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr int compare (const StringViewLike auto& t) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    if ( HasBeginEnd<decltype(t)> ) {
+      return compare<custom_bc_strategy>(t.begin( ), t.end( ));
+    } else {
+      const std::string_view sv {t};
+      return compare<custom_bc_strategy>(sv.cbegin( ), sv.cend( ));
+    }
+  }
+
+  // 8
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr int compare (IndexLike auto pos1, size_type count1, const StringViewLike auto& t) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    if ( HasBeginEnd<decltype(t)> ) {
+      return compare<custom_bc_strategy>(pos1, count1, t.begin( ), t.end( ));
+    } else {
+      const std::string_view sv {t};
+      return compare<custom_bc_strategy>(pos1, count1, sv.cbegin( ), sv.cend( ));
+    }
+  }
+
+  // 9
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr int compare (IndexLike auto pos1, size_type count1, const StringViewLike auto& t, IndexLike auto pos2, size_type count2 = npos) const
+      noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    if constexpr ( HasSubstr<decltype(t)> ) {
+      return compare<custom_bc_strategy>(pos1, count1, t.substr(pos2, count2));
+    } else {
+      const std::string_view sv {t};
+      return compare<custom_bc_strategy>(pos1, count1, sv.substr(pos2, count2));
+    }
+  }
+
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr int compare (std::initializer_list<char_type> ilist) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    return compare<custom_bc_strategy>(ilist.begin( ), ilist.end( ));
+  }
+
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr int compare (const std::input_iterator auto& first, const std::input_iterator auto& last) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    return compare<custom_bc_strategy>(0, size( ), first, last);
+  }
+
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr int compare (IndexLike auto pos, size_type count, const std::input_iterator auto& first, const std::input_iterator auto& last) const
+      noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    if constexpr ( custom_bc_strategy == BoundCheckStrategy::Assert ) {
+      assert(pos + count <= size( ));
+      assert(first <= last);
+    }
+    if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception ) {
+      if ( pos + count > size( ) )
+        throw std::out_of_range("pos + count > size()");
+      if ( first > last )
+        throw std::range_error("first > last");
+    }
+    if constexpr ( custom_bc_strategy == BoundCheckStrategy::LimitToBound ) {
+      pos   = std::min(pos, size( ));
+      count = std::min(count, size( ) - pos);
+      if ( first > last )
+        std::swap(first, last);
+    }
+
+    const auto c = std::lexicographical_compare_three_way(cbegin( ) + pos, cbegin( ) + pos + count, first, last);
+    if ( c == std::strong_ordering::equal )
+      return 0;
+    if ( c == std::strong_ordering::less )
+      return -1;
+    return 1;
+  }
+
+  // https://en.cppreference.com/w/cpp/string/basic_string/starts_with.html
+  // 1
+  constexpr bool starts_with (const StringViewLike auto& sv) const noexcept {
+    return view( ).starts_with(std::string_view {sv});
+  }
+
+  // 2
+  constexpr bool starts_with (char ch) const noexcept {
+    return view( ).starts_with(ch);
+  }
+
+  // 3
+  constexpr bool starts_with (const char_type* cstr) const {
+    return view( ).starts_with(cstr);
+  }
+
+  // https://en.cppreference.com/w/cpp/string/basic_string/ends_with.html
+  // 1
+  constexpr bool ends_with (const StringViewLike auto& sv) const noexcept {
+    return view( ).ends_with(sv);
+  }
+
+  // 2
+  constexpr bool ends_with (char_type ch) const noexcept {
+    return view( ).ends_with(ch);
+  }
+
+  // 3
+  constexpr bool ends_with (const char_type* cstr) const {
+    return view( ).ends_with(cstr);
+  }
+
+  // https://en.cppreference.com/w/cpp/string/basic_string/contains.html
+  // 1
+  constexpr bool contains (const StringViewLike auto& sv) const noexcept {
+    return find(sv) != npos;
+  }
+
+  // 2
+  constexpr bool contains (char ch) const noexcept {
+    return find(ch) != npos;
+  }
+
+  // 3
+  constexpr bool contains (const char* cstr) const {
+    return find(cstr) != npos;
+  }
+
+  // https://en.cppreference.com/w/cpp/string/basic_string/find.html
+  // 1
+  size_type find (const std::string& str, IndexLike auto pos = 0) const noexcept {
+    return view( ).find(str, pos);
+  }
+
+  // 2
+  size_type find (const char_type* cstr, IndexLike auto pos, size_type count) const noexcept {
+    return view( ).find(cstr, pos, count);
+  }
+
+  // 3
+  size_type find (const char_type* cstr, IndexLike auto pos) const noexcept {
+    return view( ).find(cstr, pos);
+  }
+
+  size_type find (const char_type* cstr) const noexcept {
+    return view( ).find(cstr, 0);
+  }
+
+  // 4
+  size_type find (char_type ch, IndexLike auto pos) const noexcept {
+    return view( ).find(ch, pos);
+  }
+
+  size_type find (char_type ch) const noexcept {
+    return find(ch, 0);
+  }
+
+  // 5
+  size_type find (const StringViewLike auto& t, IndexLike auto pos = 0) const noexcept {
+    return view( ).find(std::string_view {t}, pos);
+  }
+
+  ///@}
+
+  constexpr char at (IndexLike auto pos) const {
+    if constexpr ( std::is_signed_v<decltype(pos)> )
+      if ( pos < 0 )
+        throw std::out_of_range("pos < 0");
+    if ( static_cast<size_type>(pos) >= size( ) )
+      throw std::out_of_range("pos >= size()");
+    return *(head_ + static_cast<size_type>(pos));
+  }
+
+  constexpr char& at (IndexLike auto pos) {
+    if constexpr ( std::is_signed_v<decltype(pos)> )
+      if ( pos < 0 )
+        throw std::out_of_range("pos < 0");
+    if ( static_cast<size_type>(pos) >= size( ) )
+      throw std::out_of_range("pos >= size()");
+    return *(head_ + static_cast<size_type>(pos));
+  }
+
+  [[nodiscard]] constexpr explicit operator std::string ( ) const noexcept(noexcept(view( ))) {
+    return std::string {view( )};
+  }
+
+  constexpr void reserve (size_t) noexcept {
+    // for compatibility only, do nothing since static_string don't reallocate memory
+    return;
+  }
+
+  constexpr void shrink_to_fit ( ) noexcept {
+    // for compatibility only, do nothing since static_string don't reallocate memory
+    return;
+  }
+
+  [[nodiscard]] constexpr std::string_view substr (IndexLike auto pos = 0, size_type count = npos) const {
+    return view( ).substr(pos, count);
+  }
+
+  constexpr size_type copy (char* dest, size_type count, IndexLike auto pos = 0) const {
+    return view( ).copy(dest, count, pos);
+  }
+
+  // https://en.cppreference.com/w/cpp/string/basic_string/resize
+  // 1
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr void resize (size_type count) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    resize<custom_bc_strategy>(count, '\0');
+  }
+
+  // 2
+  template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
+  constexpr void resize (size_type count, char ch) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
+    if constexpr ( custom_bc_strategy == BoundCheckStrategy::Assert ) {
+      assert(count <= capacity( ));
+    }
+    if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception ) {
+      if ( count > capacity( ) )
+        throw std::length_error("resize count exceeds capacity");
+    }
+    if constexpr ( custom_bc_strategy == BoundCheckStrategy::LimitToBound ) {
+      count = std::min(count, capacity( ));
+    }
+
+    if ( count > size( ) ) {
+      // Append characters to reach desired size
+      append<custom_bc_strategy>(count - size( ), ch);
+    } else if ( count < size( ) ) {
+      // Truncate to desired size
+      tail_  = head_ + count;
+      *tail_ = '\0';
+    }
+    // If count == size(), do nothing
+  }
+
+  // https://en.cppreference.com/w/cpp/string/basic_string/find_first_of
+  // 1
+  constexpr size_type find_first_of (const std::string& str, size_type pos = 0) const noexcept {
+    return view( ).find_first_of(str, pos);
+  }
+
+  // 2
+  constexpr size_type find_first_of (const char* s, size_type pos, size_type count) const {
+    return view( ).find_first_of(s, pos, count);
+  }
+
+  // 3
+  constexpr size_type find_first_of (const char* s, size_type pos = 0) const {
+    return view( ).find_first_of(s, pos);
+  }
+
+  // 4
+  constexpr size_type find_first_of (char ch, size_type pos = 0) const noexcept {
+    return view( ).find_first_of(ch, pos);
+  }
+
+  // 5
+  constexpr size_type find_first_of (const StringViewLike auto& sv, size_type pos = 0) const noexcept {
+    return view( ).find_first_of(std::string_view {sv}, pos);
+  }
+
+  // https://en.cppreference.com/w/cpp/string/basic_string/find_first_not_of
+  // 1
+  constexpr size_type find_first_not_of (const std::string& str, size_type pos = 0) const noexcept {
+    return view( ).find_first_not_of(str, pos);
+  }
+
+  // 2
+  constexpr size_type find_first_not_of (const char* s, size_type pos, size_type count) const {
+    return view( ).find_first_not_of(s, pos, count);
+  }
+
+  // 3
+  constexpr size_type find_first_not_of (const char* s, size_type pos = 0) const {
+    return view( ).find_first_not_of(s, pos);
+  }
+
+  // 4
+  constexpr size_type find_first_not_of (char ch, size_type pos = 0) const noexcept {
+    return view( ).find_first_not_of(ch, pos);
+  }
+
+  // 5
+  constexpr size_type find_first_not_of (const StringViewLike auto& sv, size_type pos = 0) const noexcept {
+    return view( ).find_first_not_of(std::string_view {sv}, pos);
+  }
+
+  // https://en.cppreference.com/w/cpp/string/basic_string/find_last_of
+  // 1
+  constexpr size_type find_last_of (const std::string& str, size_type pos = npos) const noexcept {
+    return view( ).find_last_of(str, pos);
+  }
+
+  // 2
+  constexpr size_type find_last_of (const char* s, size_type pos, size_type count) const {
+    return view( ).find_last_of(s, pos, count);
+  }
+
+  // 3
+  constexpr size_type find_last_of (const char* s, size_type pos = npos) const {
+    return view( ).find_last_of(s, pos);
+  }
+
+  // 4
+  constexpr size_type find_last_of (char ch, size_type pos = npos) const noexcept {
+    return view( ).find_last_of(ch, pos);
+  }
+
+  // 5
+  constexpr size_type find_last_of (const StringViewLike auto& sv, size_type pos = npos) const noexcept {
+    return view( ).find_last_of(std::string_view {sv}, pos);
+  }
+
+  // https://en.cppreference.com/w/cpp/string/basic_string/find_last_not_of
+  // 1
+  constexpr size_type find_last_not_of (const std::string& str, size_type pos = npos) const noexcept {
+    return view( ).find_last_not_of(str, pos);
+  }
+
+  // 2
+  constexpr size_type find_last_not_of (const char* s, size_type pos, size_type count) const {
+    return view( ).find_last_not_of(s, pos, count);
+  }
+
+  // 3
+  constexpr size_type find_last_not_of (const char* s, size_type pos = npos) const {
+    return view( ).find_last_not_of(s, pos);
+  }
+
+  // 4
+  constexpr size_type find_last_not_of (char ch, size_type pos = npos) const noexcept {
+    return view( ).find_last_not_of(ch, pos);
+  }
+
+  // 5
+  constexpr size_type find_last_not_of (const StringViewLike auto& sv, size_type pos = npos) const noexcept {
+    return view( ).find_last_not_of(std::string_view {sv}, pos);
+  }
+
+  ///@name comparison operators
+  ///@{
+
+  /**
+   * @brief Compares this string with a string_view for equality.
+   *
+   * @param sv The string_view to compare with
+   * @return true if the strings are equal, false otherwise
+   *
+   * @note This is a lexicographical comparison.
+   *
+   * @par Complexity
+   * Linear in the size of the strings.
+   *
+   * @par Example
+   * @code
+   * char buffer[20];
+   * wbr::static_string_adapter str(buffer, sizeof(buffer));
+   * str.assign("Hello");
+   * bool equal = (str == "Hello");  // true
+   * @endcode
+   */
+  constexpr bool operator== (const StringViewLike auto& sv) const noexcept {
+    return view( ) == sv;
+  }
+
+  /**
+   * @brief Compares this string with a std::string for equality.
+   *
+   * @param str The std::string to compare with
+   * @return true if the strings are equal, false otherwise
+   */
+  constexpr bool operator== (const std::string& str) const noexcept {
+    return view( ) == str;
+  }
+
+  /**
+   * @brief Compares this string with a C-string for equality.
+   *
+   * @param cstr The null-terminated C-string to compare with
+   * @return true if the strings are equal, false otherwise
+   */
+  constexpr bool operator== (const char* cstr) const noexcept {
+    return view( ) == cstr;
+  }
+
+  /**
+   * @brief Three-way comparison with a std::string.
+   *
+   * Returns a value indicating the lexicographical relationship between this string and the parameter.
+   *
+   * @param str The std::string to compare with
+   * @return -1 if this < str, 0 if this == str, 1 if this > str
+   *
+   * @note Uses lexicographical comparison.
+   *
+   * @par Complexity
+   * Linear in the size of the strings.
+   */
+  constexpr int operator<=> (const std::string& str) const noexcept {
+    return compare(str);
+  }
+
+  /**
+   * @brief Three-way comparison with a string_view.
+   *
+   * Returns a value indicating the lexicographical relationship between this string and the parameter.
+   *
+   * @param sv The string_view to compare with
+   * @return -1 if this < sv, 0 if this == sv, 1 if this > sv
+   */
+  constexpr int operator<=> (const StringViewLike auto& sv) const noexcept {
+    return compare(sv);
+  }
+
+  /**
+   * @brief Three-way comparison with a C-string.
+   *
+   * Returns a value indicating the lexicographical relationship between this string and the parameter.
+   *
+   * @param cstr The null-terminated C-string to compare with
+   * @return -1 if this < cstr, 0 if this == cstr, 1 if this > cstr
+   */
+  constexpr int operator<=> (const char* cstr) const noexcept {
+    return compare(cstr);
+  }
+
+  ///@}
+
+  /**
+   * @brief Exchanges the contents of this string with another string.
+   *
+   * Swaps the contents of two static_string_adapter objects. This operation is efficient
+   * as it only exchanges the actual string data, not the underlying buffers themselves.
+   * Both strings must fit within each other's capacity constraints.
+   *
+   * @param other The other static_string_adapter to swap with
+   *
+   * @throws May throw std::bad_alloc for very large strings (>256 bytes) if memory allocation fails
+   *
+   * @note The underlying buffers (head_ and capacity) are NOT swapped. Only the string
+   *       contents are exchanged. After the swap, each string adapter still references
+   *       its original buffer but contains the other's content.
+   *
+   * @note If the strings have different capacities, the operation will succeed as long
+   *       as each string fits within the other's capacity. Otherwise, behavior depends
+   *       on the BoundCheckStrategy:
+   *       - NoCheck: May result in buffer overflow (undefined behavior)
+   *       - Assert: Will trigger assertion failure in debug builds
+   *       - Exception: Will throw std::length_error
+   *       - LimitToBound: Will truncate strings to fit available capacity
+   *
+   * @par Complexity
+   * Linear in the size of the larger string: O(max(size(), other.size()))
+   *
+   * @par Example
+   * @code
+   * char buffer1[20];
+   * char buffer2[20];
+   * wbr::static_string_adapter str1(buffer1, sizeof(buffer1));
+   * wbr::static_string_adapter str2(buffer2, sizeof(buffer2));
+   *
+   * str1.assign("Hello");
+   * str2.assign("World");
+   *
+   * str1.swap(str2);
+   * // str1 now contains "World"
+   * // str2 now contains "Hello"
+   * @endcode
+   *
+   * @see std::string::swap
+   */
+  void swap (static_string_adapter<bc_strategy>& other) noexcept {
+    // Handle self-swap
+    if ( this == &other )
+      return;
+
+    std::unsigned_integral auto this_size  = size( );
+    std::unsigned_integral auto other_size = other.size( );
+
+    if constexpr ( bc_strategy == BoundCheckStrategy::Assert ) {
+      assert(this_size <= other.max_length_);
+      assert(other_size <= max_length_);
+    }
+    if constexpr ( bc_strategy == BoundCheckStrategy::Exception ) {
+      if ( this_size > other.max_length_ )
+        throw std::length_error("this size exceeds other capacity in swap");
+      if ( other_size > max_length_ )
+        throw std::length_error("other size exceeds this capacity in swap");
+    }
+    if constexpr ( bc_strategy == BoundCheckStrategy::LimitToBound ) {
+      this_size  = std::min(this_size, other.max_length_);
+      other_size = std::min(other_size, max_length_);
+    }
+
+    const std::unsigned_integral auto min_size = std::min(this_size, other_size);
+
+    std::swap_ranges(head_, head_ + min_size, other.head_);
+
+    if ( this_size > min_size ) {
+      std::copy_n(head_ + min_size, std::min(this_size, other.max_length_) - min_size, other.head_ + min_size);
+    } else if ( other_size > min_size ) {
+      std::copy_n(other.head_ + min_size, std::min(other_size, max_length_) - min_size, head_ + min_size);
+    }
+
+    tail_        = head_ + std::min(other_size, max_length_);
+    *tail_       = '\0';
+    other.tail_  = other.head_ + std::min(this_size, other.max_length_);
+    *other.tail_ = '\0';
+  }
 
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr int compare (std::initializer_list<char_type> ilist) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        return compare<custom_bc_strategy>(ilist.begin( ), ilist.end( ));
-    }
-
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr int compare (const std::input_iterator auto& first, const std::input_iterator auto& last) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        return compare<custom_bc_strategy>(0, size( ), first, last);
-    }
-
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr int compare (IndexLike auto pos, size_type count, const std::input_iterator auto& first, const std::input_iterator auto& last) const
-        noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Assert ) {
-            assert(pos + count <= size( ));
-            assert(first <= last);
-        }
-        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception ) {
-            if ( pos + count > size( ) )
-                throw std::out_of_range("pos + count > size()");
-            if ( first > last )
-                throw std::range_error("first > last");
-        }
-        if constexpr ( custom_bc_strategy == BoundCheckStrategy::LimitToBound ) {
-            pos   = std::min(pos, size( ));
-            count = std::min(count, size( ) - pos);
-            if ( first > last )
-                std::swap(first, last);
-        }
-
-        const auto c = std::lexicographical_compare_three_way(cbegin( ) + pos, cbegin( ) + pos + count, first, last);
-        if ( c == std::strong_ordering::equal )
-            return 0;
-        if ( c == std::strong_ordering::less )
-            return -1;
-        return 1;
-    }
-
-    // https://en.cppreference.com/w/cpp/string/basic_string/starts_with.html
-    // 1
-    constexpr bool starts_with (const StringViewLike auto& sv) const noexcept {
-        return view( ).starts_with(std::string_view {sv});
-    }
-
-    // 2
-    constexpr bool starts_with (char ch) const noexcept {
-        return view( ).starts_with(ch);
-    }
-
-    // 3
-    constexpr bool starts_with (const char_type* cstr) const {
-        return view( ).starts_with(cstr);
-    }
-
-    // https://en.cppreference.com/w/cpp/string/basic_string/ends_with.html
-    // 1
-    constexpr bool ends_with (const StringViewLike auto& sv) const noexcept {
-        return view( ).ends_with(sv);
-    }
-
-    // 2
-    constexpr bool ends_with (char_type ch) const noexcept {
-        return view( ).ends_with(ch);
-    }
-
-    // 3
-    constexpr bool ends_with (const char_type* cstr) const {
-        return view( ).ends_with(cstr);
-    }
-
-    // https://en.cppreference.com/w/cpp/string/basic_string/contains.html
-    // 1
-    constexpr bool contains (const StringViewLike auto& sv) const noexcept {
-        return find(sv) != npos;
-    }
-
-    // 2
-    constexpr bool contains (char ch) const noexcept {
-        return find(ch) != npos;
-    }
-
-    // 3
-    constexpr bool contains (const char* cstr) const {
-        return find(cstr) != npos;
-    }
-
-    // https://en.cppreference.com/w/cpp/string/basic_string/find.html
-    // 1
-    size_type find (const std::string& str, IndexLike auto pos = 0) const noexcept {
-        return view( ).find(str, pos);
-    }
-
-    // 2
-    size_type find (const char_type* cstr, IndexLike auto pos, size_type count) const noexcept {
-        return view( ).find(cstr, pos, count);
-    }
-
-    // 3
-    size_type find (const char_type* cstr, IndexLike auto pos) const noexcept {
-        return view( ).find(cstr, pos);
-    }
-
-    size_type find (const char_type* cstr) const noexcept {
-        return view( ).find(cstr, 0);
-    }
-
-    // 4
-    size_type find (char_type ch, IndexLike auto pos) const noexcept {
-        return view( ).find(ch, pos);
-    }
-
-    size_type find (char_type ch) const noexcept {
-        return find(ch, 0);
-    }
-
-    // 5
-    size_type find (const StringViewLike auto& t, IndexLike auto pos = 0) const noexcept {
-        return view( ).find(std::string_view {t}, pos);
-    }
-
-    ///@}
-
-    constexpr char at (IndexLike auto pos) const {
-        if constexpr ( std::is_signed_v<decltype(pos)> )
-            if ( pos < 0 )
-                throw std::out_of_range("pos < 0");
-        if ( static_cast<size_type>(pos) >= size( ) )
-            throw std::out_of_range("pos >= size()");
-        return *(head_ + static_cast<size_type>(pos));
-    }
-
-    constexpr char& at (IndexLike auto pos) {
-        if constexpr ( std::is_signed_v<decltype(pos)> )
-            if ( pos < 0 )
-                throw std::out_of_range("pos < 0");
-        if ( static_cast<size_type>(pos) >= size( ) )
-            throw std::out_of_range("pos >= size()");
-        return *(head_ + static_cast<size_type>(pos));
-    }
-
-    [[nodiscard]] constexpr explicit operator std::string ( ) const noexcept(noexcept(view( ))) {
-        return std::string {view( )};
-    }
-
-    constexpr void reserve (size_t) noexcept {
-        // for compatibility only, do nothing since static_string don't reallocate memory
-        return;
-    }
-
-    constexpr void shrink_to_fit ( ) noexcept {
-        // for compatibility only, do nothing since static_string don't reallocate memory
-        return;
-    }
-
-    [[nodiscard]] constexpr std::string_view substr (IndexLike auto pos = 0, size_type count = npos) const {
-        return view( ).substr(pos, count);
-    }
-
-    constexpr size_type copy (char* dest, size_type count, IndexLike auto pos = 0) const {
-        return view( ).copy(dest, count, pos);
-    }
-
-    // https://en.cppreference.com/w/cpp/string/basic_string/resize
-    // 1
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr void resize (size_type count) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        resize<custom_bc_strategy>(count, '\0');
-    }
-
-    // 2
-    template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
-    constexpr void resize (size_type count, char ch) noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
-        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Assert ) {
-            assert(count <= capacity( ));
-        }
-        if constexpr ( custom_bc_strategy == BoundCheckStrategy::Exception ) {
-            if ( count > capacity( ) )
-                throw std::length_error("resize count exceeds capacity");
-        }
-        if constexpr ( custom_bc_strategy == BoundCheckStrategy::LimitToBound ) {
-            count = std::min(count, capacity( ));
-        }
-
-        if ( count > size( ) ) {
-            // Append characters to reach desired size
-            append<custom_bc_strategy>(count - size( ), ch);
-        } else if ( count < size( ) ) {
-            // Truncate to desired size
-            tail_  = head_ + count;
-            *tail_ = '\0';
-        }
-        // If count == size(), do nothing
-    }
-
-    // https://en.cppreference.com/w/cpp/string/basic_string/find_first_of
-    // 1
-    constexpr size_type find_first_of (const std::string& str, size_type pos = 0) const noexcept {
-        return view( ).find_first_of(str, pos);
-    }
-
-    // 2
-    constexpr size_type find_first_of (const char* s, size_type pos, size_type count) const {
-        return view( ).find_first_of(s, pos, count);
-    }
-
-    // 3
-    constexpr size_type find_first_of (const char* s, size_type pos = 0) const {
-        return view( ).find_first_of(s, pos);
-    }
-
-    // 4
-    constexpr size_type find_first_of (char ch, size_type pos = 0) const noexcept {
-        return view( ).find_first_of(ch, pos);
-    }
-
-    // 5
-    constexpr size_type find_first_of (const StringViewLike auto& sv, size_type pos = 0) const noexcept {
-        return view( ).find_first_of(std::string_view {sv}, pos);
-    }
-
-    // https://en.cppreference.com/w/cpp/string/basic_string/find_first_not_of
-    // 1
-    constexpr size_type find_first_not_of (const std::string& str, size_type pos = 0) const noexcept {
-        return view( ).find_first_not_of(str, pos);
-    }
-
-    // 2
-    constexpr size_type find_first_not_of (const char* s, size_type pos, size_type count) const {
-        return view( ).find_first_not_of(s, pos, count);
-    }
-
-    // 3
-    constexpr size_type find_first_not_of (const char* s, size_type pos = 0) const {
-        return view( ).find_first_not_of(s, pos);
-    }
-
-    // 4
-    constexpr size_type find_first_not_of (char ch, size_type pos = 0) const noexcept {
-        return view( ).find_first_not_of(ch, pos);
-    }
-
-    // 5
-    constexpr size_type find_first_not_of (const StringViewLike auto& sv, size_type pos = 0) const noexcept {
-        return view( ).find_first_not_of(std::string_view {sv}, pos);
-    }
-
-    // https://en.cppreference.com/w/cpp/string/basic_string/find_last_of
-    // 1
-    constexpr size_type find_last_of (const std::string& str, size_type pos = npos) const noexcept {
-        return view( ).find_last_of(str, pos);
-    }
-
-    // 2
-    constexpr size_type find_last_of (const char* s, size_type pos, size_type count) const {
-        return view( ).find_last_of(s, pos, count);
-    }
-
-    // 3
-    constexpr size_type find_last_of (const char* s, size_type pos = npos) const {
-        return view( ).find_last_of(s, pos);
-    }
-
-    // 4
-    constexpr size_type find_last_of (char ch, size_type pos = npos) const noexcept {
-        return view( ).find_last_of(ch, pos);
-    }
-
-    // 5
-    constexpr size_type find_last_of (const StringViewLike auto& sv, size_type pos = npos) const noexcept {
-        return view( ).find_last_of(std::string_view {sv}, pos);
-    }
-
-    // https://en.cppreference.com/w/cpp/string/basic_string/find_last_not_of
-    // 1
-    constexpr size_type find_last_not_of (const std::string& str, size_type pos = npos) const noexcept {
-        return view( ).find_last_not_of(str, pos);
-    }
-
-    // 2
-    constexpr size_type find_last_not_of (const char* s, size_type pos, size_type count) const {
-        return view( ).find_last_not_of(s, pos, count);
-    }
-
-    // 3
-    constexpr size_type find_last_not_of (const char* s, size_type pos = npos) const {
-        return view( ).find_last_not_of(s, pos);
-    }
-
-    // 4
-    constexpr size_type find_last_not_of (char ch, size_type pos = npos) const noexcept {
-        return view( ).find_last_not_of(ch, pos);
-    }
-
-    // 5
-    constexpr size_type find_last_not_of (const StringViewLike auto& sv, size_type pos = npos) const noexcept {
-        return view( ).find_last_not_of(std::string_view {sv}, pos);
-    }
-
-    ///@name comparison operators
-    ///@{
-
-    /**
-     * @brief Compares this string with a string_view for equality.
-     *
-     * @param sv The string_view to compare with
-     * @return true if the strings are equal, false otherwise
-     *
-     * @note This is a lexicographical comparison.
-     *
-     * @par Complexity
-     * Linear in the size of the strings.
-     *
-     * @par Example
-     * @code
-     * char buffer[20];
-     * wbr::static_string_adapter str(buffer, sizeof(buffer));
-     * str.assign("Hello");
-     * bool equal = (str == "Hello");  // true
-     * @endcode
-     */
-    constexpr bool operator== (const StringViewLike auto& sv) const noexcept {
-        return view( ) == sv;
-    }
-
-    /**
-     * @brief Compares this string with a std::string for equality.
-     *
-     * @param str The std::string to compare with
-     * @return true if the strings are equal, false otherwise
-     */
-    constexpr bool operator== (const std::string& str) const noexcept {
-        return view( ) == str;
-    }
-
-    /**
-     * @brief Compares this string with a C-string for equality.
-     *
-     * @param cstr The null-terminated C-string to compare with
-     * @return true if the strings are equal, false otherwise
-     */
-    constexpr bool operator== (const char* cstr) const noexcept {
-        return view( ) == cstr;
-    }
-
-    /**
-     * @brief Three-way comparison with a std::string.
-     *
-     * Returns a value indicating the lexicographical relationship between this string and the parameter.
-     *
-     * @param str The std::string to compare with
-     * @return -1 if this < str, 0 if this == str, 1 if this > str
-     *
-     * @note Uses lexicographical comparison.
-     *
-     * @par Complexity
-     * Linear in the size of the strings.
-     */
-    constexpr int operator<=> (const std::string& str) const noexcept {
-        return compare(str);
-    }
-
-    /**
-     * @brief Three-way comparison with a string_view.
-     *
-     * Returns a value indicating the lexicographical relationship between this string and the parameter.
-     *
-     * @param sv The string_view to compare with
-     * @return -1 if this < sv, 0 if this == sv, 1 if this > sv
-     */
-    constexpr int operator<=> (const StringViewLike auto& sv) const noexcept {
-        return compare(sv);
-    }
-
-    /**
-     * @brief Three-way comparison with a C-string.
-     *
-     * Returns a value indicating the lexicographical relationship between this string and the parameter.
-     *
-     * @param cstr The null-terminated C-string to compare with
-     * @return -1 if this < cstr, 0 if this == cstr, 1 if this > cstr
-     */
-    constexpr int operator<=> (const char* cstr) const noexcept {
-        return compare(cstr);
-    }
-
-    ///@}
-
-    /**
-     * @brief Exchanges the contents of this string with another string.
-     *
-     * Swaps the contents of two static_string_adapter objects. This operation is efficient
-     * as it only exchanges the actual string data, not the underlying buffers themselves.
-     * Both strings must fit within each other's capacity constraints.
-     *
-     * @param other The other static_string_adapter to swap with
-     *
-     * @throws May throw std::bad_alloc for very large strings (>256 bytes) if memory allocation fails
-     *
-     * @note The underlying buffers (head_ and capacity) are NOT swapped. Only the string
-     *       contents are exchanged. After the swap, each string adapter still references
-     *       its original buffer but contains the other's content.
-     *
-     * @note If the strings have different capacities, the operation will succeed as long
-     *       as each string fits within the other's capacity. Otherwise, behavior depends
-     *       on the BoundCheckStrategy:
-     *       - NoCheck: May result in buffer overflow (undefined behavior)
-     *       - Assert: Will trigger assertion failure in debug builds
-     *       - Exception: Will throw std::length_error
-     *       - LimitToBound: Will truncate strings to fit available capacity
-     *
-     * @par Complexity
-     * Linear in the size of the larger string: O(max(size(), other.size()))
-     *
-     * @par Example
-     * @code
-     * char buffer1[20];
-     * char buffer2[20];
-     * wbr::static_string_adapter str1(buffer1, sizeof(buffer1));
-     * wbr::static_string_adapter str2(buffer2, sizeof(buffer2));
-     *
-     * str1.assign("Hello");
-     * str2.assign("World");
-     *
-     * str1.swap(str2);
-     * // str1 now contains "World"
-     * // str2 now contains "Hello"
-     * @endcode
-     *
-     * @see std::string::swap
-     */
-    void swap (static_string_adapter<bc_strategy>& other) noexcept {
-        // Handle self-swap
-        if ( this == &other )
-            return;
-
-        std::unsigned_integral auto this_size  = size( );
-        std::unsigned_integral auto other_size = other.size( );
-
-        if constexpr ( bc_strategy == BoundCheckStrategy::Assert ) {
-            assert(this_size <= other.max_length_);
-            assert(other_size <= max_length_);
-        }
-        if constexpr ( bc_strategy == BoundCheckStrategy::Exception ) {
-            if ( this_size > other.max_length_ )
-                throw std::length_error("this size exceeds other capacity in swap");
-            if ( other_size > max_length_ )
-                throw std::length_error("other size exceeds this capacity in swap");
-        }
-        if constexpr ( bc_strategy == BoundCheckStrategy::LimitToBound ) {
-            this_size  = std::min(this_size, other.max_length_);
-            other_size = std::min(other_size, max_length_);
-        }
-
-        const std::unsigned_integral auto min_size = std::min(this_size, other_size);
-
-        for ( size_type i = 0; i < min_size; ++i ) {
-            std::swap(*(head_ + i), *(other.head_ + i));
-        }
-        if ( this_size > min_size ) {
-            for ( auto i = min_size; i < std::min(this_size, other.max_length_); ++i )
-                *(other.head_ + i) = *(head_ + i);
-        } else if ( other_size > min_size ) {
-            for ( auto i = min_size; i < std::min(other_size, max_length_); ++i )
-                *(head_ + i) = *(other.head_ + i);
-        }
-
-        tail_        = head_ + std::min(other_size, max_length_);
-        *tail_       = '\0';
-        other.tail_  = other.head_ + std::min(this_size, other.max_length_);
-        *other.tail_ = '\0';
-    }
 #if FMT_SUPPORT
-    template<typename... T>
-    constexpr static_string_adapter& formatAppend (fmt::format_string<T...> fmt, T&&... args) {
-        // return append(fmt::format(fmt, std::forward<T>(args)...));
-        auto res = fmt::format_to_n(tail_, free_space( ), fmt, std::forward<decltype(args)>(args)...);
-        tail_    = res.out;
-        *tail_   = 0;
-        return *this;
-    }
+  template<typename... T>
+  constexpr static_string_adapter& formatAppend (fmt::format_string<T...> fmt, T&&... args) {
+    // return append(fmt::format(fmt, std::forward<T>(args)...));
+    auto res = fmt::format_to_n(tail_, free_space( ), fmt, std::forward<decltype(args)>(args)...);
+    tail_    = res.out;
+    *tail_   = 0;
+    return *this;
+  }
 
-    template<typename... T>
-    constexpr static_string_adapter& formatAssign (fmt::format_string<T...> fmt, T&&... args) {
-        //        return assign(fmt::format(fmt, std::forward<T>(args)...));
-        auto res = fmt::format_to_n(head_, capacity( ), fmt, std::forward<decltype(args)>(args)...);
-        tail_    = res.out;
-        *tail_   = 0;
-        return *this;
-    }
+  template<typename... T>
+  constexpr static_string_adapter& formatAssign (fmt::format_string<T...> fmt, T&&... args) {
+    //        return assign(fmt::format(fmt, std::forward<T>(args)...));
+    auto res = fmt::format_to_n(head_, capacity( ), fmt, std::forward<decltype(args)>(args)...);
+    tail_    = res.out;
+    *tail_   = 0;
+    return *this;
+  }
 #endif
 
 #if STD_FORMAT_SUPPORT
-    template<typename... T>
-    constexpr static_string_adapter& formatAppend (std::format_string<T...> fmt, T&&... args) {
-        // return append(std::format(fmt, std::forward<T>(args)...));
-        auto res = std::format_to_n(tail_, free_space( ), fmt, std::forward<decltype(args)>(args)...);
-        tail_    = res.out;
-        *tail_   = 0;
-        return *this;
-    }
+  template<typename... T>
+  constexpr static_string_adapter& formatAppend (std::format_string<T...> fmt, T&&... args) {
+    // return append(std::format(fmt, std::forward<T>(args)...));
+    auto res = std::format_to_n(tail_, free_space( ), fmt, std::forward<decltype(args)>(args)...);
+    tail_    = res.out;
+    *tail_   = 0;
+    return *this;
+  }
 
-    template<typename... T>
-    constexpr static_string_adapter& formatAssign (std::format_string<T...> fmt, T&&... args) {
-        // return assign(std::format(fmt, std::forward<T>(args)...));
-        auto res = std::format_to_n(head_, capacity( ), fmt, std::forward<decltype(args)>(args)...);
-        tail_    = res.out;
-        *tail_   = 0;
-        return *this;
-    }
+  template<typename... T>
+  constexpr static_string_adapter& formatAssign (std::format_string<T...> fmt, T&&... args) {
+    // return assign(std::format(fmt, std::forward<T>(args)...));
+    auto res = std::format_to_n(head_, capacity( ), fmt, std::forward<decltype(args)>(args)...);
+    tail_    = res.out;
+    *tail_   = 0;
+    return *this;
+  }
 #endif
 
 private:
-    const pointer   head_ {nullptr};  ///< Pointer to the beginning of the string
-    pointer         tail_ {nullptr};  ///< Pointer to one past the end of the string (points to null terminator)
-    const size_type max_length_;      ///< Maximum allowed length for the string (excluding null terminator)
+  const pointer   head_ {nullptr};  ///< Pointer to the beginning of the string
+  pointer         tail_ {nullptr};  ///< Pointer to one past the end of the string (points to null terminator)
+  const size_type max_length_;      ///< Maximum allowed length for the string (excluding null terminator)
 
 #if BUILD_TESTS
-    FRIEND_TEST(StaticStringAdapterTest, DefaultConstructor);
-    FRIEND_TEST(StaticStringAdapterTest, ConstructorWithLength);
-    FRIEND_TEST(StaticStringAdapterTest, ArrayConstructor);
-    FRIEND_TEST(StaticStringAdapterTest, CArrayConstructor);
+  FRIEND_TEST(StaticStringAdapterTest, DefaultConstructor);
+  FRIEND_TEST(StaticStringAdapterTest, ConstructorWithLength);
+  FRIEND_TEST(StaticStringAdapterTest, ArrayConstructor);
+  FRIEND_TEST(StaticStringAdapterTest, CArrayConstructor);
 #endif
 
-    constexpr void shift_left (size_t index, size_t n) {
-        const auto p = begin( ) + index;
-        std::copy(p, end( ), p - n);
-    }
+  constexpr void shift_left (size_t index, size_t n) {
+    const auto p = begin( ) + index;
+    std::copy(p, end( ), p - n);
+  }
 
-    constexpr void shift_right (size_t index, size_t n) {
-        const auto p = begin( ) + index;
-        std::copy_backward(p, end( ), std::next(end( ), n));
-    }
+  constexpr void shift_right (size_t index, size_t n) {
+    const auto p = begin( ) + index;
+    std::copy_backward(p, end( ), std::next(end( ), n));
+  }
 
-    constexpr void shift_left (const_iterator p, size_t n) {
-        return shift_left(std::distance(cbegin( ), p), n);
-    }
+  constexpr void shift_left (const_iterator p, size_t n) {
+    return shift_left(std::distance(cbegin( ), p), n);
+  }
 
-    constexpr void shift_right (const_iterator p, size_t n) {
-        return shift_right(std::distance(cbegin( ), p), n);
-    }
+  constexpr void shift_right (const_iterator p, size_t n) {
+    return shift_right(std::distance(cbegin( ), p), n);
+  }
 
-    constexpr void shift (const_iterator pos, ssize_t n) {
-        if ( n > 0 )
-            shift_right(pos, n);
-        else
-            shift_left(pos, -n);
-    }
+  constexpr void shift (const_iterator pos, ssize_t n) {
+    if ( n > 0 )
+      shift_right(pos, n);
+    else
+      shift_left(pos, -n);
+  }
 };
 
 template<std::size_t SZ, BoundCheckStrategy bc_strategy = BoundCheckStrategy::NoCheck>
 class static_string : public static_string_adapter<bc_strategy> {
-    using parent = static_string_adapter<bc_strategy>;
-    std::array<typename parent::char_type, SZ> data_;
+  using parent = static_string_adapter<bc_strategy>;
+  std::array<typename parent::char_type, SZ> data_;
 
 public:
-    constexpr static_string ( ) : parent {initialize_data( ), SZ, 0} {
-    }
+  constexpr static_string ( ) : parent {initialize_data( ), SZ, 0} {
+  }
 
-    constexpr static_string (const StringViewLike auto& sv) : static_string( ) {
-        this->assign(sv);
-    }
+  constexpr static_string (const StringViewLike auto& sv) : static_string( ) {
+    this->assign(sv);
+  }
 
-    constexpr static_string (const char* cstr) : static_string( ) {
-        this->assign(cstr);
-    }
+  constexpr static_string (const char* cstr) : static_string( ) {
+    this->assign(cstr);
+  }
 
-    constexpr static_string (const static_string& other) : static_string( ) {
-        this->assign(other);
-    }
+  constexpr static_string (const static_string& other) : static_string( ) {
+    this->assign(other);
+  }
 #if FMT_SUPPORT
-    template<typename... Arg>
-    static_string(fmt::format_string<Arg...> fmt, Arg&&... args) : static_string( ) {
-        this->formatAssign(fmt, std::forward<Arg>(args)...);
-    }
+  template<typename... Arg>
+  static_string(fmt::format_string<Arg...> fmt, Arg&&... args) : static_string( ) {
+    this->formatAssign(fmt, std::forward<Arg>(args)...);
+  }
 #endif
 #if STD_FORMAT_SUPPORT
-    template<typename... Arg>
-    static_string(std::format_string<Arg...> fmt, Arg&&... args) : static_string( ) {
-        this->formatAssign(fmt, std::forward<Arg>(args)...);
-    }
+  template<typename... Arg>
+  static_string(std::format_string<Arg...> fmt, Arg&&... args) : static_string( ) {
+    this->formatAssign(fmt, std::forward<Arg>(args)...);
+  }
 #endif
 
-    static_string& operator= (const StringViewLike auto& sv) {
-        this->assign(sv);
-        return *this;
-    }
+  static_string& operator= (const StringViewLike auto& sv) {
+    this->assign(sv);
+    return *this;
+  }
 
-    static_string& operator= (const char* cstr) {
-        this->assign(cstr);
-        return *this;
-    }
+  static_string& operator= (const char* cstr) {
+    this->assign(cstr);
+    return *this;
+  }
 
-    static_string& operator= (const static_string& str) {
-        this->assign(str);
-        return *this;
-    }
+  static_string& operator= (const static_string& str) {
+    this->assign(str);
+    return *this;
+  }
 
 private:
-    PointerLike auto initialize_data ( ) {
-        std::fill(data_.begin( ), data_.end( ), '\0');
-        return data_.data( );
-    }
+  PointerLike auto initialize_data ( ) {
+    std::fill(data_.begin( ), data_.end( ), '\0');
+    return data_.data( );
+  }
 };
 
 }  // namespace wbr
 #if IOSTREAM_SUPPORT
-    #include <iostream>
+  #include <iostream>
 
 template<wbr::BoundCheckStrategy bc>
 std::ostream& operator<< (std::ostream& str, const wbr::static_string_adapter<bc>& s) {
-    str << s.view( );
-    return str;
+  str << s.view( );
+  return str;
 }
 
 template<size_t SZ, wbr::BoundCheckStrategy bc>
 std::ostream& operator<< (std::ostream& str, const wbr::static_string<SZ, bc>& s) {
-    str << s.view( );
-    return str;
+  str << s.view( );
+  return str;
 }
 #endif

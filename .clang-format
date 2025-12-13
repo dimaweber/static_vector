@@ -1,5 +1,5 @@
 BasedOnStyle: Google
-AccessModifierOffset: -4
+AccessModifierOffset: -2
 AlignArrayOfStructures: Left
 AlignAfterOpenBracket: DontAlign
 AlignConsecutiveAssignments: Consecutive
@@ -49,7 +49,7 @@ IndentExternBlock: NoIndent
 IndentGotoLabels: false
 IndentPPDirectives: BeforeHash
 IndentRequiresClause: true
-IndentWidth: 4
+IndentWidth: 2
 InsertNewlineAtEOF: true
 KeepEmptyLinesAtTheStartOfBlocks: false
 KeepEmptyLinesAtEOF: false
@@ -102,5 +102,5 @@ SpacesInParentheses: false
 SpacesInSquareBrackets: false
 StatementMacros: [ 'LOG', 'LOG_EX', 'TRACE', 'LOG_EX_ERR', 'LOG_EX_DEBUG' ]
 Standard: 'c++20'
-TabWidth: 4
+TabWidth: 2
 UseTab: 'Never'
