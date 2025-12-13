@@ -46,7 +46,7 @@ CheckOptions:
   readability-implicit-bool-conversion.AllowPointerConditions: true
   bugprone-assert-side-effect.AssertMacros: fASSERT
   readability-identifier-naming.EnumCase: CamelCase
-  readability-identifier-naming.EnumPrefix: E_
+  #readability-identifier-naming.EnumPrefix: E_
   readability-identifier-naming.EnumConstantCase: CamelCase
   modernize-deprecated-headers.CheckHeaderFile: true
   readability-identifier-naming.ConceptCase: CamelCase

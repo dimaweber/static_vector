@@ -40,12 +40,12 @@ class static_string;
 FMT_BEGIN_NAMESPACE
 
 // Mark these types as string-like for fmt - fmt will automatically provide the formatter
-template<BoundCheckStrategy bc>
+template<wbr::BoundCheckStrategy bc>
 struct range_format_kind<wbr::static_string_adapter<bc>, char, void> {
     static constexpr auto value = range_format::string;
 };
 
-template<std::size_t SZ, BoundCheckStrategy bc>
+template<std::size_t SZ, wbr::BoundCheckStrategy bc>
 struct range_format_kind<wbr::static_string<SZ, bc>, char, void> {
     static constexpr auto value = range_format::string;
 };
@@ -55,7 +55,7 @@ FMT_END_NAMESPACE
 
 #if STD_FORMAT_SUPPORT
 // std::format formatters for static_string types
-template<BoundCheckStrategy bc>
+template<wbr::BoundCheckStrategy bc>
 struct std::formatter<wbr::static_string_adapter<bc>, char> : std::formatter<std::string_view, char> {
     template<typename FormatContext>
     auto format (const wbr::static_string_adapter<bc>& str, FormatContext& ctx) const {
@@ -63,7 +63,7 @@ struct std::formatter<wbr::static_string_adapter<bc>, char> : std::formatter<std
     }
 };
 
-template<std::size_t SZ, BoundCheckStrategy bc>
+template<std::size_t SZ, wbr::BoundCheckStrategy bc>
 struct std::formatter<wbr::static_string<SZ, bc>, char> : std::formatter<std::string_view, char> {
     template<typename FormatContext>
     auto format (const wbr::static_string<SZ, bc>& str, FormatContext& ctx) const {
@@ -1832,13 +1832,13 @@ private:
 #if IOSTREAM_SUPPORT
     #include <iostream>
 
-template<BoundCheckStrategy bc>
+template<wbr::BoundCheckStrategy bc>
 std::ostream& operator<< (std::ostream& str, const wbr::static_string_adapter<bc>& s) {
     str << s.view( );
     return str;
 }
 
-template<size_t SZ, BoundCheckStrategy bc>
+template<size_t SZ, wbr::BoundCheckStrategy bc>
 std::ostream& operator<< (std::ostream& str, const wbr::static_string<SZ, bc>& s) {
     str << s.view( );
     return str;

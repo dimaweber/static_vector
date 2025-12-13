@@ -36,7 +36,7 @@ class len_string_adapter;
 FMT_BEGIN_NAMESPACE
 
 // Mark len_string_adapter as string-like for fmt
-template<typename LenType, BoundCheckStrategy bc>
+template<typename LenType, wbr::BoundCheckStrategy bc>
 struct range_format_kind<wbr::len_string_adapter<LenType, bc>, char, void> {
     static constexpr auto value = range_format::string;
 };
@@ -615,7 +615,7 @@ private:
 #if IOSTREAM_SUPPORT
     #include <iostream>
 
-template<std::unsigned_integral SZ, BoundCheckStrategy bc>
+template<std::unsigned_integral SZ, wbr::BoundCheckStrategy bc>
 std::ostream& operator<< (std::ostream& str, const wbr::len_string_adapter<SZ, bc>& s) {
     str << s.view( );
     return str;

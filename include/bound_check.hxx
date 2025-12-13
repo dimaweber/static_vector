@@ -1,5 +1,6 @@
 #pragma once
 
+namespace wbr {
 /**
  @brief Strategy used for bounds checking in static_vector and static_vector_adapter.
 
@@ -17,8 +18,7 @@ enum class BoundCheckStrategy {
     LimitToBound,  ///< Silently limits positions to valid range without throwing exceptions
 };
 
-constexpr const char* to_string (BoundCheckStrategy e, const char* defValue = nullptr) noexcept
-{
+constexpr const char* to_string (BoundCheckStrategy e, const char* defValue = nullptr) noexcept {
     switch ( e ) {
         using enum BoundCheckStrategy;
         case NoCheck:      return "no check (undefined behavior)";
@@ -28,3 +28,4 @@ constexpr const char* to_string (BoundCheckStrategy e, const char* defValue = nu
     }
     return defValue;
 }
+}  // namespace wbr

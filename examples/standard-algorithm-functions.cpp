@@ -4,23 +4,29 @@
 
 #include "static_vector.hxx"
 
-bool is_even (int x)
-{
+bool is_even (int x) {
     return x % 2 == 0;
 }
 
-void standard_algorithm_functions ( )
-{
+void standard_algorithm_functions ( ) {
     fmt::println("\n ---- usage with standard algorithm functions example: --- ");
 
     wbr::static_vector<int, 10> vec {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    // Using std::for_each
+    fmt::println("Using std::for_each");
     std::for_each(vec.begin( ), vec.end( ), [] (int x) { fmt::print("{} ", x); });
     fmt::println("");
 
-    // Using std::find
-    const auto it = std::find(vec.begin( ), vec.end( ), 5);
-    if ( it != vec.end( ) ) {
+    fmt::println("Using std::ranges::for_each");
+    const auto print_x = [] (int x) { fmt::print("{} ", x); };
+    std::ranges::for_each(vec, print_x);
+    fmt::println("");
+
+    fmt::println("Using std::find");
+    if ( const auto it = std::find(vec.begin( ), vec.end( ), 5); it != vec.end( ) ) {
+        fmt::println("Found: {}", *it);
+    }
+    fmt::println("Using std::ranges::find");
+    if ( const auto it = std::ranges::find(vec.begin( ), vec.end( ), 5); it != vec.end( ) ) {
         fmt::println("Found: {}", *it);
     }
 
