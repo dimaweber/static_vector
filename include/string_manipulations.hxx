@@ -7,8 +7,8 @@
 
 #include <system_error>
 #if __has_include(<fmt/ranges.h>) && !defined(WBR_FMT_RANGES_INCLUDED)
-    #include <fmt/ranges.h>
-    #define WBR_FMT_RANGES_INCLUDED
+  #include <fmt/ranges.h>
+  #define WBR_FMT_RANGES_INCLUDED
 #endif
 
 #include <algorithm>
@@ -42,7 +42,7 @@ namespace wbr::str {
  *     @endcode
  */
 [[nodiscard]] inline bool empty (std::string_view str) noexcept {
-    return str.empty( );
+  return str.empty( );
 }
 
 /** @brief helper predicate to check if string is non-empty
@@ -55,7 +55,7 @@ namespace wbr::str {
  * @endcode
  */
 [[nodiscard]] inline bool nonempty (std::string_view str) noexcept {
-    return !empty(str);
+  return !empty(str);
 }
 
 /** @brief Function object wrapper for negated empty check
@@ -66,7 +66,7 @@ namespace wbr::str {
  *     // tokens: {"hello", "world"}
  * @endcode
  */
-inline auto not_emtpy = std::not_fn(empty);
+inline auto not_empty = std::not_fn(empty);
 
 /** @brief Check if character is a whitespace character
  *
@@ -77,7 +77,7 @@ inline auto not_emtpy = std::not_fn(empty);
  * @endcode
  */
 [[nodiscard]] inline bool isspace (char chr) noexcept {
-    return std::isspace(static_cast<unsigned char>(chr)) != 0;
+  return std::isspace(static_cast<unsigned char>(chr)) != 0;
 }
 
 /** @brief Function object wrapper for negated isspace check
@@ -100,7 +100,7 @@ inline auto is_notspace = std::not_fn(isspace);
  * @endcode
  */
 [[nodiscard]] inline bool isblank (char chr) noexcept {
-    return std::isblank(static_cast<unsigned char>(chr)) != 0;
+  return std::isblank(static_cast<unsigned char>(chr)) != 0;
 }
 
 /** @brief Function object wrapper for negated isblank check */
@@ -114,7 +114,7 @@ inline auto is_notblank = std::not_fn(isblank);
  * @endcode
  */
 [[nodiscard]] inline bool isdigit (char chr) noexcept {
-    return std::isdigit(static_cast<unsigned char>(chr)) != 0;
+  return std::isdigit(static_cast<unsigned char>(chr)) != 0;
 }
 
 inline auto it_notdigit = std::not_fn(isdigit);
@@ -127,7 +127,7 @@ inline auto it_notdigit = std::not_fn(isdigit);
  * @endcode
  */
 [[nodiscard]] inline bool isxdigit (char chr) noexcept {
-    return std::isxdigit(static_cast<unsigned char>(chr)) != 0;
+  return std::isxdigit(static_cast<unsigned char>(chr)) != 0;
 }
 
 inline auto it_notxdigit = std::not_fn(isxdigit);
@@ -140,7 +140,7 @@ inline auto it_notxdigit = std::not_fn(isxdigit);
  * @endcode
  */
 [[nodiscard]] inline bool islower (char chr) noexcept {
-    return std::islower(static_cast<unsigned char>(chr)) != 0;
+  return std::islower(static_cast<unsigned char>(chr)) != 0;
 }
 
 inline auto is_notlower = std::not_fn(islower);
@@ -153,14 +153,14 @@ inline auto is_notlower = std::not_fn(islower);
  * @endcode
  */
 [[nodiscard]] inline bool isupper (char chr) noexcept {
-    return std::isupper(static_cast<unsigned char>(chr)) != 0;
+  return std::isupper(static_cast<unsigned char>(chr)) != 0;
 }
 
 inline auto is_notupper = std::not_fn(isupper);
 
 /** @brief Check if character is a control character */
 [[nodiscard]] inline bool iscntrl (char chr) noexcept {
-    return std::iscntrl(static_cast<unsigned char>(chr)) != 0;
+  return std::iscntrl(static_cast<unsigned char>(chr)) != 0;
 }
 
 inline auto is_notcntrl = std::not_fn(iscntrl);
@@ -174,7 +174,7 @@ inline auto is_notcntrl = std::not_fn(iscntrl);
  * @endcode
  */
 [[nodiscard]] inline bool isalnum (char ch) noexcept {
-    return std::isalnum(static_cast<unsigned char>(ch));
+  return std::isalnum(static_cast<unsigned char>(ch));
 }
 
 inline auto is_notalnum = std::not_fn(isalnum);
@@ -187,13 +187,13 @@ inline auto is_notalnum = std::not_fn(isalnum);
  * @endcode
  */
 [[nodiscard]] inline bool isalpha (char ch) noexcept {
-    return std::isalpha(static_cast<unsigned char>(ch));
+  return std::isalpha(static_cast<unsigned char>(ch));
 }
 
 inline auto is_notalpha = std::not_fn(isalpha);
 
 [[nodiscard]] inline bool is_punct (char ch) noexcept {
-    return std::ispunct(static_cast<unsigned char>(ch));
+  return std::ispunct(static_cast<unsigned char>(ch));
 }
 
 inline auto is_notpunct = std::not_fn(is_punct);
@@ -212,11 +212,11 @@ inline auto is_notpunct = std::not_fn(is_punct);
  */
 template<typename T>
 std::string convertToHexString (const T& arr, std::string_view divider = " ") {
-    return fmt::format("{:02x}", fmt::join(arr.begin( ), arr.end( ), divider));
+  return fmt::format("{:02x}", fmt::join(arr.begin( ), arr.end( ), divider));
 }
 
 inline std::string convertToHexString (const char* arr, std::string_view divider = " ") {
-    return convertToHexString(std::string_view {arr}, divider);
+  return convertToHexString(std::string_view {arr}, divider);
 }
 
 // template <typename T>
@@ -240,17 +240,17 @@ inline std::string convertToHexString (const char* arr, std::string_view divider
  * @endcode
  */
 inline std::string_view trim (std::string_view str, std::string_view symbols = " \t") {
-    if ( str.empty( ) )
-        return { };
+  if ( str.empty( ) )
+    return { };
 
-    if ( std::string_view::size_type pos = str.find_first_not_of(symbols); pos != std::string_view::npos )
-        str.remove_prefix(pos);
-    else
-        return { };
+  if ( std::string_view::size_type pos = str.find_first_not_of(symbols); pos != std::string_view::npos )
+    str.remove_prefix(pos);
+  else
+    return { };
 
-    if ( std::string_view::size_type pos = str.find_last_not_of(symbols); pos != std::string_view::npos )
-        str.remove_suffix(str.size( ) - pos - 1);
-    return str;
+  if ( std::string_view::size_type pos = str.find_last_not_of(symbols); pos != std::string_view::npos )
+    str.remove_suffix(str.size( ) - pos - 1);
+  return str;
 }
 
 /** @brief Trim string using custom predicate function
@@ -267,14 +267,14 @@ inline std::string_view trim (std::string_view str, std::string_view symbols = "
  */
 template<std::invocable<char> P>
 inline std::string_view trim (std::string_view str, P is_space_predicate) {
-    if ( str.empty( ) )
-        return { };
+  if ( str.empty( ) )
+    return { };
 
-    auto pos_b = std::find_if_not(str.cbegin( ), str.cend( ), is_space_predicate);
-    if ( pos_b == str.cend( ) )
-        return { };
-    auto pos_e = std::find_if_not(str.crbegin( ), str.crend( ), is_space_predicate);
-    return std::string_view {pos_b, pos_e.base( )};
+  auto pos_b = std::find_if_not(str.cbegin( ), str.cend( ), is_space_predicate);
+  if ( pos_b == str.cend( ) )
+    return { };
+  auto pos_e = std::find_if_not(str.crbegin( ), str.crend( ), is_space_predicate);
+  return std::string_view {pos_b, pos_e.base( )};
 }
 
 /**
@@ -295,18 +295,18 @@ inline std::string_view trim (std::string_view str, P is_space_predicate) {
  * @see splitAtLast
  */
 inline std::optional<std::pair<std::string_view, std::string_view>> splitAtPos (std::string_view str, std::string_view::size_type pos) {
-    if ( pos == std::string_view::npos )
-        return std::nullopt;
+  if ( pos == std::string_view::npos )
+    return std::nullopt;
 
-    std::string_view key = {str.data( ), pos};
-    std::string_view val = {str.data( ) + pos + 1, str.size( ) - pos - 1};
-    key                  = trim(key);
-    val                  = trim(val);
+  std::string_view key = {str.data( ), pos};
+  std::string_view val = {str.data( ) + pos + 1, str.size( ) - pos - 1};
+  key                  = trim(key);
+  val                  = trim(val);
 
-    if ( key.empty( ) )
-        return std::nullopt;
+  if ( key.empty( ) )
+    return std::nullopt;
 
-    return std::pair {key, val};
+  return std::pair {key, val};
 }
 
 /** @brief Convert string to lowercase (in-place)
@@ -322,8 +322,8 @@ inline std::optional<std::pair<std::string_view, std::string_view>> splitAtPos (
  */
 template<StringType S>
 S& strlower (S& s) {
-    std::ranges::transform(s, s.begin( ), tolower);
-    return s;
+  std::ranges::transform(s, s.begin( ), tolower);
+  return s;
 }
 
 /** @brief Convert string to lowercase (returns new string)
@@ -338,9 +338,9 @@ S& strlower (S& s) {
  */
 template<StringType S, StringType O = std::string>
 O strlower (const S& s) {
-    O out;
-    std::ranges::transform(s, std::back_inserter(out), tolower);
-    return out;
+  O out;
+  std::ranges::transform(s, std::back_inserter(out), tolower);
+  return out;
 }
 
 /** @brief Convert string to uppercase (in-place)
@@ -356,8 +356,8 @@ O strlower (const S& s) {
  */
 template<StringType S>
 S& strupper (S& s) {
-    std::ranges::transform(s, s.begin( ), toupper);
-    return s;
+  std::ranges::transform(s, s.begin( ), toupper);
+  return s;
 }
 
 /** @brief Convert string to uppercase (returns new string)
@@ -372,9 +372,9 @@ S& strupper (S& s) {
  */
 template<StringType S, StringType O = std::string>
 O strupper (const S& s) {
-    O out;
-    std::ranges::transform(s, std::back_inserter(out), toupper);
-    return out;
+  O out;
+  std::ranges::transform(s, std::back_inserter(out), toupper);
+  return out;
 }
 
 using TokenAction = std::function<void(std::string_view)>;
@@ -395,15 +395,15 @@ using TokenFilter = std::function<bool(std::string_view)>;
  * @endcode
  */
 inline void tokenize_callback (const std::string_view sv, const TokenAction& action, std::string_view delimiters = " ") {
-    if ( sv.empty( ) )
-        return;
-    std::string_view::size_type pos_token_start = 0;
-    std::string_view::size_type pos_token_end;
-    do {
-        pos_token_end = sv.find_first_of(delimiters, pos_token_start);
-        action(sv.substr(pos_token_start, pos_token_end - pos_token_start));
-        pos_token_start = pos_token_end + 1;
-    } while ( pos_token_end != std::string_view::npos );
+  if ( sv.empty( ) )
+    return;
+  std::string_view::size_type pos_token_start = 0;
+  std::string_view::size_type pos_token_end;
+  do {
+    pos_token_end = sv.find_first_of(delimiters, pos_token_start);
+    action(sv.substr(pos_token_start, pos_token_end - pos_token_start));
+    pos_token_start = pos_token_end + 1;
+  } while ( pos_token_end != std::string_view::npos );
 }
 
 /** @brief Tokenizes a string view into substrings based on specified delimiters and a filtering predicate.
@@ -420,12 +420,12 @@ inline void tokenize_callback (const std::string_view sv, const TokenAction& act
  *
  * @return A vector of string views representing the filtered tokens extracted from `sv`. */
 inline std::vector<std::string_view> tokenize_filtered (const std::string_view sv, TokenFilter filter, std::string_view delimiters = " ") {
-    std::vector<std::string_view> tokens;
-    tokenize_callback(sv, [&tokens, filter] (std::string_view token) {
-        if ( filter(token) )
-            tokens.emplace_back(token);
-    }, delimiters);
-    return tokens;
+  std::vector<std::string_view> tokens;
+  tokenize_callback(sv, [&tokens, filter] (std::string_view token) {
+    if ( filter(token) )
+      tokens.emplace_back(token);
+  }, delimiters);
+  return tokens;
 }
 
 /**
@@ -439,10 +439,10 @@ inline std::vector<std::string_view> tokenize_filtered (const std::string_view s
  * @param delimiters A string view containing the characters used as delimiters for tokenizing the input string. Defaults to " " (space).
  */
 inline void tokenize (const std::string_view sv, TokenFilter filter, TokenAction action, std::string_view delimiters = " ") {
-    tokenize_callback(sv, [&action, filter] (std::string_view token) {
-        if ( filter(token) )
-            action(token);
-    }, delimiters);
+  tokenize_callback(sv, [&action, filter] (std::string_view token) {
+    if ( filter(token) )
+      action(token);
+  }, delimiters);
 }
 
 /**
@@ -455,13 +455,13 @@ inline void tokenize (const std::string_view sv, TokenFilter filter, TokenAction
  * @param delimiters Characters used to separate tokens (default is space).
  * @return Vector of string views representing the tokens extracted from the input string.*/
 inline std::vector<std::string_view> tokenize (const std::string_view str, std::string_view delimiters = " ") {
-    if ( str.empty( ) )
-        return { };
+  if ( str.empty( ) )
+    return { };
 
-    std::vector<std::string_view> vsv;
+  std::vector<std::string_view> vsv;
 
-    tokenize_callback(str, [&vsv] (std::string_view token) { vsv.emplace_back(token); }, delimiters);
-    return vsv;
+  tokenize_callback(str, [&vsv] (std::string_view token) { vsv.emplace_back(token); }, delimiters);
+  return vsv;
 }
 
 /** @brief Tokenizes a C-style string into a vector of string views based on specified delimiters.
@@ -479,10 +479,10 @@ inline std::vector<std::string_view> tokenize (const std::string_view str, std::
  *         the input string by the provided delimiters.
  */
 inline std::vector<std::string_view> tokenize (const char* str, std::string_view delimiters = " ") {
-    if ( str == nullptr )
-        return { };
+  if ( str == nullptr )
+    return { };
 
-    return tokenize(std::string_view {str, strlen(str)}, delimiters);
+  return tokenize(std::string_view {str, strlen(str)}, delimiters);
 }
 
 /**
@@ -496,7 +496,7 @@ inline std::vector<std::string_view> tokenize (const char* str, std::string_view
  *
  * @return An empty vector of string views, signifying that no tokens are generated from a null input.*/
 inline std::vector<std::string_view> tokenize ([[maybe_unused]] std::nullptr_t ptr, [[maybe_unused]] std::string_view delm = " ") {
-    return { };
+  return { };
 }
 
 template<typename T>
@@ -515,9 +515,9 @@ using TokenModifier = std::function<T(std::string_view)>;
  */
 template<typename T>
 std::vector<T> tokenize_modify (const std::string_view sv, TokenModifier<T> modifier, std::string_view delimiters = " ") {
-    std::vector<T> out;
-    tokenize_callback(sv, [&out, modifier] (std::string_view token) { out.emplace_back(modifier(token)); }, delimiters);
-    return out;
+  std::vector<T> out;
+  tokenize_callback(sv, [&out, modifier] (std::string_view token) { out.emplace_back(modifier(token)); }, delimiters);
+  return out;
 }
 
 /** @brief Splits a string into tokens based on specified delimiters and modifies each token.
@@ -558,9 +558,9 @@ std::vector<T> tokenize_modify (const std::string_view sv, TokenModifier<T> modi
  */
 template<typename T>
 std::vector<T> tokenize_modify (const std::string_view sv, TokenFilter filter, TokenModifier<T> modifier, std::string_view delimiters = " ") {
-    std::vector<T> out;
-    tokenize(sv, filter, [&out, modifier] (std::string_view token) { out.emplace_back(modifier(token)); }, delimiters);
-    return out;
+  std::vector<T> out;
+  tokenize(sv, filter, [&out, modifier] (std::string_view token) { out.emplace_back(modifier(token)); }, delimiters);
+  return out;
 }
 
 /** @brief Concept for types that can be checked for emptiness */
@@ -579,10 +579,10 @@ concept CanBeEmpty = requires(S s) { wbr::str::empty(s); };
  * @endcode
  */
 template<template<class> class V, class S>
-    requires ContainerLike<V, S> && CanBeEmpty<S>
+  requires ContainerLike<V, S> && CanBeEmpty<S>
 V<S> removeEmptyTokens (V<S> vec) {
-    std::erase_if(vec, wbr::str::empty);
-    return vec;
+  std::erase_if(vec, wbr::str::empty);
+  return vec;
 }
 
 /** @brief Remove empty strings from vector
@@ -595,8 +595,8 @@ V<S> removeEmptyTokens (V<S> vec) {
  */
 template<CanBeEmpty S>
 std::vector<S> removeEmptyTokens (std::vector<S> tokens) {
-    std::erase_if(tokens, empty);
-    return tokens;
+  std::erase_if(tokens, empty);
+  return tokens;
 }
 
 /** @brief Tokenize string after trimming whitespace
@@ -615,20 +615,20 @@ std::vector<S> removeEmptyTokens (std::vector<S> tokens) {
  */
 template<StringType String>
 std::vector<std::string_view> tokenizeSimplified (const String& str, std::string_view delimiters = " ") {
-    return tokenize(trim(str, delimiters), delimiters);
+  return tokenize(trim(str, delimiters), delimiters);
 }
 
 /** @brief Tokenize C-string after trimming */
 inline std::vector<std::string_view> tokenizeSimplified (const char* str, std::string_view delimiters = " ") {
-    if ( str == nullptr )
-        return { };
+  if ( str == nullptr )
+    return { };
 
-    return tokenizeSimplified(std::string_view {str, strlen(str)}, delimiters);
+  return tokenizeSimplified(std::string_view {str, strlen(str)}, delimiters);
 }
 
 /** @brief Tokenize nullptr (returns empty vector) */
 inline std::vector<std::string_view> tokenizeSimplified (std::nullptr_t, std::string_view = " ") {
-    return { };
+  return { };
 }
 
 /**
@@ -663,72 +663,72 @@ inline std::vector<std::string_view> tokenizeSimplified (std::nullptr_t, std::st
  *  @see tokenizeEscapedInput
  */
 inline std::vector<std::string> tokenizeEscaped (std::string_view input, std::string_view dividerChars = " ", char escapeChar = '\\') {
-    auto is_quote   = [] (char c) { return c == '\'' || c == '"'; };
-    auto is_divider = [dividerChars] (char c) { return dividerChars.find(c) != std::string_view::npos; };
-    auto is_escape  = [escapeChar] (char c) { return c == escapeChar; };
+  auto is_quote   = [] (char c) { return c == '\'' || c == '"'; };
+  auto is_divider = [dividerChars] (char c) { return dividerChars.find(c) != std::string_view::npos; };
+  auto is_escape  = [escapeChar] (char c) { return c == escapeChar; };
 
-    if ( is_divider(escapeChar) )
-        return { };
+  if ( is_divider(escapeChar) )
+    return { };
 
-    enum class E_ParserState {
-        regular,
-        regularEscape,
-        quote,
-        quoteEscape,
-    };
-    E_ParserState            curState {E_ParserState::regular};
-    char                     quoteChar {'\0'};
-    std::vector<std::string> tokensVec;
+  enum class E_ParserState {
+    regular,
+    regularEscape,
+    quote,
+    quoteEscape,
+  };
+  E_ParserState            curState {E_ParserState::regular};
+  char                     quoteChar {'\0'};
+  std::vector<std::string> tokensVec;
 
-    auto startNewToken = [&tokensVec] ( ) { tokensVec.emplace_back( ); };
-    auto appendChar    = [&tokensVec] (char c) { tokensVec.back( ).append(1, c); };
+  auto startNewToken = [&tokensVec] ( ) { tokensVec.emplace_back( ); };
+  auto appendChar    = [&tokensVec] (char c) { tokensVec.back( ).append(1, c); };
 
-    startNewToken( );
-    for ( const char curChar: input ) {
-        switch ( curState ) {
-            case E_ParserState::regular:
-                if ( is_divider(curChar) ) {
-                    startNewToken( );
-                } else if ( is_escape(curChar) ) {
-                    curState = E_ParserState::regularEscape;
-                } else if ( is_quote(curChar) ) {
-                    curState  = E_ParserState::quote;
-                    quoteChar = curChar;
-                } else
-                    appendChar(curChar);
-                break;
+  startNewToken( );
+  for ( const char curChar: input ) {
+    switch ( curState ) {
+      case E_ParserState::regular:
+        if ( is_divider(curChar) ) {
+          startNewToken( );
+        } else if ( is_escape(curChar) ) {
+          curState = E_ParserState::regularEscape;
+        } else if ( is_quote(curChar) ) {
+          curState  = E_ParserState::quote;
+          quoteChar = curChar;
+        } else
+          appendChar(curChar);
+        break;
 
-            case E_ParserState::quote:
-                if ( is_escape(curChar) ) {
-                    curState = E_ParserState::quoteEscape;
-                } else if ( curChar == quoteChar ) {
-                    curState = E_ParserState::regular;
-                } else
-                    appendChar(curChar);
-                break;
+      case E_ParserState::quote:
+        if ( is_escape(curChar) ) {
+          curState = E_ParserState::quoteEscape;
+        } else if ( curChar == quoteChar ) {
+          curState = E_ParserState::regular;
+        } else
+          appendChar(curChar);
+        break;
 
-            case E_ParserState::regularEscape:
-                if ( is_divider(curChar) || is_escape(curChar) || is_quote(curChar) ) {
-                    appendChar(curChar);
-                    curState = E_ParserState::regular;
-                    break;
-                }
-                return { };
-
-            case E_ParserState::quoteEscape:
-                if ( is_divider(curChar) || is_escape(curChar) || is_quote(curChar) ) {
-                    appendChar(curChar);
-                    curState = E_ParserState::quote;
-                    break;
-                }
-                return { };
+      case E_ParserState::regularEscape:
+        if ( is_divider(curChar) || is_escape(curChar) || is_quote(curChar) ) {
+          appendChar(curChar);
+          curState = E_ParserState::regular;
+          break;
         }
-    }
-
-    if ( curState != E_ParserState::regular )
         return { };
 
-    return tokensVec;
+      case E_ParserState::quoteEscape:
+        if ( is_divider(curChar) || is_escape(curChar) || is_quote(curChar) ) {
+          appendChar(curChar);
+          curState = E_ParserState::quote;
+          break;
+        }
+        return { };
+    }
+  }
+
+  if ( curState != E_ParserState::regular )
+    return { };
+
+  return tokensVec;
 }
 
 /** @brief Split string at first occurrence of delimiter
@@ -749,15 +749,15 @@ inline std::vector<std::string> tokenizeEscaped (std::string_view input, std::st
  * @endcode
  */
 inline std::optional<std::pair<std::string_view, std::string_view>> splitAtFirst (std::string_view str, std::string_view delimiter = " ") {
-    return splitAtPos(str, str.find_first_of(delimiter));
+  return splitAtPos(str, str.find_first_of(delimiter));
 }
 
 /** @brief Split C-string at first occurrence of delimiter */
 inline std::optional<std::pair<std::string_view, std::string_view>> splitAtFirst (const char* str, std::string_view delimiter = " ") {
-    if ( str == nullptr )
-        return std::nullopt;
+  if ( str == nullptr )
+    return std::nullopt;
 
-    return splitAtFirst(std::string_view {str, strlen(str)}, delimiter);
+  return splitAtFirst(std::string_view {str, strlen(str)}, delimiter);
 }
 
 /** @brief Split string at last occurrence of delimiter
@@ -777,20 +777,20 @@ inline std::optional<std::pair<std::string_view, std::string_view>> splitAtFirst
  * @endcode
  */
 inline std::optional<std::pair<std::string_view, std::string_view>> splitAtLast (std::string_view str, std::string_view delimiter = " ") {
-    return splitAtPos(str, str.find_last_of(delimiter));
+  return splitAtPos(str, str.find_last_of(delimiter));
 }
 
 /** @brief Split string at last occurrence of single character delimiter */
 inline std::optional<std::pair<std::string_view, std::string_view>> splitAtLast (std::string_view str, char delimiter = ' ') {
-    return splitAtPos(str, str.find_last_of(delimiter));
+  return splitAtPos(str, str.find_last_of(delimiter));
 }
 
 /** @brief Split C-string at last occurrence of delimiter */
 inline std::optional<std::pair<std::string_view, std::string_view>> splitAtLast (const char* str, std::string_view delimiter = " ") {
-    if ( str == nullptr )
-        return std::nullopt;
+  if ( str == nullptr )
+    return std::nullopt;
 
-    return splitAtLast(std::string_view {str, strlen(str)}, delimiter);
+  return splitAtLast(std::string_view {str, strlen(str)}, delimiter);
 }
 
 /** @brief Join strings from iterator range
@@ -808,15 +808,15 @@ inline std::optional<std::pair<std::string_view, std::string_view>> splitAtLast 
  */
 template<InputStrIt InputIt>
 std::string join (InputIt b, InputIt e, std::string_view delimiter = ", ") {
-    std::string out;
-    if ( b == e )
-        return out;
-
-    out.append(*b);
-    for ( auto it = b + 1; it != e; ++it )
-        out.append(delimiter).append(*it);
-
+  std::string out;
+  if ( b == e )
     return out;
+
+  out.append(*b);
+  for ( auto it = b + 1; it != e; ++it )
+    out.append(delimiter).append(*it);
+
+  return out;
 }
 
 /** @brief Join strings from vector
@@ -833,7 +833,7 @@ std::string join (InputIt b, InputIt e, std::string_view delimiter = ", ") {
  */
 template<StringType String>
 std::string join (const std::vector<String>& v, std::string_view delimiter = ", ") {
-    return join(v.cbegin( ), v.cend( ), delimiter);
+  return join(v.cbegin( ), v.cend( ), delimiter);
 }
 
 /** @brief Join two strings
@@ -845,7 +845,7 @@ std::string join (const std::vector<String>& v, std::string_view delimiter = ", 
  */
 template<StringType String>
 std::string join (const String a, const String& b, std::string_view delimiter = ", ") {
-    return join(std::vector<String> {a, b}, delimiter);
+  return join(std::vector<String> {a, b}, delimiter);
 }
 
 /** @brief Join pair of strings
@@ -858,7 +858,7 @@ std::string join (const String a, const String& b, std::string_view delimiter = 
  */
 template<StringType String>
 std::string join (const std::pair<String, String>& p, std::string_view delimiter = ", ") {
-    return join(p.first, p.second, delimiter);
+  return join(p.first, p.second, delimiter);
 }
 
 /** @brief Join strings from vector, skipping empty strings
@@ -875,9 +875,9 @@ std::string join (const std::pair<String, String>& p, std::string_view delimiter
  */
 template<StringType String>
 std::string joinSkipEmpty (std::vector<String> vec, std::string_view delimiter = ", ") {
-    std::erase_if(vec, empty);
+  std::erase_if(vec, empty);
 
-    return join(vec, delimiter);
+  return join(vec, delimiter);
 }
 
 /** @brief Replace all occurrences of substring in string (in-place)
@@ -897,19 +897,19 @@ std::string joinSkipEmpty (std::vector<String> vec, std::string_view delimiter =
 // taken cpp reference (https://en.cppreference.com/w/cpp/string/basic_string/replace)
 template<class STR, typename SV>
 std::size_t replaceAll (STR& inout, SV what, SV with) {
-    if ( what.empty( ) )
-        return 0;
-    if ( what == with )
-        return 0;
-    std::size_t count {0};
-    auto        pos = inout.find(what);
-    while ( pos != std::string::npos ) {
-        count++;
-        inout.replace(pos, what.length( ), with);
-        pos += with.length( );
-        pos = inout.find(what, pos);
-    }
-    return count;
+  if ( what.empty( ) )
+    return 0;
+  if ( what == with )
+    return 0;
+  std::size_t count {0};
+  auto        pos = inout.find(what);
+  while ( pos != std::string::npos ) {
+    count++;
+    inout.replace(pos, what.length( ), with);
+    pos += with.length( );
+    pos = inout.find(what, pos);
+  }
+  return count;
 }
 
 /** @brief Remove all occurrences of substring from string (in-place)
@@ -926,7 +926,7 @@ std::size_t replaceAll (STR& inout, SV what, SV with) {
  */
 template<class STR, class SV>
 std::size_t removeAll (STR& inout, SV what) {
-    return replaceAll(inout, what, STR { });
+  return replaceAll(inout, what, STR { });
 }
 
 /** @brief Replace characters that match predicate
@@ -943,11 +943,11 @@ std::size_t removeAll (STR& inout, SV what) {
  * @endcode
  */
 inline std::string replaceCharacters (std::string_view str, const std::function<bool(char)>& checkfunction, char replace_char) {
-    std::string out;
+  std::string out;
 
-    std::ranges::transform(str, std::back_inserter(out), [&checkfunction, replace_char] (char c) { return checkfunction(c) ? replace_char : c; });
+  std::ranges::transform(str, std::back_inserter(out), [&checkfunction, replace_char] (char c) { return checkfunction(c) ? replace_char : c; });
 
-    return out;
+  return out;
 }
 
 /** @brief Replace characters from charset with replacement character
@@ -963,7 +963,7 @@ inline std::string replaceCharacters (std::string_view str, const std::function<
  * @endcode
  */
 [[nodiscard]] inline std::string replaceCharacters (std::string_view str, std::string_view charset, char replace_char) {
-    return replaceCharacters(str, [charset] (char c) { return charset.find(c) != std::string_view::npos; }, replace_char);
+  return replaceCharacters(str, [charset] (char c) { return charset.find(c) != std::string_view::npos; }, replace_char);
 }
 
 /** @brief Check if string starts with prefix
@@ -974,7 +974,7 @@ inline std::string replaceCharacters (std::string_view str, const std::function<
  * @endcode
  */
 constexpr bool starts_with (std::string_view str, std::string_view prefix) {
-    return str.starts_with(prefix);
+  return str.starts_with(prefix);
 }
 
 /** @brief Check if string ends with suffix
@@ -985,7 +985,7 @@ constexpr bool starts_with (std::string_view str, std::string_view prefix) {
  * @endcode
  */
 constexpr bool ends_with (std::string_view str, std::string_view suffix) {
-    return str.ends_with(suffix);
+  return str.ends_with(suffix);
 }
 
 /** @brief Remove N characters from beginning of string (in-place)
@@ -998,8 +998,8 @@ constexpr bool ends_with (std::string_view str, std::string_view suffix) {
  */
 template<StringType S>
 S& remove_prefix (S& str, size_t n) {
-    str.erase(0, n);
-    return str;
+  str.erase(0, n);
+  return str;
 }
 
 /** @brief Remove N characters from end of string (in-place)
@@ -1012,8 +1012,8 @@ S& remove_prefix (S& str, size_t n) {
  */
 template<StringType S>
 S& remove_suffix (S& str, size_t n) {
-    str.erase(str.length( ) - n, n);
-    return str;
+  str.erase(str.length( ) - n, n);
+  return str;
 }
 
 /** @brief Remove prefix string if present (in-place)
@@ -1026,9 +1026,9 @@ S& remove_suffix (S& str, size_t n) {
  */
 template<StringType S>
 S& remove_prefix (S& s, std::string_view prefix) {
-    if ( wbr::str::starts_with(s, prefix) )
-        remove_prefix(s, prefix.length( ));
-    return s;
+  if ( wbr::str::starts_with(s, prefix) )
+    remove_prefix(s, prefix.length( ));
+  return s;
 }
 
 /** @brief Remove suffix string if present (in-place)
@@ -1041,9 +1041,9 @@ S& remove_prefix (S& s, std::string_view prefix) {
  */
 template<StringType S>
 S& remove_suffix (S& s, std::string_view suffix) {
-    if ( wbr::str::ends_with(s, suffix) )
-        remove_suffix(s, suffix.length( ));
-    return s;
+  if ( wbr::str::ends_with(s, suffix) )
+    remove_suffix(s, suffix.length( ));
+  return s;
 }
 
 /** @brief Remove N characters from beginning of string_view
@@ -1054,8 +1054,8 @@ S& remove_suffix (S& s, std::string_view suffix) {
  * @endcode
  */
 constexpr std::string_view remove_prefix (std::string_view sv, size_t n) {
-    sv.remove_prefix(n);
-    return sv;
+  sv.remove_prefix(n);
+  return sv;
 }
 
 /** @brief Remove prefix from string_view if present
@@ -1066,15 +1066,15 @@ constexpr std::string_view remove_prefix (std::string_view sv, size_t n) {
  * @endcode
  */
 constexpr std::string_view remove_prefix (std::string_view sv, std::string_view prefix) {
-    if ( wbr::str::starts_with(sv, prefix) )
-        sv.remove_prefix(prefix.length( ));
-    return sv;
+  if ( wbr::str::starts_with(sv, prefix) )
+    sv.remove_prefix(prefix.length( ));
+  return sv;
 }
 
 /** @brief Remove N characters from end of string_view */
 constexpr std::string_view remove_suffix (std::string_view sv, size_t n) {
-    sv.remove_suffix(n);
-    return sv;
+  sv.remove_suffix(n);
+  return sv;
 }
 
 /** @brief Remove suffix from string_view if present
@@ -1085,9 +1085,9 @@ constexpr std::string_view remove_suffix (std::string_view sv, size_t n) {
  * @endcode
  */
 constexpr std::string_view remove_suffix (std::string_view sv, std::string_view suffix) {
-    if ( wbr::str::ends_with(sv, suffix) )
-        sv.remove_suffix(suffix.length( ));
-    return sv;
+  if ( wbr::str::ends_with(sv, suffix) )
+    sv.remove_suffix(suffix.length( ));
+  return sv;
 }
 
 /** @brief Case-insensitive string comparison
@@ -1102,7 +1102,7 @@ constexpr std::string_view remove_suffix (std::string_view sv, std::string_view 
  * @endcode
  */
 inline bool iequals (std::string_view a, std::string_view b) {
-    return std::ranges::equal(a, b, [] (char aChar, char bChar) { return std::tolower(aChar) == std::tolower(bChar); });
+  return std::ranges::equal(a, b, [] (char aChar, char bChar) { return std::tolower(aChar) == std::tolower(bChar); });
 }
 
 /** @brief Match mode for string to number conversion
@@ -1111,18 +1111,18 @@ inline bool iequals (std::string_view a, std::string_view b) {
  * - partial: Number is extracted from beginning, rest is ignored
  */
 enum class num_match_t {
-    full,
-    partial,
+  full,
+  partial,
 };
 
 /** @brief Convert num_match_t enum to string */
 [[nodiscard]] constexpr const char* to_string (num_match_t e, const char* defValue = nullptr) noexcept {
-    switch ( e ) {
-        using enum num_match_t;
-        case full:    return "full";
-        case partial: return "partial";
-    }
-    return defValue;
+  switch ( e ) {
+    using enum num_match_t;
+    case full:    return "full";
+    case partial: return "partial";
+  }
+  return defValue;
 }
 
 /** @brief Convert string to number with specified base
@@ -1142,96 +1142,96 @@ enum class num_match_t {
  */
 template<std::integral I = int, num_match_t match = num_match_t::partial>
 I num (std::string_view sv, int base) {
-    I ret {0};
-    auto [ptr, err] = std::from_chars(sv.data( ), sv.data( ) + sv.length( ), ret, base);
-    if ( err != std::errc { } )
-        return 0;
-    if constexpr ( match == num_match_t::full ) {
-        if ( ptr != sv.data( ) + sv.length( ) )
-            return 0;
-    }
-    return ret;
+  I ret {0};
+  auto [ptr, err] = std::from_chars(sv.data( ), sv.data( ) + sv.length( ), ret, base);
+  if ( err != std::errc { } )
+    return 0;
+  if constexpr ( match == num_match_t::full ) {
+    if ( ptr != sv.data( ) + sv.length( ) )
+      return 0;
+  }
+  return ret;
 }
 
 template<std::integral I = int, num_match_t match = num_match_t::partial>
 I num (std::string_view sv, int base, std::errc& ec) {
-    I ret {0};
-    auto [ptr, err] = std::from_chars(sv.data( ), sv.data( ) + sv.length( ), ret, base);
-    if constexpr ( match == num_match_t::full ) {
-        if ( ptr != sv.data( ) + sv.length( ) ) {
-            ec = std::errc::argument_out_of_domain;
-            return 0;
-        }
+  I ret {0};
+  auto [ptr, err] = std::from_chars(sv.data( ), sv.data( ) + sv.length( ), ret, base);
+  if constexpr ( match == num_match_t::full ) {
+    if ( ptr != sv.data( ) + sv.length( ) ) {
+      ec = std::errc::argument_out_of_domain;
+      return 0;
     }
-    ec = err;
-    return ret;
+  }
+  ec = err;
+  return ret;
 }
 
 #if defined(__cpp_lib_to_chars)
-    #define WBR_STR_NUM_DOUBLE_HAS_ERROR_CHECK 1
+  #define WBR_STR_NUM_DOUBLE_HAS_ERROR_CHECK 1
 template<typename I>
 concept arithmetic = std::is_integral_v<I> || std::is_floating_point_v<I>;
 
 template<arithmetic I = int, num_match_t match = num_match_t::partial>
 I num (std::string_view sv) {
-    I ret {0};
-    auto [ptr, err] = std::from_chars(sv.data( ), sv.data( ) + sv.length( ), ret);
-    if ( err != std::errc { } )
-        return 0;
-    if constexpr ( match == num_match_t::full ) {
-        if ( ptr != sv.data( ) + sv.length( ) )
-            return 0;
-    }
-    return ret;
+  I ret {0};
+  auto [ptr, err] = std::from_chars(sv.data( ), sv.data( ) + sv.length( ), ret);
+  if ( err != std::errc { } )
+    return 0;
+  if constexpr ( match == num_match_t::full ) {
+    if ( ptr != sv.data( ) + sv.length( ) )
+      return 0;
+  }
+  return ret;
 }
 
 template<arithmetic I = int, num_match_t match = num_match_t::partial>
 I num (std::string_view sv, std::errc& ec) {
-    I ret {0};
-    auto [ptr, err] = std::from_chars(sv.data( ), sv.data( ) + sv.length( ), ret);
-    if constexpr ( match == num_match_t::full ) {
-        if ( ptr != sv.data( ) + sv.length( ) ) {
-            ec = std::errc::argument_out_of_domain;
-            return 0;
-        }
+  I ret {0};
+  auto [ptr, err] = std::from_chars(sv.data( ), sv.data( ) + sv.length( ), ret);
+  if constexpr ( match == num_match_t::full ) {
+    if ( ptr != sv.data( ) + sv.length( ) ) {
+      ec = std::errc::argument_out_of_domain;
+      return 0;
     }
-    ec = err;
-    return ret;
+  }
+  ec = err;
+  return ret;
 }
 #else
-    #define WBR_STR_NUM_DOUBLE_HAS_ERROR_CHECK 0
+  #define WBR_STR_NUM_DOUBLE_HAS_ERROR_CHECK 0
 
 template<std::integral I = int, num_match_t match = num_match_t::partial>
 I num (std::string_view sv) {
-    return num<I, match>(sv, 10);
+  return num<I, match>(sv, 10);
 }
 
 template<std::integral I = int, num_match_t match = num_match_t::partial>
 I num (std::string_view sv, std::errc& ec) {
-    return num<I, match>(sv, 10, ec);
+  return num<I, match>(sv, 10, ec);
 }
 
-    #include <sstream>
+  #include <sstream>
 
 template<std::floating_point I>
 I num (std::string_view sv) {
-    std::stringstream str;
-    str << sv;
-    I ret;
-    str >> ret;
-    return ret;
+  std::stringstream str;
+  str << sv;
+  I ret;
+  str >> ret;
+  return ret;
 }
 
 template<std::floating_point I>
 I num (std::string_view sv, std::errc& ec) {
-    std::stringstream str;
-    str << sv;
-    I ret;
-    str >> ret;
+  std::stringstream str;
+  str << sv;
+  I ret;
+  str >> ret;
 
-    ec = str ? std::errc { } : std::errc::invalid_argument;
+  ec = str ? std::errc { } : std::errc::invalid_argument;
 
-    return ret;
+  return ret;
 }
 #endif
 
@@ -1247,7 +1247,7 @@ enum QuoteSymbol : char { Single = '\'', Double = '"' };
  * @endcode
  */
 inline bool isQuote (char c) noexcept {
-    return c == QuoteSymbol::Single || c == QuoteSymbol::Double;
+  return c == QuoteSymbol::Single || c == QuoteSymbol::Double;
 }
 
 /**
@@ -1266,16 +1266,16 @@ inline bool isQuote (char c) noexcept {
  * @endcode
  */
 inline std::string quoteString (std::string_view inStr, QuoteSymbol quote = QuoteSymbol::Double, char escape = '\\') {
-    std::string outStr;
-    outStr.append(1, quote);
-    for ( char c: inStr ) {
-        if ( c == quote || c == escape )
-            outStr.append(1, escape);
-        outStr.append(1, c);
-    }
-    outStr.append(1, quote);
+  std::string outStr;
+  outStr.append(1, quote);
+  for ( char c: inStr ) {
+    if ( c == quote || c == escape )
+      outStr.append(1, escape);
+    outStr.append(1, c);
+  }
+  outStr.append(1, quote);
 
-    return outStr;
+  return outStr;
 }
 
 /**
@@ -1296,14 +1296,14 @@ inline std::string quoteString (std::string_view inStr, QuoteSymbol quote = Quot
  * @endcode
  */
 inline std::string escapeString (std::string_view inStr, std::string_view dividers = " ", char escape = '\\') {
-    std::string outStr;
-    for ( char c: inStr ) {
-        if ( isQuote(c) || c == escape || std::ranges::find(dividers, c) != dividers.cend( ) )
-            outStr.append(1, escape);
-        outStr.append(1, c);
-    }
+  std::string outStr;
+  for ( char c: inStr ) {
+    if ( isQuote(c) || c == escape || std::ranges::find(dividers, c) != dividers.cend( ) )
+      outStr.append(1, escape);
+    outStr.append(1, c);
+  }
 
-    return outStr;
+  return outStr;
 }
 
 /** @brief Quote string only if it contains special characters
@@ -1323,19 +1323,19 @@ inline std::string escapeString (std::string_view inStr, std::string_view divide
  * @endcode
  */
 inline std::string quoteStringOnlyIfNeed (std::string_view inStr, std::string_view dividers = " ", QuoteSymbol quote = QuoteSymbol::Double, char escape = '\\') {
-    constexpr std::array<QuoteSymbol, 2> quoteSet {QuoteSymbol::Single, QuoteSymbol::Double};
+  constexpr std::array<QuoteSymbol, 2> quoteSet {QuoteSymbol::Single, QuoteSymbol::Double};
 
-    std::string outStr;
-    const bool  req = std::ranges::find_first_of(inStr, dividers) != inStr.end( ) || std::ranges::find_first_of(inStr, quoteSet) != inStr.end( );
-    if ( req )
-        outStr.append(1, quote);
-    for ( char c: inStr ) {
-        if ( c == quote || c == escape )
-            outStr.append(1, escape);
-        outStr.append(1, c);
-    }
-    if ( req )
-        outStr.append(1, quote);
-    return outStr;
+  std::string outStr;
+  const bool  req = std::ranges::find_first_of(inStr, dividers) != inStr.end( ) || std::ranges::find_first_of(inStr, quoteSet) != inStr.end( );
+  if ( req )
+    outStr.append(1, quote);
+  for ( char c: inStr ) {
+    if ( c == quote || c == escape )
+      outStr.append(1, escape);
+    outStr.append(1, c);
+  }
+  if ( req )
+    outStr.append(1, quote);
+  return outStr;
 }
 }  // namespace wbr::str

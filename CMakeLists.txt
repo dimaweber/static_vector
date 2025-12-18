@@ -55,6 +55,8 @@ set(HEADERS
         include/text_file_reader.hxx
         include/tlv_vector.hxx
         include/platform.hxx
+        include/static_avl_tree.hxx
+        include/loremipsum.hxx
 )
 
 
@@ -142,6 +144,7 @@ if (BUILD_TESTS)
             tests/string_manipulations_ext.unittest.cxx
             tests/len_string.unittest.cxx
             tests/text_file_reader.unittest.cxx
+            tests/static_avl_tree.unittest.cxx
     )
 
     include(GoogleTest)
@@ -167,7 +170,8 @@ if (BUILD_EXAMPLES)
             examples/sv_demo.cpp examples/standard-algorithm-functions.cpp
             examples/tlv_array_base_usage.cpp
             examples/coroutine.cpp
-            examples/string_demo.cpp)
+            examples/string_demo.cpp
+            examples/tree_demo.cpp)
     target_link_libraries(${TARGET_DM} PRIVATE ${TARGET_LIB})
     target_link_libraries(${TARGET_DM} PRIVATE fmt::fmt)
 endif ()
