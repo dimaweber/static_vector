@@ -12,7 +12,7 @@ set(TARGET_DM sv_demo)
 set(TARGET_UT sv_unittest)
 set(TARGET_BM sv_benchmark)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 list(APPEND CMAKE_PREFIX_PATH $ENV{HOME}/.local/lib/cmake)
@@ -57,6 +57,7 @@ set(HEADERS
         include/platform.hxx
         include/static_avl_tree.hxx
         include/loremipsum.hxx
+        include/co_generator.hxx
 )
 
 

@@ -57,11 +57,28 @@ void tree_demo ( ) {
   tree.add(6, 6);
   tree.add(13, 13);
   tree.add(15, 15);
-  fmt::println("tree valid: {}", tree.valid( ));
+  fmt::println("tree valid: {}, size: {}", tree.valid( ), tree.size( ));
   tree.remove(7);
-  fmt::println("after removing key {}", tree.valid( ));
+  fmt::println("after removing key {}, size: {}", tree.valid( ), tree.size( ));
 
   tree.bfs_action_s([] (const int& i, int& s) { fmt::println("{} {}", i, s); });
+
+  fmt::println("value at {} is {}", 6, tree.at(6));
+  fmt::println("value at {} is {}", 10, tree[10]);
+
+  try {
+    fmt::println("value at {} is {}", 42, tree.at(42));
+  } catch ( const std::out_of_range& e ) {
+    fmt::println("caught exception: {}", e.what( ));
+  }
+
+  for ( auto [key, value]: tree )
+    fmt::println("{} {}", key, value);
+
+  fmt::println("tree count: {} vs std::count {}", tree.size( ), std::count_if(tree.begin( ), tree.end( ), [] (auto) { return true; }));
+
+  tree.clear( );
+  fmt::println("after clearing tree valid: {}, size: {}", tree.valid( ), tree.size( ));
 
   return;
 }

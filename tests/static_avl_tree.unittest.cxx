@@ -33,9 +33,9 @@ std::vector<RemoveTestDataset> dataset {
     {{7, 4, 12, 2, 5, 10, 14, 1, 3, 6, 8, 11, 13, 15, 9}, 13},
 };
 
-class AvlTreeRemove : public TestWithParam<RemoveTestDataset> { };
+class AvlTree : public TestWithParam<RemoveTestDataset> { };
 
-TEST_P (AvlTreeRemove, Remove) {
+TEST_P (AvlTree, Remove) {
   auto [values, key] = GetParam( );
   static_avl_tree<int, int, 16> tree;
   for ( auto value: values )
@@ -45,4 +45,4 @@ TEST_P (AvlTreeRemove, Remove) {
   EXPECT_TRUE(tree.valid( ));
 }
 
-INSTANTIATE_TEST_SUITE_P(StaticMap, AvlTreeRemove, ValuesIn(dataset));
+INSTANTIATE_TEST_SUITE_P(Remove, AvlTree, ValuesIn(dataset));

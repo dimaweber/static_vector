@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <fstream>
 
+#include "platform.hxx"
 #include "string_manipulations.hxx"
 
 namespace wbr {
@@ -16,17 +17,17 @@ namespace wbr {
  * from text files.
  */
 enum TextLineReadOpt {
-    None = 0,                ///< No special processing
-    SkipEmpty = 0x1,         ///< Skip empty lines
-    SkipComment = 0x2,       ///< Skip lines starting with '#' (after trimming whitespace)
-    TrimWhitespace = 0x4     ///< Trim leading and trailing whitespace from lines
+  None           = 0,    ///< No special processing
+  SkipEmpty      = 0x1,  ///< Skip empty lines
+  SkipComment    = 0x2,  ///< Skip lines starting with '#' (after trimming whitespace)
+  TrimWhitespace = 0x4   ///< Trim leading and trailing whitespace from lines
 };
 
 /**
  * @brief Bitwise OR operator for combining TextLineReadOpt flags.
  */
 constexpr TextLineReadOpt operator| (TextLineReadOpt a, TextLineReadOpt b) {
-    return static_cast<TextLineReadOpt>(std::to_underlying(a) | std::to_underlying(b));
+  return static_cast<TextLineReadOpt>(std::to_underlying(a) | std::to_underlying(b));
 }
 
 /**
@@ -46,21 +47,21 @@ struct text_line_t : public std::string { };
 
 template<TextLineReadOpt OPT>
 std::istream& operator>> (std::istream& stream, text_line_t<OPT>& line) {
-    while ( stream ) {
-        std::getline(stream, line);
-        if ( OPT & SkipEmpty ) {
-            if ( line.empty( ) )
-                continue;
-        }
-        if ( OPT & SkipComment ) {
-            if ( wbr::str::starts_with(wbr::str::trim(line, &wbr::str::isspace), "#") )
-                continue;
-        }
-        break;
+  while ( stream ) {
+    std::getline(stream, line);
+    if ( OPT & SkipEmpty ) {
+      if ( line.empty( ) )
+        continue;
     }
-    if ( OPT & TrimWhitespace )
-        line.assign(wbr::str::trim(line, &wbr::str::isspace));
-    return stream;
+    if ( OPT & SkipComment ) {
+      if ( wbr::str::starts_with(wbr::str::trim(line, &wbr::str::isspace), "#") )
+        continue;
+    }
+    break;
+  }
+  if ( OPT & TrimWhitespace )
+    line.assign(wbr::str::trim(line, &wbr::str::isspace));
+  return stream;
 }
 
 /**
@@ -113,96 +114,96 @@ std::istream& operator>> (std::istream& stream, text_line_t<OPT>& line) {
  */
 template<TextLineReadOpt OPT = TextLineReadOpt::SkipComment | TextLineReadOpt::SkipEmpty | TextLineReadOpt::TrimWhitespace>
 class text_file_reader_t {
-    const std::filesystem::path filepath;  ///< Path to the file being read
-    std::ifstream               stream;    ///< Input file stream
+  const std::filesystem::path filepath;  ///< Path to the file being read
+  std::ifstream               stream;    ///< Input file stream
 
 public:
-    /**
-     * @brief Constructs a text file reader and opens the specified file.
-     * @param filepath Path to the text file to read
-     */
-    text_file_reader_t (std::filesystem::path filepath) : filepath {filepath}, stream {filepath} {
-    }
+  /**
+   * @brief Constructs a text file reader and opens the specified file.
+   * @param filepath Path to the text file to read
+   */
+  text_file_reader_t (std::filesystem::path filepath) : filepath {filepath}, stream {filepath} {
+  }
 
-    text_file_reader_t( )                             = default;
-    ~text_file_reader_t( )                            = default;
-    text_file_reader_t(text_file_reader_t&&) noexcept = default;
-    text_file_reader_t(const text_file_reader_t&)     = delete;
+  text_file_reader_t( )                             = default;
+  ~text_file_reader_t( )                            = default;
+  text_file_reader_t(text_file_reader_t&&) noexcept = default;
+  text_file_reader_t(const text_file_reader_t&)     = delete;
 
-    text_file_reader_t& operator= (text_file_reader_t&&) noexcept = default;
-    text_file_reader_t& operator= (const text_file_reader_t&)     = delete;
+  text_file_reader_t& operator= (text_file_reader_t&&) noexcept = default;
+  text_file_reader_t& operator= (const text_file_reader_t&)     = delete;
 
-    /**
-     * @brief Checks if the file stream is open.
-     * @return true if the file is successfully opened, false otherwise
-     */
-    [[nodiscard]] bool is_open ( ) const noexcept(noexcept(std::ifstream { }.is_open( ))) {
-        return stream.is_open( );
-    }
+  /**
+   * @brief Checks if the file stream is open.
+   * @return true if the file is successfully opened, false otherwise
+   */
+  [[nodiscard]] bool is_open ( ) const noexcept(noexcept(std::ifstream { }.is_open( ))) {
+    return stream.is_open( );
+  }
 
-    /**
-     * @brief Returns an iterator to the beginning of the file.
-     * @return Input iterator positioned at the first line (after filtering)
-     *
-     * The iterator reads and processes lines according to the template options.
-     * Lines are read lazily as the iterator is advanced.
-     */
-    [[nodiscard]] auto begin ( ) {
-        return std::istream_iterator<text_line_t<OPT>> {stream};
-    }
+  /**
+   * @brief Returns an iterator to the beginning of the file.
+   * @return Input iterator positioned at the first line (after filtering)
+   *
+   * The iterator reads and processes lines according to the template options.
+   * Lines are read lazily as the iterator is advanced.
+   */
+  [[nodiscard]] auto begin ( ) {
+    return std::istream_iterator<text_line_t<OPT>> {stream};
+  }
 
-    /**
-     * @brief Returns a sentinel iterator representing the end of the file.
-     * @return End-of-stream iterator
-     */
-    [[nodiscard]] auto end ( ) {
-        return std::istream_iterator<text_line_t<OPT>> { };
-    }
+  /**
+   * @brief Returns a sentinel iterator representing the end of the file.
+   * @return End-of-stream iterator
+   */
+  [[nodiscard]] auto end ( ) {
+    return std::istream_iterator<text_line_t<OPT>> { };
+  }
 
-    /**
-     * @brief Filter predicate: checks if a line is empty.
-     * @param s String to check
-     * @return true if the string is empty
-     */
-    static bool empty_line_filter (const wbr::str::StringType auto& s) {
-        return wbr::str::empty(s);
-    }
+  /**
+   * @brief Filter predicate: checks if a line is empty.
+   * @param s String to check
+   * @return true if the string is empty
+   */
+  static bool empty_line_filter (const wbr::str::StringType auto& s) {
+    return wbr::str::empty(s);
+  }
 
-    /**
-     * @brief Filter predicate: checks if a line is a comment (starts with '#').
-     * @param s String to check
-     * @return true if the string starts with '#'
-     */
-    static bool comment_line_filter (const wbr::str::StringType auto& s) {
-        return wbr::str::starts_with(s, "#");
-    }
+  /**
+   * @brief Filter predicate: checks if a line is a comment (starts with '#').
+   * @param s String to check
+   * @return true if the string starts with '#'
+   */
+  static bool comment_line_filter (const wbr::str::StringType auto& s) {
+    return wbr::str::starts_with(s, "#");
+  }
 
-    /**
-     * @brief Filter predicate: checks if a line is not empty.
-     * @param s String to check
-     * @return true if the string is not empty
-     */
-    static bool not_empty_line_filter (const wbr::str::StringType auto& s) {
-        return !empty_line_filter(s);
-    }
+  /**
+   * @brief Filter predicate: checks if a line is not empty.
+   * @param s String to check
+   * @return true if the string is not empty
+   */
+  static bool not_empty_line_filter (const wbr::str::StringType auto& s) {
+    return !empty_line_filter(s);
+  }
 
-    /**
-     * @brief Filter predicate: checks if a line is not a comment.
-     * @param s String to check
-     * @return true if the string does not start with '#'
-     */
-    static bool not_comment_line_filter (const wbr::str::StringType auto& s) {
-        return !comment_line_filter(s);
-    }
+  /**
+   * @brief Filter predicate: checks if a line is not a comment.
+   * @param s String to check
+   * @return true if the string does not start with '#'
+   */
+  static bool not_comment_line_filter (const wbr::str::StringType auto& s) {
+    return !comment_line_filter(s);
+  }
 
-    /**
-     * @brief Transform function: trims whitespace from a string.
-     * @param s String to trim
-     * @return New string with leading and trailing whitespace removed
-     */
-    static wbr::str::StringType auto trim_transform (const wbr::str::StringType auto& s) {
-        return decltype(s) {wbr::str::trim(s, &wbr::str::isspace)};
-    }
+  /**
+   * @brief Transform function: trims whitespace from a string.
+   * @param s String to trim
+   * @return New string with leading and trailing whitespace removed
+   */
+  static wbr::str::StringType auto trim_transform (const wbr::str::StringType auto& s) {
+    return decltype(s) {wbr::str::trim(s, &wbr::str::isspace)};
+  }
 };
 
 static_assert(std::ranges::range<text_file_reader_t<TextLineReadOpt::None>>);
