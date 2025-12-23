@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.30)
 project(
         static_vector
         VERSION 0.6.2
@@ -12,7 +12,9 @@ set(TARGET_DM sv_demo)
 set(TARGET_UT sv_unittest)
 set(TARGET_BM sv_benchmark)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 list(APPEND CMAKE_PREFIX_PATH $ENV{HOME}/.local/lib/cmake)
@@ -74,6 +76,13 @@ option(BUILD_DOCS "static_vector documentation" ON)
 option(FMT_SUPPORT "support for fmt lib" ON)
 option(STD_FORMAT_SUPPORT "support for std::format (C++20)" OFF)
 option(IOSTREAM_SUPPORT "support for iostream" ON)
+option(USE_LIBCXX "Use libc++" OFF)
+
+# Optionally, enable Clang-specific flags if needed
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    add_compile_options(-stdlib=libc++)
+    link_libraries(c++)
+endif ()
 
 if (NOT CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(BUILD_TESTS OFF)
@@ -128,6 +137,15 @@ target_include_directories(
 if (BUILD_TESTS)
     enable_testing()
     find_package(GTest)
+    find_package(Boost CONFIG 1.83)
+    if (Boost_FOUND)
+        message(STATUS "Boost found: ${Boost_VERSION}")
+        include_directories(Boost::boost)
+        add_compile_definitions(-DUSE_BOOST=1)
+    else ()
+        add_compile_definitions(-DUSE_BOOST=0)
+    endif ()
+
     if (NOT GTest_FOUND)
         FetchContent_Declare(
                 googletest

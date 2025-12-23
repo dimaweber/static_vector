@@ -1,5 +1,8 @@
 #include <fmt/format.h>
 
+#include <format>
+#include <print>
+
 #include "loremipsum.hxx"
 #include "static_avl_tree.hxx"
 
@@ -33,7 +36,7 @@ void tree_demo ( ) {
   wbr::lorem::loremipsum_t gen;
   wbr::lorem::composer_t   comp {gen};
   for ( int i = 10; i < 610; ++i ) {
-    auto [ok, idx] = map.add(i, fmt::format("word {}", gen.next( )));
+    auto [ok, idx] = map.add(i, std::format("word {}", gen.next( )));
     if ( !ok ) {
       fmt::println("failed to add key {}", i);
     }

@@ -5,7 +5,7 @@
 #include <concepts>
 #include <fstream>
 #include <functional>
-#include <generator>
+#include <iterator>
 #include <numeric>
 #include <queue>
 #include <stack>
@@ -90,7 +90,7 @@ public:
   }
 
   struct lcr_iterator_t {
-    using difference_type   = static_avl_tree::index_t;
+    using difference_type   = int;
     using iterator_category = std::forward_iterator_tag;
     using value_type        = static_avl_tree::value_type;
     using pointer           = value_type*;
@@ -145,11 +145,22 @@ public:
       }
       return *this;
     }
+
+    lcr_iterator_t operator++ (int) noexcept {
+      auto t = *this;
+      operator++ ( );
+      return t;
+    }
   };
 
-  using iterator       = lcr_iterator_t;
-  using const_iterator = lcr_iterator_t;
+  static_assert(std::forward_iterator<lcr_iterator_t>);
 
+  using iterator = lcr_iterator_t;
+#if defined(__cpp_lib_ranges_as_const) && __cpp_lib_ranges_as_const > 202207L
+  using const_iterator = std::const_iterator<iterator>;
+#else
+  using const_iterator = lcr_iterator_t;
+#endif
   iterator begin ( ) {
     return iterator(this);
   }
@@ -163,6 +174,14 @@ public:
   }
 
   iterator end ( ) {
+    return { };
+  }
+
+  const_iterator end ( ) const {
+    return { };
+  }
+
+  const_iterator cend ( ) const {
     return { };
   }
 
@@ -640,7 +659,7 @@ private:
   co_generator_t<index_t> lcr_action_s (index_t start) {
     if ( start == invalid_index )
       co_return;
-    std::stack<index_t, wbr::static_vector<index_t, max_tree_depth(storage_capacity)>> stack;
+    std::stack<index_t, wbr::static_vector<index_t, log2(storage_capacity)+1>> stack;
 
     while ( !stack.empty( ) || start != invalid_index ) {
       while ( start != invalid_index ) {

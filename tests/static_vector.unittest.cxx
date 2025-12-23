@@ -1405,7 +1405,7 @@ TEST (StaticVector, RangesCompatible) {
     EXPECT_FALSE(std::ranges::equal(st_vec, vec));
     EXPECT_FALSE(std::ranges::equal(vec, st_vec));
 
-    std::ranges::any_of(st_vec, [] (int i) { return i > 6; });
+  EXPECT_TRUE(std::ranges::any_of(st_vec, [] (int i) { return i > 6; }));
 }
 
 TEST (StaticVector, CompareThreeWay) {

@@ -210,12 +210,13 @@ inline auto is_notpunct = std::not_fn(is_punct);
  *     // hex == "de ad be ef"
  * @endcode
  */
-template<typename T>
-std::string convertToHexString (const T& arr, std::string_view divider = " ") {
+std::string convertToHexString (const HasBeginEnd auto& arr, std::string_view divider = " ")
+  requires(std::convertible_to<decltype(*arr.begin( )), uint8_t>)
+{
   return fmt::format("{:02x}", fmt::join(arr.begin( ), arr.end( ), divider));
 }
 
-inline std::string convertToHexString (const char* arr, std::string_view divider = " ") {
+inline std::string convertToHexString (const std::convertible_to<char> auto* arr, std::string_view divider = " ") {
   return convertToHexString(std::string_view {arr}, divider);
 }
 
@@ -401,7 +402,7 @@ inline void tokenize_callback (const std::string_view sv, const TokenAction& act
   std::string_view::size_type pos_token_end;
   do {
     pos_token_end = sv.find_first_of(delimiters, pos_token_start);
-    action(sv.substr(pos_token_start, pos_token_end - pos_token_start));
+    action(sv.substr(pos_token_start, pos_token_end == std::string_view::npos ? pos_token_end : pos_token_end - pos_token_start));
     pos_token_start = pos_token_end + 1;
   } while ( pos_token_end != std::string_view::npos );
 }
@@ -462,6 +463,19 @@ inline std::vector<std::string_view> tokenize (const std::string_view str, std::
 
   tokenize_callback(str, [&vsv] (std::string_view token) { vsv.emplace_back(token); }, delimiters);
   return vsv;
+}
+
+void tokenize (const StringViewLike auto& in, std::output_iterator<std::string_view> auto out, std::string_view delimiters = " ") {
+  if ( in.empty( ) )
+    return;
+  std::string_view::size_type pos_token_start = 0;
+  std::string_view::size_type pos_token_end;
+  std::string_view            sv {in};
+  do {
+    pos_token_end   = sv.find_first_of(delimiters, pos_token_start);
+    *out++          = sv.substr(pos_token_start, pos_token_end == std::string_view::npos ? pos_token_end : pos_token_end - pos_token_start);
+    pos_token_start = pos_token_end + 1;
+  } while ( pos_token_end != std::string_view::npos );
 }
 
 /** @brief Tokenizes a C-style string into a vector of string views based on specified delimiters.

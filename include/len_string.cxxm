@@ -24,6 +24,9 @@
 #if STD_FORMAT_SUPPORT
   #include <format>
 #endif
+#if IOSTREAM_SUPPORT
+  #include <iostream>
+#endif
 
 namespace wbr {
 // Forward declaration for fmt formatter specialization
@@ -53,6 +56,14 @@ struct std::formatter<wbr::len_string_adapter<LenType, bc>, char> : std::formatt
     return std::formatter<std::string_view, char>::format(str.view( ), ctx);
   }
 };
+#endif
+
+#if IOSTREAM_SUPPORT
+  template<std::unsigned_integral SZ, wbr::BoundCheckStrategy bc>
+  std::ostream& operator<< (std::ostream& str, const wbr::len_string_adapter<SZ, bc>& s) {
+    str << s.view( );
+    return str;
+  }
 #endif
 
 namespace wbr {
@@ -94,7 +105,7 @@ public:
   using size_type     = std::size_t;
   using len_type      = LenType;
   using iterator      = char_type*;
-#if defined(__cpp_lib_ranget_as_const) && __cpp_lib_ranges_as_const > 202207L
+#if defined(__cpp_lib_ranges_as_const) && __cpp_lib_ranges_as_const > 202207L
   using const_iterator = std::const_iterator<iterator>;
 #else
   using const_iterator = const char_type*;
@@ -573,7 +584,7 @@ public:
   ///@}
 #endif
 
-#if STD_FORMAT_SUPPORT
+#if STD_FORMAT_SUPPORT && !FMT_SUPPORT
   ///@name format operations (std::format)
   ///@{
 
@@ -612,12 +623,3 @@ private:
   len_type&       length_;    ///< Reference to external length variable
 };
 }  // namespace wbr
-#if IOSTREAM_SUPPORT
-  #include <iostream>
-
-template<std::unsigned_integral SZ, wbr::BoundCheckStrategy bc>
-std::ostream& operator<< (std::ostream& str, const wbr::len_string_adapter<SZ, bc>& s) {
-  str << s.view( );
-  return str;
-}
-#endif

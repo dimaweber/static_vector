@@ -7,6 +7,7 @@
 #include <initializer_list>
 #include <iterator>
 #include <memory>
+#include <new>
 #include <stdexcept>
 #if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L
   #include <format>
@@ -112,7 +113,7 @@ public:
    * This constructor initializes the adapter with a reference to a C-style array and a counter
    * that tracks the number of elements currently in use. Various bound check strategies can be
    * applied based on the template parameter bc_strategy:
-   * - Exception: Throws an std::out_of_range exception if the counter is out of range.
+   * - Exception: Throws a std::out_of_range exception if the counter is out of range.
    * - Assert: Uses an assertion to ensure the counter is within bounds (debug builds only).
    * - LimitToBound: Limits the element count to a valid bound if it's out of range.
    * - UB: Don't perform any checks. Bound violation will lead to undefined behavior
@@ -138,7 +139,7 @@ public:
    * This constructor initializes the adapter with a reference to a raw pointer array and a counter
    * that tracks the number of elements currently in use. Various bound check strategies can be
    * applied based on the template parameter bc_strategy:
-   * - Exception: Throws an std::out_of_range exception if the counter is out of range.
+   * - Exception: Throws a std::out_of_range exception if the counter is out of range.
    * - Assert: Uses an assertion to ensure the counter is within bounds (debug builds only).
    * - LimitToBound: Limits the element count to a valid bound if it's out of range.
    * - UB: Don't perform any checks. Bound violation will lead to undefined behavior
@@ -235,7 +236,6 @@ public:
    *
    * This function clears any existing elements and then copies elements from the range [first, last).
    *
-   * @tparam InputIt Type of input iterators
    * @param first Iterator to the beginning of the range
    * @param last Iterator to the end of the range
    *
@@ -487,7 +487,7 @@ public:
    *
    * @return Reference to the first element.
    *
-   * @throws `std::out_of_range` if the container is empty (depending on implementation of `not_empty_container_check`).
+   * @throws std::out_of_range if the container is empty (depending on implementation of `not_empty_container_check`).
    *
    * @par Example usage:
    * @code{.cpp}
@@ -518,7 +518,7 @@ public:
    *
    * @return Const reference to the first element.
    *
-   * @throws `std::out_of_range` if the container is empty (depending on implementation of `not_empty_container_check`).
+   * @throws std::out_of_range if the container is empty (depending on implementation of `not_empty_container_check`).
    */
   template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
   [[nodiscard]] constexpr const_reference front ( ) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
@@ -539,7 +539,7 @@ public:
    *
    * @return Reference to the last element.
    *
-   * @throws `std::out_of_range` if the container is empty (depending on implementation of `not_empty_container_check`).
+   * @throws std::out_of_range if the container is empty (depending on implementation of `not_empty_container_check`).
    *
    * @par Example usage:
    * @code{.cpp}
@@ -570,7 +570,7 @@ public:
    *
    * @return Const reference to the last element.
    *
-   * @throws `std::out_of_range` if the container is empty (depending on implementation of `not_empty_container_check`).
+   * @throws std::out_of_range if the container is empty (depending on implementation of `not_empty_container_check`).
    */
   template<BoundCheckStrategy custom_bc_strategy = bc_strategy>
   [[nodiscard]] constexpr const_reference back ( ) const noexcept(custom_bc_strategy != BoundCheckStrategy::Exception) {
@@ -1124,7 +1124,6 @@ public:
    * the container. If `pos` is not at the end, existing elements are shifted to
    * the right to make space for the new element.
    *
-   * @tparam T The type of elements in the static vector.
    * @tparam custom_bc_strategy The bound check strategy to use. Possible values are:
    * - Exception: Throws an exception if bounds are violated
    * - Assert: Uses assertions to check bounds (debug mode only)
@@ -1385,6 +1384,8 @@ public:
   using const_reference = const value_type&;
   using pointer         = value_type*;
   using const_pointer   = const value_type*;
+
+  static_assert(std::contiguous_iterator<iterator>);
 
   constexpr static_vector( ) = default;
 

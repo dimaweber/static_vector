@@ -9,7 +9,11 @@
 
 #include <random>
 
+#include "loremipsum.hxx"
 #include "static_string.hxx"
+#if USE_BOOST
+  #include <boost/algorithm/hex.hpp>
+#endif
 
 class TrimTest : public testing::TestWithParam<std::tuple<std::string, std::string, std::string>> { };
 
@@ -488,6 +492,18 @@ TEST (AsHexTest, StringAsHex) {
     EXPECT_EQ(wbr::str::convertToHexString(str), "48 65 6c 6c 6f 4b 69 74 74 79");
     EXPECT_EQ(wbr::str::convertToHexString(str, ""), "48656c6c6f4b69747479");
     EXPECT_EQ(wbr::str::convertToHexString(str, ":"), "48:65:6c:6c:6f:4b:69:74:74:79");
+  using namespace wbr::str;
+
+  const std::string str {"HelloKitty"};
+  EXPECT_EQ(convertToHexString(str), "48 65 6c 6c 6f 4b 69 74 74 79");
+  EXPECT_EQ(convertToHexString(str, ""), "48656c6c6f4b69747479");
+  EXPECT_EQ(convertToHexString(str, ":"), "48:65:6c:6c:6f:4b:69:74:74:79");
+
+#if USE_BOOST
+  std::string boost_hex;
+  boost::algorithm::hex_lower(str, std::back_inserter(boost_hex));
+  EXPECT_EQ(boost_hex, convertToHexString(str, ""));
+#endif
 }
 
 TEST (AsHexTest, SklStringAsHex) {
@@ -495,13 +511,30 @@ TEST (AsHexTest, SklStringAsHex) {
     EXPECT_EQ(wbr::str::convertToHexString(str), "48 65 6c 6c 6f 4b 69 74 74 79");
     EXPECT_EQ(wbr::str::convertToHexString(str, ""), "48656c6c6f4b69747479");
     EXPECT_EQ(wbr::str::convertToHexString(str, ":"), "48:65:6c:6c:6f:4b:69:74:74:79");
+TEST (AsHexTest, WbrStringAsHex) {
+  using namespace wbr::str;
+
+  const wbr::static_string<16> str {"HelloKitty"};
+  EXPECT_EQ(convertToHexString(str), "48 65 6c 6c 6f 4b 69 74 74 79");
+  EXPECT_EQ(convertToHexString(str, ""), "48656c6c6f4b69747479");
+  EXPECT_EQ(convertToHexString(str, ":"), "48:65:6c:6c:6f:4b:69:74:74:79");
+#if USE_BOOST
+  std::string boost_hex;
+  boost::algorithm::hex_lower(str, std::back_inserter(boost_hex));
+  EXPECT_EQ(boost_hex, convertToHexString(str, ""));
+#endif
 }
 
 TEST (AsHexTest, StringViewAsHex) {
-    const std::string_view sv {"HelloKitty"};
-    EXPECT_EQ(wbr::str::convertToHexString(sv), "48 65 6c 6c 6f 4b 69 74 74 79");
-    EXPECT_EQ(wbr::str::convertToHexString(sv, ""), "48656c6c6f4b69747479");
-    EXPECT_EQ(wbr::str::convertToHexString(sv, ":"), "48:65:6c:6c:6f:4b:69:74:74:79");
+  const std::string_view sv {"HelloKitty"};
+  EXPECT_EQ(wbr::str::convertToHexString(sv), "48 65 6c 6c 6f 4b 69 74 74 79");
+  EXPECT_EQ(wbr::str::convertToHexString(sv, ""), "48656c6c6f4b69747479");
+  EXPECT_EQ(wbr::str::convertToHexString(sv, ":"), "48:65:6c:6c:6f:4b:69:74:74:79");
+#if USE_BOOST
+  std::string boost_hex;
+  boost::algorithm::hex_lower(sv, std::back_inserter(boost_hex));
+  EXPECT_EQ(boost_hex, wbr::str::convertToHexString(sv, ""));
+#endif
 }
 
 TEST (AsHexTest, ArrayAsHex) {
@@ -764,4 +797,55 @@ TEST (TokenizeModifyFilterTest, ComplexExample) {
     EXPECT_EQ(result[0], "The");
     EXPECT_EQ(result[1], "Cat");
     EXPECT_EQ(result[2], "Mat");
+}
+
+// Helper function to convert vector<std::string_view> to vector<std::string> for easy comparison.
+std::vector<std::string> to_string_vector (const std::vector<std::string_view>& vec) {
+  return {vec.begin( ), vec.end( )};
+}
+
+TEST_F (TokenizeTest, BasicTokenization) {
+  const std::string             text = "hello world this is a test";
+  std::vector<std::string_view> result;
+  wbr::str::tokenize(text, std::back_inserter(result));
+
+  std::vector<std::string> expected = {"hello", "world", "this", "is", "a", "test"};
+  EXPECT_EQ(to_string_vector(result), expected);
+}
+
+TEST_F (TokenizeTest, TokenizationWithDelimiters) {
+  std::string                   text = "hello-world-this-is-a-test";
+  std::vector<std::string_view> result;
+  wbr::str::tokenize(text, std::back_inserter(result), "-");
+
+  std::vector<std::string> expected = {"hello", "world", "this", "is", "a", "test"};
+  EXPECT_EQ(to_string_vector(result), expected);
+}
+
+TEST_F (TokenizeTest, TokenizationWithEmptyString) {
+  std::string                   text = "";
+  std::vector<std::string_view> result;
+  wbr::str::tokenize(text, std::back_inserter(result));
+
+  std::vector<std::string> expected = { };
+  EXPECT_EQ(to_string_vector(result), expected);
+}
+
+TEST_F (TokenizeTest, TokenizationWithMultipleDelimiters) {
+  std::string                   text = "hello,, world--this--is-a-test";
+  std::vector<std::string_view> result;
+  wbr::str::tokenize(text, std::back_inserter(result), " ,-");
+
+  std::vector<std::string> expected = {"hello", "", "", "world", "", "this", "", "is", "a", "test"};
+  EXPECT_EQ(to_string_vector(result), expected);
+}
+
+TEST_F (TokenizeTest, BackInsert) {
+  using namespace wbr::lorem;
+  loremipsum_t                  gen;
+  composer_t                    comp {gen};
+  const std::string             text = comp.getString(10);
+  std::vector<std::string_view> result;
+  wbr::str::tokenize(text, std::back_inserter(result));
+  EXPECT_FALSE(result.empty( ));
 }
