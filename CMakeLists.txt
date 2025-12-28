@@ -80,9 +80,9 @@ option(USE_LIBCXX "Use libc++" OFF)
 
 # Optionally, enable Clang-specific flags if needed
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    add_compile_options(-stdlib=libc++)
-    link_libraries(c++)
     if (USE_LIBCXX)
+        add_compile_options(-stdlib=libc++)
+        link_libraries(c++)
     endif ()
 endif ()
 
