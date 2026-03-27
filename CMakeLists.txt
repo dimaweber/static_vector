@@ -60,6 +60,7 @@ set(HEADERS
         include/static_avl_tree.hxx
         include/loremipsum.hxx
         include/co_generator.hxx
+        include/sort.hxx
 )
 
 
@@ -166,6 +167,7 @@ if (BUILD_TESTS)
             tests/len_string.unittest.cxx
             tests/text_file_reader.unittest.cxx
             tests/static_avl_tree.unittest.cxx
+            tests/sort.unittest.cxx
     )
 
     include(GoogleTest)
@@ -178,7 +180,8 @@ endif ()
 if (BUILD_BENCHMARK)
     find_package(benchmark)
 
-    add_executable(${TARGET_BM} benchmark/static_vector.benchmark.cpp)
+    add_executable(${TARGET_BM} benchmark/static_vector.benchmark.cpp
+            benchmark/sort.benchmark.cpp)
 
     target_link_libraries(${TARGET_BM} PRIVATE ${TARGET_LIB}
             benchmark::benchmark_main)

@@ -66,11 +66,16 @@ struct memory_t {
   }
 };
 
+template<typename T>
+using CompareFunc = std::function<bool(const T&, const T&)>;
+
 /** @brief map based on stack-allocated vector
  *
  **/
-template<std::totally_ordered Key, typename Value, size_t storage_capacity = 256>
-  requires std::is_copy_assignable_v<Key> and std::is_copy_assignable_v<Value>
+template<std::totally_ordered Key, typename Value, size_t storage_capacity = 256, auto cmp = std::less<Key> { }>
+  requires std::is_copy_assignable_v<Key> and std::is_copy_assignable_v<Value> and requires(Key k1, Key k2) {
+                                                                                     { cmp(k1, k2) } -> std::same_as<bool>;
+                                                                                   }
 class static_avl_tree {
 public:
   using index_t = size_t;
@@ -275,7 +280,7 @@ public:
     // Check if all nodes are visited
     for ( index_t i = 0; i < memory.capacity( ); ++i ) {
       const auto& node = memory.at(i);
-      if ( (node.left != invalid_index || node.right != invalid_index || node.parent != invalid_index || i == head_) && visited.find(i) == visited.end( ) ) {
+      if ( (node.left != invalid_index || node.right != invalid_index || node.parent != invalid_index || i == head_) && !visited.contains(i) ) {
         return false;  // Found an isolated area
       }
     }
@@ -659,7 +664,7 @@ private:
   co_generator_t<index_t> lcr_action_s (index_t start) {
     if ( start == invalid_index )
       co_return;
-    std::stack<index_t, wbr::static_vector<index_t, log2(storage_capacity)+1>> stack;
+    std::stack<index_t, wbr::static_vector<index_t, log2(storage_capacity) + 1>> stack;
 
     while ( !stack.empty( ) || start != invalid_index ) {
       while ( start != invalid_index ) {
@@ -746,14 +751,14 @@ private:
     auto it = head_;
     while ( true ) {
       auto& parent = memory.at(it);
-      if ( parent.key( ) < k ) {
+      if ( cmp(parent.key( ), k) ) {
         if ( parent.right != invalid_index ) {
           it = parent.right;
         } else {
           parent.right = create(k, v, it);
           return {true, parent.right};
         }
-      } else if ( parent.key( ) > k ) {
+      } else if ( cmp(k, parent.key( )) ) {
         if ( parent.left != invalid_index ) {
           it = parent.left;
         } else {
@@ -788,7 +793,7 @@ private:
     }
 
     // Check binary search tree property: left < parent, right > parent
-    if ( (node.left != invalid_index && memory.at(node.left).key( ) >= node.key( )) || (node.right != invalid_index && memory.at(node.right).key( ) <= node.key( )) ) {
+    if ( (node.left != invalid_index && !cmp(memory.at(node.left).key( ), node.key( ))) || (node.right != invalid_index && !cmp(node.key( ), memory.at(node.right).key( ))) ) {
       return false;
     }
 
