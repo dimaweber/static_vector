@@ -25,7 +25,8 @@ if (CCACHE_PROGRAM)
 endif ()
 
 # General warning settings for supported compilers
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL
+        "Clang")
     # Disable array-bounds warning conditionally for specific tests
     add_compile_options(-Wno-array-bounds)
 
@@ -33,7 +34,8 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clan
     add_compile_options(-Wall -Wextra -Werror)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     # Disable array-bounds warning for MSVC conditionally
-    add_compile_options(/wd4706)  # Warning C4706: assignment within conditional expression
+    add_compile_options(/wd4706) # Warning C4706: assignment within conditional
+    # expression
 
     # Add other MSVC warning flags as needed
     add_compile_options(/W4 /WX)
@@ -42,8 +44,7 @@ endif ()
 # For specific test files, disable warnings that we know are intended behavior
 set_source_files_properties(
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/static_vector_adapter.unittest.cxx
-        PROPERTIES COMPILE_FLAGS "-Wno-array-bounds"
-)
+        PROPERTIES COMPILE_FLAGS "-Wno-array-bounds")
 
 set(HEADERS
         include/bound_check.hxx
@@ -61,14 +62,15 @@ set(HEADERS
         include/loremipsum.hxx
         include/co_generator.hxx
         include/sort.hxx
-)
+        include/mac_address.hxx)
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -O0"
+)# -march=raptorlake
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3 -O0") # -march=raptorlake
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -O0")   #-march=raptorlake
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3 -O0")       # -march=raptorlake
-
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}  -O3")      # -march=raptorlake
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}  -O3")  # -march=raptorlake
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}  -O3") # -march=raptorlake
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}  -O3"
+)# -march=raptorlake
 
 option(BUILD_BENCHMARK "static_vector benchmark" ON)
 option(BUILD_TESTS "static_vector test" ON)
@@ -112,8 +114,7 @@ if (FMT_SUPPORT)
         FetchContent_Declare(
                 fmt
                 GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-                GIT_TAG 11.2.0
-        )
+                GIT_TAG 11.2.0)
         FetchContent_MakeAvailable(fmt)
     endif ()
 else ()
@@ -153,8 +154,7 @@ if (BUILD_TESTS)
         FetchContent_Declare(
                 googletest
                 GIT_REPOSITORY https://github.com/google/googletest.git
-                GIT_TAG v1.14.0
-        )
+                GIT_TAG v1.14.0)
         FetchContent_MakeAvailable(googletest)
     endif ()
     add_executable(
@@ -167,12 +167,12 @@ if (BUILD_TESTS)
             tests/len_string.unittest.cxx
             tests/text_file_reader.unittest.cxx
             tests/static_avl_tree.unittest.cxx
-            tests/sort.unittest.cxx
-    )
+            tests/sort.unittest.cxx)
 
     include(GoogleTest)
     gtest_discover_tests(${TARGET_UT})
-    target_link_libraries(${TARGET_UT} PRIVATE GTest::gtest_main ${TARGET_LIB} fmt::fmt)
+    target_link_libraries(${TARGET_UT} PRIVATE GTest::gtest_main ${TARGET_LIB}
+            fmt::fmt)
 else ()
     add_compile_definitions(BUILD_TESTS=0)
 endif ()
@@ -190,8 +190,10 @@ endif ()
 if (BUILD_EXAMPLES)
     add_executable(
             ${TARGET_DM}
-            examples/base_usage.cpp examples/range-based-for-loop.cpp
-            examples/sv_demo.cpp examples/standard-algorithm-functions.cpp
+            examples/base_usage.cpp
+            examples/range-based-for-loop.cpp
+            examples/sv_demo.cpp
+            examples/standard-algorithm-functions.cpp
             examples/tlv_array_base_usage.cpp
             examples/coroutine.cpp
             examples/string_demo.cpp
@@ -199,6 +201,7 @@ if (BUILD_EXAMPLES)
     target_link_libraries(${TARGET_DM} PRIVATE ${TARGET_LIB})
     target_link_libraries(${TARGET_DM} PRIVATE fmt::fmt)
     if (FMT_SUPPORT)
+
     endif ()
 endif ()
 
