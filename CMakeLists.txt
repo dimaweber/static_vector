@@ -135,10 +135,16 @@ else ()
     add_compile_definitions(IOSTREAM_SUPPORT=0)
 endif ()
 
+
 add_library(${TARGET_LIB} INTERFACE ${HEADERS})
+target_sources(${TARGET_LIB} INTERFACE
+        FILE_SET HEADERS
+        BASE_DIRS include
+        FILES ${HEADERS}
+)
 target_include_directories(
         ${TARGET_LIB} INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>)
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 if (BUILD_TESTS)
     enable_testing()
@@ -243,8 +249,6 @@ write_basic_package_version_file(
         VERSION ${PROJECT_VERSION}
         COMPATIBILITY SameMajorVersion)
 
-install(FILES ${HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/static_vector-config.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/static_vector-config-version.cmake
         DESTINATION ${INSTALL_CMAKE_DIR})
@@ -252,13 +256,13 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/static_vector-config.cmake
 install(
         TARGETS ${TARGET_LIB}
         EXPORT wbr-targets
-        # DESTINATION ${INSTALL_CMAKE_DIR}
+        DESTINATION ${INSTALL_CMAKE_DIR}
         # FILE_SET HEADERS
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        INCLUDES
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+        # INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/wbr)
 install(
         EXPORT wbr-targets
         NAMESPACE wbr::
