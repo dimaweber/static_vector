@@ -62,7 +62,9 @@ set(HEADERS
         include/loremipsum.hxx
         include/co_generator.hxx
         include/sort.hxx
-        include/mac_address.hxx)
+        include/mac_address.hxx
+        include/pretty_printer.hxx
+)
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -O0"
 )# -march=raptorlake

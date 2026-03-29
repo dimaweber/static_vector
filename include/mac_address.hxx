@@ -217,7 +217,7 @@ FMT_BEGIN_NAMESPACE
 template<>
 struct formatter<wbr::net::mac_address_t> : formatter<std::string> {
   template<typename FormatterContext>
-  void format (const wbr::net::mac_address_t& mac, FormatterContext& ctx) const {
+  auto format (const wbr::net::mac_address_t& mac, FormatterContext& ctx) const {
     return formatter<std::string>::format(mac.str( ), ctx);
   }
 };
