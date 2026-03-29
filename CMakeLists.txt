@@ -64,6 +64,8 @@ set(HEADERS
         include/sort.hxx
         include/mac_address.hxx
         include/pretty_printer.hxx
+        include/iana_address_family.hxx
+        include/ipv4_address.hxx
 )
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -O0"

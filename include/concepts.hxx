@@ -41,6 +41,14 @@ concept PointerLike = std::is_pointer_v<Ptr> || requires(Ptr p) {
                                                   { p->operator->( ) } -> std::convertible_to<Ptr>;
                                                 };
 
+template<typename E>
+concept EnumType = std::is_enum_v<E>;
+
+template<typename T>
+concept ConvertibleToString = requires(T t) {
+                                { to_string(t) } -> std::convertible_to<std::string_view>;
+                              };
+
 namespace str {
 template<class S>
 concept StringType = HasSize<S> and requires(S s) {

@@ -3,6 +3,9 @@
 
 #include <string>
 
+#include "concepts.hxx"
+#include "static_string.hxx"
+
 namespace wbr {
 inline std::string pretty_printer (const std::chrono::duration<double> d) {
   auto conv = []<typename A, typename B>(const auto& elaps) {
@@ -37,3 +40,18 @@ inline std::string pretty_printer (const std::chrono::duration<double> d) {
   return fmt::format("{:%Q%q}", elaps);
 }
 }  // namespace wbr
+
+FMT_BEGIN_NAMESPACE
+
+template<typename E>
+concept FormattableViaToString = wbr::ConvertibleToString<E> && std::is_enum_v<E>;
+
+template<FormattableViaToString E>
+struct formatter<E> : formatter<std::string_view> {
+  template<typename FormatContext>
+  auto format (const E e, FormatContext& ctx) const {
+    return formatter<std::string_view>::format(to_string<std::string_view>(e), ctx);
+  }
+};
+
+FMT_END_NAMESPACE
